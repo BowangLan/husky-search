@@ -1,124 +1,116 @@
-import { Course } from "@/components/course-card"
+import { Course } from "@/types/course"
 
 export const courses: Course[] = [
   {
     id: "1",
     title: "React for Beginners: Build Modern Web Applications",
-    instructor: "Sarah Johnson",
-    description: "Learn React from scratch and build responsive, interactive web applications with the most popular JavaScript library.",
-    price: 89.99,
-    rating: 4.8,
-    reviewCount: 2547,
-    duration: "24h 30m",
+    description:
+      "Learn React from scratch and build responsive, interactive web applications with the most popular JavaScript library.",
     level: "Beginner",
-    category: "Development",
+    subjects: "React",
+    code: "CS101",
+    credits: 3,
     tags: ["React", "JavaScript", "Web Development", "Frontend"],
     isFeatured: true,
-    imageUrl: "https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80"
+    imageUrl:
+      "https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
   },
   {
     id: "2",
     title: "Data Science and Machine Learning Bootcamp",
-    instructor: "Michael Chen",
-    description: "Master data science, machine learning and deep learning concepts. Learn to analyze data and build models with Python.",
-    price: 129.99,
-    rating: 4.9,
-    reviewCount: 3211,
-    duration: "41h 15m",
+    description:
+      "Master data science, machine learning and deep learning concepts. Learn to analyze data and build models with Python.",
     level: "Intermediate",
-    category: "Data Science",
+    subjects: "Data Science",
+    code: "DS101",
+    credits: 4,
     tags: ["Python", "Machine Learning", "Data Analysis", "Deep Learning"],
     isFeatured: true,
-    imageUrl: "https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80"
+    imageUrl:
+      "https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
   },
   {
     id: "3",
     title: "The Complete Digital Marketing Course",
-    instructor: "Emily Rodriguez",
-    description: "Learn digital marketing strategy, social media marketing, SEO, Google Ads, Facebook Ads, email marketing and more.",
-    price: 99.99,
-    rating: 4.7,
-    reviewCount: 1845,
-    duration: "32h 45m",
+    description:
+      "Learn digital marketing strategy, social media marketing, SEO, Google Ads, Facebook Ads, email marketing and more.",
     level: "All Levels",
-    category: "Marketing",
+    subjects: "Marketing",
+    code: "MK101",
+    credits: 3,
     tags: ["Digital Marketing", "SEO", "Social Media", "Google Ads"],
     isFeatured: false,
-    imageUrl: "https://images.unsplash.com/photo-1557838923-2985c318be48?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80"
+    imageUrl:
+      "https://images.unsplash.com/photo-1557838923-2985c318be48?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
   },
   {
     id: "4",
     title: "UI/UX Design Fundamentals",
-    instructor: "David Thompson",
-    description: "Learn user interface and user experience design principles. Create stunning designs and build a professional portfolio.",
-    price: 79.99,
-    rating: 4.6,
-    reviewCount: 1253,
-    duration: "18h 20m",
+    description:
+      "Learn user interface and user experience design principles. Create stunning designs and build a professional portfolio.",
     level: "Beginner",
-    category: "Design",
+    subjects: "Design",
+    code: "DE101",
+    credits: 2,
     tags: ["UI Design", "UX Design", "Figma", "Adobe XD"],
     isFeatured: false,
-    imageUrl: "https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80"
+    imageUrl:
+      "https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
   },
   {
     id: "5",
     title: "Advanced JavaScript: From Fundamentals to Functional JS",
-    instructor: "Alex Williams",
-    description: "Take your JavaScript skills to the next level with advanced concepts, design patterns, and functional programming.",
-    price: 94.99,
-    rating: 4.8,
-    reviewCount: 986,
-    duration: "22h 10m",
+    description:
+      "Take your JavaScript skills to the next level with advanced concepts, design patterns, and functional programming.",
     level: "Advanced",
-    category: "Development",
+    subjects: "Development",
+    code: "JS101",
+    credits: 4,
     tags: ["JavaScript", "ES6", "Functional Programming", "Web Development"],
     isFeatured: false,
-    imageUrl: "https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80"
+    imageUrl:
+      "https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
   },
   {
     id: "6",
     title: "Photography Masterclass: Complete Guide to Photography",
-    instructor: "Jessica Lee",
-    description: "Learn photography from beginner to advanced level. Master camera settings, composition, lighting and post-processing.",
-    price: 69.99,
-    rating: 4.9,
-    reviewCount: 2105,
-    duration: "28h 55m",
+    description:
+      "Learn photography from beginner to advanced level. Master camera settings, composition, lighting and post-processing.",
     level: "All Levels",
-    category: "Photography",
+    subjects: "Photography",
+    code: "PH101",
+    credits: 3,
     tags: ["Photography", "DSLR", "Composition", "Lightroom"],
     isFeatured: true,
-    imageUrl: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2076&q=80"
+    imageUrl:
+      "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2076&q=80",
   },
   {
     id: "7",
     title: "The Complete Business Plan Course",
-    instructor: "Robert Miller",
-    description: "Learn how to write a business plan that attracts investors and helps your business succeed with practical templates and guides.",
-    price: 84.99,
-    rating: 4.5,
-    reviewCount: 763,
-    duration: "15h 40m",
+    description:
+      "Learn how to write a business plan that attracts investors and helps your business succeed with practical templates and guides.",
     level: "Intermediate",
-    category: "Business",
+    subjects: "Business",
+    code: "BP101",
+    credits: 3,
     tags: ["Business Plan", "Entrepreneurship", "Startup", "Finance"],
     isFeatured: false,
-    imageUrl: "https://images.unsplash.com/photo-1664575599736-c5197c684153?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80"
+    imageUrl:
+      "https://images.unsplash.com/photo-1664575599736-c5197c684153?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
   },
   {
     id: "8",
     title: "Complete Music Production Course with Ableton Live",
-    instructor: "Marcus Green",
-    description: "Learn music production from scratch. Create beats, mix, master and produce complete tracks using Ableton Live.",
-    price: 109.99,
-    rating: 4.7,
-    reviewCount: 1207,
-    duration: "37h 15m",
+    description:
+      "Learn music production from scratch. Create beats, mix, master and produce complete tracks using Ableton Live.",
     level: "Beginner",
-    category: "Music",
+    subjects: "Music",
+    code: "MU101",
+    credits: 4,
     tags: ["Music Production", "Ableton", "Mixing", "Electronic Music"],
     isFeatured: false,
-    imageUrl: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80"
-  }
-] 
+    imageUrl:
+      "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
+  },
+]

@@ -1,27 +1,29 @@
-export default function Marquee({ items }: { items: string[] }) {
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+interface MarqueeProps {
+  className?: string
+  items: string[]
+}
+
+export default function Marquee({ className, items }: MarqueeProps) {
   return (
-    <div className="relative flex w-full overflow-x-hidden border-b-2 border-t-2 border-border bg-secondary-background text-foreground font-base">
-      <div className="animate-marquee whitespace-nowrap py-12">
-        {items.map((item) => {
-          return (
-            <span key={item} className="mx-4 text-4xl">
-              {item}
-            </span>
-          )
-        })}
+    <div className={cn("relative flex w-full overflow-x-hidden", className)}>
+      <div className="animate-marquee whitespace-nowrap py-4">
+        {items.map((item, index) => (
+          <span key={index} className="mx-4 text-sm">
+            {item}
+          </span>
+        ))}
       </div>
-
-      <div className="absolute top-0 animate-marquee2 whitespace-nowrap py-12">
-        {items.map((item) => {
-          return (
-            <span key={item} className="mx-4 text-4xl">
-              {item}
-            </span>
-          )
-        })}
+      <div className="absolute top-0 animate-marquee2 whitespace-nowrap py-4">
+        {items.map((item, index) => (
+          <span key={index} className="mx-4 text-sm">
+            {item}
+          </span>
+        ))}
       </div>
-
-      {/* must have both of these in order to work */}
     </div>
   )
 }

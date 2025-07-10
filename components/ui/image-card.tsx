@@ -1,21 +1,23 @@
+import * as React from "react"
+
 import { cn } from "@/lib/utils"
 
-type Props = {
+interface ImageCardProps {
   imageUrl: string
   caption: string
   className?: string
 }
 
-export default function ImageCard({ imageUrl, caption, className }: Props) {
+export default function ImageCard({ imageUrl, caption, className }: ImageCardProps) {
   return (
     <figure
       className={cn(
-        "w-[250px] overflow-hidden rounded-base border-2 border-border bg-main font-base shadow-shadow",
-        className,
+        "w-[250px] overflow-hidden rounded-lg border bg-card shadow-sm",
+        className
       )}
     >
-      <img className="w-full aspect-4/3" src={imageUrl} alt="image" />
-      <figcaption className="border-t-2 text-main-foreground border-border p-4">
+      <img className="w-full aspect-4/3 object-cover" src={imageUrl} alt="image" />
+      <figcaption className="border-t bg-card p-4 text-sm text-muted-foreground">
         {caption}
       </figcaption>
     </figure>
