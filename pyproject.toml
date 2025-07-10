@@ -1,0 +1,13 @@
+[project]
+name = "husky-search"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "httpx>=0.28.1",
+    "ipython>=9.4.0",
+    "lxml>=6.0.0",
+    "numpy>=2.3.1",
+    "rich>=14.0.0",
+]

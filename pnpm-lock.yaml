@@ -162,6 +162,9 @@ importers:
       '@types/react-dom':
         specifier: ^18.2.6
         version: 18.3.7(@types/react@18.3.21)
+      '@types/xmldom':
+        specifier: ^0.1.34
+        version: 0.1.34
       '@typescript-eslint/parser':
         specifier: ^5.61.0
         version: 5.62.0(eslint@8.57.1)(typescript@4.9.5)
@@ -195,6 +198,12 @@ importers:
       typescript:
         specifier: ^4.9.5
         version: 4.9.5
+      xmldom:
+        specifier: ^0.6.0
+        version: 0.6.0
+      xpath:
+        specifier: ^0.0.34
+        version: 0.0.34
 
 packages:
 
@@ -1165,6 +1174,9 @@ packages:
 
   '@types/react@18.3.21':
     resolution: {integrity: sha512-gXLBtmlcRJeT09/sI4PxVwyrku6SaNUj/6cMubjE6T6XdY1fDmBL7r0nX0jbSZPU/Xr0KuwLLZh6aOYY5d91Xw==}
+
+  '@types/xmldom@0.1.34':
+    resolution: {integrity: sha512-7eZFfxI9XHYjJJuugddV6N5YNeXgQE1lArWOcd1eCOKWb/FGs5SIjacSYuEJuwhsGS3gy4RuZ5EUIcqYscuPDA==}
 
   '@typescript-eslint/parser@5.62.0':
     resolution: {integrity: sha512-VlJEV0fOQ7BExOsHYAGrgbEiZoi8D+Bl2+f6V2RrXerRSylnp+ZBHmPvaIa8cz0Ajx7WO7Z5RqfgYg7ED1nRhA==}
@@ -2858,6 +2870,14 @@ packages:
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
 
+  xmldom@0.6.0:
+    resolution: {integrity: sha512-iAcin401y58LckRZ0TkI4k0VSM1Qg0KGSc3i8rU+xrxe19A/BN1zHyVSJY7uoutVlaTSzYyk/v5AmkewAP7jtg==}
+    engines: {node: '>=10.0.0'}
+
+  xpath@0.0.34:
+    resolution: {integrity: sha512-FxF6+rkr1rNSQrhUNYrAFJpRXNzlDoMxeXN5qI84939ylEv3qqPFKa85Oxr6tDaJKqwW6KKyo2v26TSv3k6LeA==}
+    engines: {node: '>=0.6.0'}
+
   yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
 
@@ -3890,6 +3910,8 @@ snapshots:
     dependencies:
       '@types/prop-types': 15.7.14
       csstype: 3.1.3
+
+  '@types/xmldom@0.1.34': {}
 
   '@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@4.9.5)':
     dependencies:
@@ -5839,6 +5861,10 @@ snapshots:
   word-wrap@1.2.5: {}
 
   wrappy@1.0.2: {}
+
+  xmldom@0.6.0: {}
+
+  xpath@0.0.34: {}
 
   yallist@3.1.1: {}
 
