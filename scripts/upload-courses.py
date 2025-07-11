@@ -15,11 +15,6 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 UW_COURSE_FILENAME = "temp/uw-courses.json"
 
 
-def parse_course_name(code):
-    # Extract subject and number from course name like "AFRAM 101 Introduction to African American Studies (5) SSc, DIV"
-    parts = [code[:-3], code[-3:]]
-    return parts[0], parts[1]  # Returns (subject, number)
-
 # def insert_courses(cursor, courses):
 #     # Parse the course name to get subject and number
 #     # Extract title by removing subject, number and credits from name
