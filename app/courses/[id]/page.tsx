@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { courses } from "@/data/courses"
+import { CourseService } from "@/services/course-service"
 import { CourseDetailPage } from "@/pages/course-detail-page"
 
 export default async function CoursePage({
@@ -8,7 +8,7 @@ export default async function CoursePage({
   params: Promise<{ id: string }>
 }) {
   const { id: courseCode } = await params
-  const course = courses.find((course) => course.code === courseCode)
+  const course = await CourseService.getCourseByCode(courseCode)
   if (!course) {
     return notFound()
   }

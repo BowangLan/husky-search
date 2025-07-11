@@ -10,8 +10,8 @@ export const siteConfig = {
       href: "/",
     },
     {
-      title: "Departments",
-      href: "/departments",
+      title: "Majors",
+      href: "/majors",
     },
     {
       title: "About",

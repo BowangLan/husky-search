@@ -1,4 +1,5 @@
 import { InferInsertModel, InferSelectModel } from "drizzle-orm"
+import { drizzle } from "drizzle-orm/node-postgres"
 import {
   pgTable,
   serial,
@@ -6,12 +7,8 @@ import {
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core"
-import { drizzle } from "drizzle-orm/postgres-js"
-import postgres from "postgres"
 
-const sql = postgres(process.env.DATABASE_URL!, { ssl: "require" })
-
-export const UsersTable = pgTable(
+export const CoursesTable = pgTable(
   "uw_courses",
   {
     id: serial("id").primaryKey(),
@@ -42,4 +39,4 @@ export const ProgramsTable = pgTable(
 )
 
 // Connect to  Postgres
-export const db = drizzle(sql)
+export const db = drizzle(process.env.DATABASE_URL!)

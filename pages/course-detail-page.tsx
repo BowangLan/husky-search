@@ -1,11 +1,11 @@
-import { Course } from "@/types/course"
+import { Course, DatabaseCourse } from "@/types/course"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, BookOpen, Clock, Users, Tag } from "lucide-react"
 import Link from "next/link"
 
-export function CourseDetailPage({ course }: { course: Course }) {
+export function CourseDetailPage({ course }: { course: Course | DatabaseCourse }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -26,10 +26,10 @@ export function CourseDetailPage({ course }: { course: Course }) {
               variant="secondary" 
               className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20"
             >
-              {course.level}
+              {'level' in course ? course.level : course.subject}
             </Badge>
             <Badge variant="outline" className="border-border/50">
-              {course.subjects}
+              {'subjects' in course ? course.subjects : course.subject}
             </Badge>
           </div>
           
@@ -62,7 +62,7 @@ export function CourseDetailPage({ course }: { course: Course }) {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Credits</p>
-                      <p className="font-semibold">{course.credits} credits</p>
+                      <p className="font-semibold">{'credits' in course ? course.credits : course.credit} credits</p>
                     </div>
                   </div>
                   
@@ -72,7 +72,7 @@ export function CourseDetailPage({ course }: { course: Course }) {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Level</p>
-                      <p className="font-semibold">{course.level}</p>
+                      <p className="font-semibold">{'level' in course ? course.level : course.subject}</p>
                     </div>
                   </div>
                 </div>
@@ -83,15 +83,32 @@ export function CourseDetailPage({ course }: { course: Course }) {
                     Course Tags
                   </h4>
                   <div className="flex flex-wrap gap-2">
-                    {course.tags.map((tag) => (
-                      <Badge 
-                        key={tag} 
-                        variant="outline" 
-                        className="border-border/50 bg-background/50 hover:bg-background/80 transition-colors duration-200"
-                      >
-                        {tag}
-                      </Badge>
-                    ))}
+                    {'tags' in course ? (
+                      course.tags.map((tag) => (
+                        <Badge 
+                          key={tag} 
+                          variant="outline" 
+                          className="border-border/50 bg-background/50 hover:bg-background/80 transition-colors duration-200"
+                        >
+                          {tag}
+                        </Badge>
+                      ))
+                    ) : (
+                      <>
+                        <Badge 
+                          variant="outline" 
+                          className="border-border/50 bg-background/50 hover:bg-background/80 transition-colors duration-200"
+                        >
+                          {course.subject}
+                        </Badge>
+                        <Badge 
+                          variant="outline" 
+                          className="border-border/50 bg-background/50"
+                        >
+                          {course.number}
+                        </Badge>
+                      </>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -126,12 +143,12 @@ export function CourseDetailPage({ course }: { course: Course }) {
                 
                 <div>
                   <p className="text-sm text-muted-foreground">Department</p>
-                  <p className="font-semibold">{course.subjects}</p>
+                  <p className="font-semibold">{'subjects' in course ? course.subjects : course.subject}</p>
                 </div>
                 
                 <div>
                   <p className="text-sm text-muted-foreground">Credits</p>
-                  <p className="font-semibold">{course.credits} credits</p>
+                  <p className="font-semibold">{'credits' in course ? course.credits : course.credit} credits</p>
                 </div>
               </CardContent>
             </Card>

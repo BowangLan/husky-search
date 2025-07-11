@@ -10,3 +10,15 @@ export type Course = {
   isFeatured: boolean
   imageUrl: string
 }
+
+export type DatabaseCourse = {
+  id: number
+  code: string
+  title: string
+  description: string
+  credit: string
+  subject: string
+  number: string
+  quarters: string
+  programCode: string | null
+}
