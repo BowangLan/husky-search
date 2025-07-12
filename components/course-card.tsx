@@ -1,12 +1,12 @@
 import Link from "next/link"
 
-import { Course, DatabaseCourse } from "@/types/course"
+import { DatabaseCourse } from "@/types/course"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 
 export function CourseCardLink({ course }: { course: DatabaseCourse }) {
   return (
-    <Link href={`/courses/${course.code}`} className="group">
+    <Link href={`/courses/${course.code}`} className="group" prefetch>
       <Card className="relative h-full">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 

@@ -44,6 +44,7 @@
     "dotenv": "^17.2.0",
     "drizzle-orm": "^0.44.2",
     "embla-carousel-react": "^8.6.0",
+    "geist": "^1.4.2",
     "input-otp": "^1.4.2",
     "lucide-react": "0.105.0-alpha.4",
     "motion": "^12.23.1",
