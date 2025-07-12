@@ -14,7 +14,7 @@ export function CourseDetailPage({ course }: { course: Course | DatabaseCourse }
           <Link href="/">
             <Button variant="ghost" className="gap-2 text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-4 w-4" />
-              Back to Courses
+              Back
             </Button>
           </Link>
         </div>

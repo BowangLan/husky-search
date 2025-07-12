@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import { CourseService } from "@/services/course-service"
-import { CourseDetailPage } from "@/pages/course-detail-page"
+import { CourseDetailPage } from "@/components/pages/course-detail-page"
 
 export default async function CoursePage({
   params,
