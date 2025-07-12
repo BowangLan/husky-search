@@ -5,13 +5,15 @@ import { buttonVariants } from "@/components/ui/button"
 import { Icons } from "@/components/icons"
 import { MainNav } from "@/components/main-nav"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { CourseSearch } from "@/components/course-search"
 
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
         <MainNav items={siteConfig.mainNav} />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          <CourseSearch />
           <nav className="flex items-center gap-1">
             <Link
               href={siteConfig.links.github}

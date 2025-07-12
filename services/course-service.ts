@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm"
+
 import { CoursesTable, db } from "@/lib/db/schema"
 
 export class CourseService {
@@ -18,7 +19,7 @@ export class CourseService {
       .from(CoursesTable)
       .where(eq(CoursesTable.programCode, programCode))
       .orderBy(CoursesTable.code)
-    
+
     return courses
   }
 
@@ -37,7 +38,7 @@ export class CourseService {
       })
       .from(CoursesTable)
       .where(eq(CoursesTable.code, code))
-    
+
     return courses.length > 0 ? courses[0] : null
   }
 
@@ -56,7 +57,8 @@ export class CourseService {
       })
       .from(CoursesTable)
       .orderBy(CoursesTable.code)
-    
+      .limit(20)
+
     return courses
   }
 }

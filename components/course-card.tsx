@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 export function CourseCardLink({ course }: { course: DatabaseCourse }) {
   return (
     <Link href={`/courses/${course.code}`} className="group">
-      <Card className="relative overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-300 hover:border-border hover:bg-card/80 hover:shadow-lg hover:shadow-purple-500/5">
+      <Card className="relative h-full">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
         <div className="relative aspect-video w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-muted/50 to-muted/30">
