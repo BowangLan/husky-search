@@ -31,10 +31,10 @@ export function CourseCardLink({ course }: { course: DatabaseCourse }) {
           </div>
 
           <div className="space-y-3">
-            <h3 className="font-semibold text-lg leading-tight tracking-tight text-foreground group-hover:text-foreground/90 transition-colors duration-200 line-clamp-2">
+            <h3 className="text-lg leading-tight tracking-tight text-foreground group-hover:text-foreground/90 transition-colors duration-200 line-clamp-2">
               {course.title}
             </h3>
-            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed font-light">
               {course.description}
             </p>
           </div>
