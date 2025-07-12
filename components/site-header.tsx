@@ -15,7 +15,7 @@ export function SiteHeader() {
         <div className="flex items-center gap-4">
           <CourseSearch />
           <nav className="flex items-center gap-1">
-            <Link
+            {/* <Link
               href={siteConfig.links.github}
               target="_blank"
               rel="noreferrer"
@@ -40,7 +40,7 @@ export function SiteHeader() {
             >
               <Icons.twitter className="h-4 w-4 fill-current" />
               <span className="sr-only">Twitter</span>
-            </Link>
+            </Link> */}
             <div className="ml-2">
               <ThemeToggle />
             </div>

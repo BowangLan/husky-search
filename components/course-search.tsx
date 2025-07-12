@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Search, X } from "lucide-react"
+import { motion } from "motion/react"
+
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
 
 type Course = {
   id: number
@@ -21,13 +21,19 @@ type Course = {
   programCode: string | null
 }
 
+const transition = { duration: 0.3, ease: [0.19, 1.0, 0.22, 1.0] }
+const WIDTH = "300px"
+const WIDTH_FOCUSED = "340px"
+
 export function CourseSearch() {
-  const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(false)
+  const [showResults, setShowResults] = useState(false)
+  const [isFocused, setIsFocused] = useState(false)
   const router = useRouter()
   const timeoutRef = useRef<NodeJS.Timeout>()
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (timeoutRef.current) {
@@ -36,18 +42,23 @@ export function CourseSearch() {
 
     if (query.trim() === "") {
       setCourses([])
+      setShowResults(false)
       return
     }
 
     setLoading(true)
     timeoutRef.current = setTimeout(async () => {
       try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
+        const response = await fetch(
+          `/api/search?q=${encodeURIComponent(query)}`
+        )
         const data = await response.json()
         setCourses(data.courses || [])
+        setShowResults(true)
       } catch (error) {
         console.error("Search error:", error)
         setCourses([])
+        setShowResults(false)
       } finally {
         setLoading(false)
       }
@@ -61,83 +72,89 @@ export function CourseSearch() {
   }, [query])
 
   const handleSelect = (course: Course) => {
-    setOpen(false)
     setQuery("")
+    setCourses([])
+    setShowResults(false)
     router.push(`/courses/${course.code}`)
   }
 
   const handleClear = () => {
     setQuery("")
     setCourses([])
+    setShowResults(false)
+    inputRef.current?.focus()
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setShowResults(false)
+    }
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between sm:w-80"
-        >
-          <div className="flex items-center gap-2">
-            <Search className="h-4 w-4 opacity-50" />
-            <span className="text-sm text-muted-foreground">
-              {query || "Search courses..."}
-            </span>
-          </div>
-          {query && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-4 w-4 p-0 hover:bg-transparent"
-              onClick={(e) => {
-                e.stopPropagation()
-                handleClear()
-              }}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-full p-0 sm:w-80" align="start">
-        <Command>
-          <CommandInput
-            placeholder="Search courses..."
-            value={query}
-            onValueChange={setQuery}
-            className="border-0 focus:ring-0"
-          />
-          <CommandList>
-            <CommandEmpty>
-              {loading ? "Searching..." : "No courses found."}
-            </CommandEmpty>
-            <CommandGroup>
-              {courses.map((course) => (
-                <CommandItem
-                  key={course.id}
-                  value={course.code}
-                  onSelect={() => handleSelect(course)}
-                  className="cursor-pointer"
-                >
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{course.code}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {course.credit} credits
-                      </span>
+    <div className="relative">
+      <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 opacity-50 z-10" />
+      <motion.div
+        initial={{ width: WIDTH }}
+        animate={{ 
+          width: isFocused ? WIDTH_FOCUSED : WIDTH
+        }}
+        transition={{ duration: 0.8, ease: [0.19, 1.0, 0.22, 1.0] }}
+        className="relative"
+      >
+        <Input
+          ref={inputRef}
+          placeholder="Search courses..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          className="pl-10 pr-10 w-full"
+        />
+        {query && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute right-1 top-1/2 h-6 w-6 -translate-y-1/2 p-0 hover:bg-transparent trans opacity-50"
+            onClick={handleClear}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        )}
+      </motion.div>
+
+      {showResults && (
+        <div className="absolute top-full z-50 w-full rounded-xl border bg-background shadow-md mt-2">
+          <div className="max-h-80 overflow-y-auto p-1">
+            {loading ? (
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                Searching...
+              </div>
+            ) : courses.length === 0 ? (
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                No courses found.
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {courses.map((course) => (
+                  <button
+                    key={course.id}
+                    onClick={() => handleSelect(course)}
+                    className="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-foreground/10 hover:text-accent-foreground trans cursor-pointer"
+                  >
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{`${course.subject} ${course.number}`}</span>
+                      </div>
                     </div>
-                    <span className="text-sm text-muted-foreground line-clamp-1">
-                      {course.title}
-                    </span>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   )
-} 
+}
