@@ -21,4 +21,5 @@ export type DatabaseCourse = {
   number: string
   quarters: string
   programCode: string | null
+  programName: string | null
 }

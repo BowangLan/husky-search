@@ -6,7 +6,12 @@ import { Card, CardContent } from "@/components/ui/card"
 
 export function CourseCardLink({ course }: { course: DatabaseCourse }) {
   return (
-    <Link href={`/courses/${course.code}`} className="group" prefetch>
+    <Link
+      href={`/courses/${course.code}`}
+      className="group"
+      prefetch
+      scroll={false}
+    >
       <Card className="relative h-full">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 

@@ -33,57 +33,13 @@ export function CourseSearch() {
   const [showResults, setShowResults] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
   const router = useRouter()
-  const timeoutRef = useRef<NodeJS.Timeout>()
   const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-    }
-
-    if (query.trim() === "") {
-      setCourses([])
-      setShowResults(false)
-      return
-    }
-
-    setLoading(true)
-    timeoutRef.current = setTimeout(async () => {
-      try {
-        const response = await fetch(
-          `/api/search?q=${encodeURIComponent(query)}`
-        )
-        const data = await response.json()
-        setCourses(data.courses || [])
-        setShowResults(true)
-      } catch (error) {
-        console.error("Search error:", error)
-        setCourses([])
-        setShowResults(false)
-      } finally {
-        setLoading(false)
-      }
-    }, 300)
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
-    }
-  }, [query])
 
   useEffect(() => {
     if (isFocused) {
       inputRef.current?.focus()
     }
   }, [isFocused])
-
-  const handleSelect = (course: Course) => {
-    setQuery("")
-    setCourses([])
-    setShowResults(false)
-    router.push(`/courses/${course.code}`)
-  }
 
   const handleClear = () => {
     setQuery("")
@@ -98,9 +54,30 @@ export function CourseSearch() {
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(e.target.value.toUpperCase())
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase()
+    setQuery(value)
     setShowResults(true)
+
+    if (value.trim() === "") {
+      setCourses([])
+      setShowResults(false)
+      return
+    }
+
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/search?q=${encodeURIComponent(value)}`)
+      const data = await response.json()
+      setCourses(data.courses ?? [])
+      setShowResults(true)
+    } catch (error) {
+      console.error("Search error:", error)
+      setCourses([])
+      setShowResults(false)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -160,10 +137,13 @@ export function CourseSearch() {
                     key={course.id}
                     href={`/courses/${course.code}`}
                     className="w-full flex items-center rounded-lg px-3 py-2 text-left text-sm hover:bg-foreground/10 hover:text-accent-foreground trans cursor-pointer z-20"
+                    prefetch
+                    scroll={false}
                     onClick={(e) => {
                       e.stopPropagation()
-                      setQuery(`${course.subject} ${course.number}`)
                       setShowResults(false)
+                      setQuery(`${course.subject} ${course.number}`)
+                      setCourses([])
                     }}
                   >
                     <div className="flex flex-col">
