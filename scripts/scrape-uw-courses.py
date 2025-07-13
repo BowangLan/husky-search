@@ -5,6 +5,7 @@ import asyncio
 from rich import print
 import re
 import time
+from pathlib import Path
 
 
 def extract_links_under_h2(html_content: str) -> list[str]:
@@ -115,6 +116,8 @@ async def scrape_catalog_page(url: str) -> None:
                 if re.search(r"\(([^)]+)\)", x["name"])
                 else "",
                 "quarters": quarters,
+                "subject": x["code"][0][:-3].upper(),
+                "number": x["code"][0][-3:],
             }
             new_links.append(new_link)
         links = new_links
@@ -132,6 +135,9 @@ async def scrape_catalog_page(url: str) -> None:
 
 async def main() -> None:
     links = await scrape_catalog_pages()
+
+    if not Path("temp").exists():
+        Path("temp").mkdir(parents=True)
 
     # Save to JSON file
     # with open("uw-departments.json", "w", encoding="utf-8") as f:
