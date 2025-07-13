@@ -10,7 +10,7 @@ import {
 export class CourseService {
   static async getCoursesByProgram(programCode: string) {
     const courses = await db
-      .select({
+      .selectDistinctOn([CoursesTable.code], {
         id: CoursesTable.id,
         code: CoursesTable.code,
         title: CoursesTable.title,
@@ -21,9 +21,14 @@ export class CourseService {
         quarters: CoursesTable.quarters,
         programCode: CoursesTable.programCode,
         programName: ProgramsTable.name,
+        myplanData: MyPlanQuarterCoursesTable.data,
       })
       .from(CoursesTable)
       .leftJoin(ProgramsTable, eq(CoursesTable.programCode, ProgramsTable.code))
+      .leftJoin(
+        MyPlanQuarterCoursesTable,
+        eq(CoursesTable.code, MyPlanQuarterCoursesTable.code)
+      )
       .where(eq(CoursesTable.programCode, programCode))
       .orderBy(CoursesTable.code)
 
@@ -32,7 +37,7 @@ export class CourseService {
 
   static async getCourseByCode(code: string) {
     const courses = await db
-      .select({
+      .selectDistinctOn([CoursesTable.code], {
         id: CoursesTable.id,
         code: CoursesTable.code,
         title: CoursesTable.title,
@@ -50,8 +55,9 @@ export class CourseService {
         MyPlanQuarterCoursesTable,
         eq(CoursesTable.code, MyPlanQuarterCoursesTable.code)
       )
-      .where(eq(CoursesTable.code, code))
       .leftJoin(ProgramsTable, eq(CoursesTable.programCode, ProgramsTable.code))
+      .where(eq(CoursesTable.code, code))
+      .orderBy(CoursesTable.code)
 
     return courses.length > 0 ? courses[0] : null
   }

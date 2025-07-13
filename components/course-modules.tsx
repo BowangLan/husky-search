@@ -6,8 +6,12 @@ import { Badge } from "@/components/ui/badge"
 export const CourseGenEdRequirements = ({
   course,
 }: {
-  course: CourseDetail
+  course: CourseDetail | DatabaseCourse
 }) => {
+  if (!("myplanData" in course && course.myplanData)) {
+    return null
+  }
+
   const genEdReqs = course.myplanData?.genEduReqs || []
 
   return (

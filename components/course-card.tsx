@@ -4,7 +4,7 @@ import { DatabaseCourse } from "@/types/course"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 
-import { CourseCreditBadge } from "./course-modules"
+import { CourseCreditBadge, CourseGenEdRequirements } from "./course-modules"
 
 export function CourseCardLink({ course }: { course: DatabaseCourse }) {
   return (
@@ -49,6 +49,7 @@ export function CourseCardLink({ course }: { course: DatabaseCourse }) {
                 </Badge>
               </Link>
               <CourseCreditBadge course={course} />
+              <CourseGenEdRequirements course={course} />
             </div>
           </div>
         </CardContent>
