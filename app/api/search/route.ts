@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { like, or } from "drizzle-orm"
-import { CoursesTable, db } from "@/lib/db/schema"
+import { eq, ilike, or } from "drizzle-orm"
+import { CoursesTable, db, ProgramsTable } from "@/lib/db/schema"
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,18 +24,20 @@ export async function GET(request: NextRequest) {
         number: CoursesTable.number,
         quarters: CoursesTable.quarters,
         programCode: CoursesTable.programCode,
+        programName: ProgramsTable.name,
       })
       .from(CoursesTable)
       .where(
         or(
-          like(CoursesTable.code, searchTerm),
-          like(CoursesTable.title, searchTerm),
-          like(CoursesTable.description, searchTerm),
-          like(CoursesTable.subject, searchTerm)
+          ilike(CoursesTable.code, searchTerm),
+          ilike(CoursesTable.title, searchTerm),
+          // ilike(CoursesTable.description, searchTerm),
+          ilike(CoursesTable.subject, searchTerm)
         )
       )
+      .leftJoin(ProgramsTable, eq(CoursesTable.programCode, ProgramsTable.code))
       .orderBy(CoursesTable.code)
-      .limit(10)
+      .limit(20)
 
     return NextResponse.json({ courses })
   } catch (error) {

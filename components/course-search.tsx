@@ -1,10 +1,12 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Search, X } from "lucide-react"
 import { motion } from "motion/react"
 
+import { EASE_OUT_CUBIC } from "@/config/animation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,7 +23,6 @@ type Course = {
   programCode: string | null
 }
 
-const transition = { duration: 0.3, ease: [0.19, 1.0, 0.22, 1.0] }
 const WIDTH = "300px"
 const WIDTH_FOCUSED = "340px"
 
@@ -71,6 +72,12 @@ export function CourseSearch() {
     }
   }, [query])
 
+  useEffect(() => {
+    if (isFocused) {
+      inputRef.current?.focus()
+    }
+  }, [isFocused])
+
   const handleSelect = (course: Course) => {
     setQuery("")
     setCourses([])
@@ -91,25 +98,36 @@ export function CourseSearch() {
     }
   }
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value.toUpperCase())
+    setShowResults(true)
+  }
+
   return (
     <div className="relative">
       <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 opacity-50 z-10" />
       <motion.div
         initial={{ width: WIDTH }}
-        animate={{ 
-          width: isFocused ? WIDTH_FOCUSED : WIDTH
+        animate={{
+          width: isFocused ? WIDTH_FOCUSED : WIDTH,
         }}
-        transition={{ duration: 0.8, ease: [0.19, 1.0, 0.22, 1.0] }}
+        transition={{ duration: 0.8, ease: EASE_OUT_CUBIC }}
         className="relative"
       >
         <Input
           ref={inputRef}
           placeholder="Search courses..."
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={handleChange}
           onKeyDown={handleKeyDown}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onFocus={() => {
+            setIsFocused(true)
+            // setShowResults(true)
+          }}
+          onBlur={() => {
+            setIsFocused(false)
+            // setShowResults(false)
+          }}
           className="pl-10 pr-10 w-full"
         />
         {query && (
@@ -138,17 +156,22 @@ export function CourseSearch() {
             ) : (
               <div className="space-y-1">
                 {courses.map((course) => (
-                  <button
+                  <Link
                     key={course.id}
-                    onClick={() => handleSelect(course)}
-                    className="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-foreground/10 hover:text-accent-foreground trans cursor-pointer"
+                    href={`/courses/${course.code}`}
+                    className="w-full flex items-center rounded-lg px-3 py-2 text-left text-sm hover:bg-foreground/10 hover:text-accent-foreground trans cursor-pointer z-20"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setQuery(`${course.subject} ${course.number}`)
+                      setShowResults(false)
+                    }}
                   >
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{`${course.subject} ${course.number}`}</span>
                       </div>
                     </div>
-                  </button>
+                  </Link>
                 ))}
               </div>
             )}
