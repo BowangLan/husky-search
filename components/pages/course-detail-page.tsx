@@ -62,7 +62,7 @@ export function CourseDetailPage({ course }: { course: DatabaseCourse }) {
               <h1 className="text-3xl font-medium tracking-tight text-foreground sm:text-4xl lg:text-5xl">
                 {`${course.subject} ${course.number}`}
               </h1>
-              <h2 className="text-base font-normal text-foreground sm:text-xl lg:text-2xl">
+              <h2 className="text-base font-normal text-foreground sm:text-xl lg:text-2xl opacity-60">
                 {course.title}
               </h2>
             </div>

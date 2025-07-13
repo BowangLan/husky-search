@@ -26,13 +26,24 @@ export function CourseCardLink({ course }: { course: DatabaseCourse }) {
 
         <CardContent className="relative p-6">
           <div className="flex items-center justify-between mb-4">
-            <Badge
-              variant="secondary"
-              className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20"
+            <Link
+              href={`/majors/${course.programCode}`}
+              prefetch
+              scroll={false}
             >
-              {course.subject}
+              <Badge
+                variant="outline"
+                className="bg-gradient-to-r from-purple-500/10 to-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 cursor-pointer hover:opacity-80 trans"
+              >
+                {course.programName || "No program"}
+              </Badge>
+            </Link>
+            <Badge
+              variant="outline"
+              className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-600 dark:text-green-400 border-green-500/20"
+            >
+              {course.credit}
             </Badge>
-            <div className="text-sm text-muted-foreground">{course.credit}</div>
           </div>
 
           <div className="space-y-3">
