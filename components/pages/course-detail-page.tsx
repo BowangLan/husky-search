@@ -12,6 +12,8 @@ import { DatabaseCourse } from "@/types/course"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
+import { ExternalLink } from "../ui/external-link"
+
 export function CourseDetailPage({ course }: { course: DatabaseCourse }) {
   return (
     <div className="bg-gradient-to-br from-background via-background to-muted/20">
@@ -65,6 +67,18 @@ export function CourseDetailPage({ course }: { course: DatabaseCourse }) {
               <h2 className="text-base font-normal text-foreground sm:text-xl lg:text-2xl opacity-60">
                 {course.title}
               </h2>
+            </div>
+            <div className="flex items-center gap-4">
+              <ExternalLink
+                href={`https://myplan.uw.edu/course/#/courses/${course.subject} ${course.number}`}
+              >
+                View on MyPlan
+              </ExternalLink>
+              <ExternalLink
+                href={`https://dawgpath.uw.edu/course?id=${course.subject} ${course.number}&campus=seattle`}
+              >
+                View on DawgPath
+              </ExternalLink>
             </div>
             <div className="items-center gap-2 hidden">
               {/* Program */}
