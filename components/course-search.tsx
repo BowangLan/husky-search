@@ -24,7 +24,7 @@ type Course = {
 }
 
 const WIDTH = "300px"
-const WIDTH_FOCUSED = "340px"
+const WIDTH_FOCUSED = "440px"
 
 export function CourseSearch() {
   const [query, setQuery] = useState("")

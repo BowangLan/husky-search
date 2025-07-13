@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
-import { eq, ilike, or } from "drizzle-orm"
-import { CoursesTable, db, ProgramsTable } from "@/lib/db/schema"
+import { and, eq, ilike, like, or } from "drizzle-orm"
+
+import { CoursesTable, ProgramsTable, db } from "@/lib/db/schema"
+
+const hasCourseCode = (query: string) => {
+  return (
+    (query.length >= 4 && query.match(/^[0-9]{3}$/)) ||
+    query.match(/^ [0-9]{3}$/)
+  )
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,7 +19,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ courses: [] })
     }
 
-    const searchTerm = `%${query.trim()}%`
+    const q = query.trim()
+    const qWithoutSpace = q.replace(/\s+/g, "")
+
+    const courseCode = hasCourseCode(q) ? q : null
+
+    const searchTerm = `%${q}%`
 
     const courses = await db
       .select({
@@ -29,10 +42,11 @@ export async function GET(request: NextRequest) {
       .from(CoursesTable)
       .where(
         or(
-          ilike(CoursesTable.code, searchTerm),
-          ilike(CoursesTable.title, searchTerm),
+          ilike(CoursesTable.code, qWithoutSpace),
+          ilike(CoursesTable.subject, `${q}%`)
+          // ilike(CoursesTable.title, searchTerm),
           // ilike(CoursesTable.description, searchTerm),
-          ilike(CoursesTable.subject, searchTerm)
+          // ilike(CoursesTable.subject, searchTerm)
         )
       )
       .leftJoin(ProgramsTable, eq(CoursesTable.programCode, ProgramsTable.code))
@@ -47,4 +61,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-} 
+}
