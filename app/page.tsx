@@ -1,9 +1,10 @@
 import { CourseService } from "@/services/course-service"
+
 import { CourseCardLink } from "@/components/course-card"
 
 export default async function IndexPage() {
-  const courses = await CourseService.getAllCourses()
-  
+  const courses = await CourseService.getRandomCourses(20)
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Hero Section */}
@@ -18,11 +19,12 @@ export default async function IndexPage() {
               </span>
             </h1>
             <p className="mt-6 text-lg leading-8 text-muted-foreground sm:text-xl">
-              Discover comprehensive course information, prerequisites, and detailed content 
-              from the University of Washington's diverse academic departments.
+              Discover comprehensive course information, prerequisites, and
+              detailed content from the University of Washington's diverse
+              academic departments.
             </p>
           </div>
-          
+
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <div className="h-2 w-2 rounded-full bg-green-500" />
@@ -44,7 +46,8 @@ export default async function IndexPage() {
               Featured Courses
             </h2>
             <p className="mt-2 text-muted-foreground">
-              Browse through our curated selection of courses from various departments.
+              Browse through our curated selection of courses from various
+              departments.
             </p>
           </div>
 

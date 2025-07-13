@@ -26,6 +26,12 @@ export function CourseCardLink({ course }: { course: DatabaseCourse }) {
 
         <CardContent>
           <div className="space-y-3">
+            <h3 className="text-lg leading-tight tracking-tight text-foreground group-hover:text-foreground/90 transition-colors duration-200 line-clamp-2">
+              {course.title}
+            </h3>
+            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed font-light">
+              {course.description}
+            </p>
             <div className="flex items-center gap-2 flex-wrap">
               <Link
                 href={`/majors/${course.programCode}`}
@@ -35,7 +41,7 @@ export function CourseCardLink({ course }: { course: DatabaseCourse }) {
                 <Badge
                   variant="outline"
                   size="sm"
-                  className="bg-gradient-to-r from-purple-500/10 to-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 cursor-pointer hover:opacity-80 trans"
+                  className="bg-gradient-to-r from-purple-500/10 to-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 cursor-pointer hover:opacity-80 trans truncate"
                 >
                   {course.programName || "No program"}
                 </Badge>
@@ -48,13 +54,6 @@ export function CourseCardLink({ course }: { course: DatabaseCourse }) {
                 {course.credit} Credits
               </Badge>
             </div>
-
-            <h3 className="text-lg leading-tight tracking-tight text-foreground group-hover:text-foreground/90 transition-colors duration-200 line-clamp-2">
-              {course.title}
-            </h3>
-            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed font-light">
-              {course.description}
-            </p>
           </div>
         </CardContent>
       </Card>

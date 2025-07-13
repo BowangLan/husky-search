@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm"
+import { eq, sql } from "drizzle-orm"
 
 import { CoursesTable, ProgramsTable, db } from "@/lib/db/schema"
 
@@ -64,6 +64,28 @@ export class CourseService {
       .leftJoin(ProgramsTable, eq(CoursesTable.programCode, ProgramsTable.code))
       .orderBy(CoursesTable.code)
       .limit(20)
+
+    return courses
+  }
+
+  static async getRandomCourses(count: number) {
+    const courses = await db
+      .select({
+        id: CoursesTable.id,
+        code: CoursesTable.code,
+        title: CoursesTable.title,
+        description: CoursesTable.description,
+        credit: CoursesTable.credit,
+        subject: CoursesTable.subject,
+        number: CoursesTable.number,
+        quarters: CoursesTable.quarters,
+        programCode: CoursesTable.programCode,
+        programName: ProgramsTable.name,
+      })
+      .from(CoursesTable)
+      .leftJoin(ProgramsTable, eq(CoursesTable.programCode, ProgramsTable.code))
+      .orderBy(sql`RANDOM()`)
+      .limit(count)
 
     return courses
   }
