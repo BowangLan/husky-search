@@ -38,3 +38,5 @@ yarn-error.log*
 temp/
 
 husky-search/
+
+__pycache__/

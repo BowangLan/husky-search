@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 import { CourseService } from "@/services/course-service"
+
 import { CourseDetailPage } from "@/components/pages/course-detail-page"
 
 export default async function CoursePage({
@@ -8,7 +9,9 @@ export default async function CoursePage({
   params: Promise<{ id: string }>
 }) {
   const { id: courseCode } = await params
-  const course = await CourseService.getCourseByCode(courseCode)
+  const course = await CourseService.getCourseByCode(
+    decodeURIComponent(courseCode)
+  )
   if (!course) {
     return notFound()
   }

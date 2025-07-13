@@ -142,13 +142,13 @@ export function CourseSearch() {
                     onClick={(e) => {
                       e.stopPropagation()
                       setShowResults(false)
-                      setQuery(`${course.subject} ${course.number}`)
+                      setQuery(course.code)
                       setCourses([])
                     }}
                   >
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium">{`${course.subject} ${course.number}`}</span>
+                        <span className="font-medium">{course.code}</span>
                       </div>
                     </div>
                   </Link>

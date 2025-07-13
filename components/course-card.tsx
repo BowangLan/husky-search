@@ -4,6 +4,8 @@ import { DatabaseCourse } from "@/types/course"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 
+import { CourseCreditBadge } from "./course-modules"
+
 export function CourseCardLink({ course }: { course: DatabaseCourse }) {
   return (
     <Link
@@ -19,7 +21,7 @@ export function CourseCardLink({ course }: { course: DatabaseCourse }) {
           {/* Placeholder for course image */}
           <div className="flex h-full items-center justify-center">
             <div className="text-4xl font-bold text-muted-foreground/30">
-              {`${course.subject} ${course.number}`}
+              {course.code}
             </div>
           </div>
         </div>
@@ -46,13 +48,7 @@ export function CourseCardLink({ course }: { course: DatabaseCourse }) {
                   {course.programName || "No program"}
                 </Badge>
               </Link>
-              <Badge
-                variant="outline"
-                size="sm"
-                className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-600 dark:text-green-400 border-green-500/20"
-              >
-                {course.credit} Credits
-              </Badge>
+              <CourseCreditBadge course={course} />
             </div>
           </div>
         </CardContent>

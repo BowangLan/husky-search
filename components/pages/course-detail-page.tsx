@@ -1,6 +1,8 @@
 import Link from "next/link"
+import { CourseDetail } from "@/services/course-service"
 import {
   ArrowLeft,
+  Award,
   BookOpen,
   Clock,
   GraduationCap,
@@ -8,27 +10,27 @@ import {
   Users,
 } from "lucide-react"
 
-import { DatabaseCourse } from "@/types/course"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { BackButton } from "@/components/back-button"
 
+import {
+  CourseCreditBadge,
+  CourseGenEdRequirements,
+  CourseLevelBadge,
+} from "../course-modules"
 import { ExternalLink } from "../ui/external-link"
+import { ValueLabelPairRow } from "../ui/value-label-pair-row"
 
-export function CourseDetailPage({ course }: { course: DatabaseCourse }) {
+export function CourseDetailPage({ course }: { course: CourseDetail }) {
+  const genEdReqs = course.myplanData?.genEduReqs || []
+
   return (
     <div className="bg-gradient-to-br from-background via-background to-muted/20">
       <div className="container mx-auto px-4 py-4 sm:px-6 lg:px-8">
         {/* Back Navigation */}
         <div className="bg-background">
-          <Link href="/">
-            <Button
-              variant="ghost"
-              className="gap-2 text-muted-foreground hover:opacity-80 px-0 has-[>svg]:px-0"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
-          </Link>
+          <BackButton />
         </div>
 
         {/* Course Header */}
@@ -53,32 +55,37 @@ export function CourseDetailPage({ course }: { course: DatabaseCourse }) {
                   {course.programName || "No program"}
                 </Badge>
               </Link>
-              <Badge
-                variant="outline"
-                className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-600 dark:text-green-400 border-green-500/20"
-              >
-                {course.credit} Credits
-              </Badge>
+              {/* <CourseCreditBadge course={course} /> */}
             </div>
             <div className="space-y-1">
               <h1 className="text-3xl font-medium tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-                {`${course.subject} ${course.number}`}
+                {course.code}
               </h1>
-              <h2 className="text-base font-normal text-foreground sm:text-xl lg:text-2xl opacity-60">
-                {course.title}
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-normal text-foreground sm:text-xl lg:text-2xl opacity-60">
+                  {course.title}
+                </h2>
+              </div>
             </div>
-            <div className="flex items-center gap-4">
-              <ExternalLink
-                href={`https://myplan.uw.edu/course/#/courses/${course.subject} ${course.number}`}
-              >
-                View on MyPlan
-              </ExternalLink>
-              <ExternalLink
-                href={`https://dawgpath.uw.edu/course?id=${course.subject} ${course.number}&campus=seattle`}
-              >
-                View on DawgPath
-              </ExternalLink>
+            <div className="flex flex-col items-start md:flex-row md:items-center gap-2">
+              <div className="flex items-center gap-2">
+                <CourseLevelBadge course={course} />
+                <CourseCreditBadge course={course} />
+                <CourseGenEdRequirements course={course} />
+              </div>
+              <div className="flex-1"></div>
+              <div className="flex items-center gap-6">
+                <ExternalLink
+                  href={`https://myplan.uw.edu/course/#/courses/${course.subject} ${course.number}`}
+                >
+                  View on MyPlan
+                </ExternalLink>
+                <ExternalLink
+                  href={`https://dawgpath.uw.edu/course?id=${course.subject} ${course.number}&campus=seattle`}
+                >
+                  View on DawgPath
+                </ExternalLink>
+              </div>
             </div>
             <div className="items-center gap-2 hidden">
               {/* Program */}
@@ -105,6 +112,34 @@ export function CourseDetailPage({ course }: { course: DatabaseCourse }) {
             </p>
           </section>
         </div>
+
+        {/* General Education Requirements */}
+        {course.myplanData && (
+          <div className="mb-12 hidden">
+            <Card className="border-muted/50 bg-muted/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  {/* <Award className="h-5 w-5 text-blue-600 dark:text-blue-400" /> */}
+                  Course Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ValueLabelPairRow
+                  label="Gen Edu Req"
+                  value={
+                    genEdReqs.length > 0 ? (
+                      <CourseGenEdRequirements course={course} />
+                    ) : (
+                      <p className="text-muted-foreground text-sm">
+                        No general education requirements found for this course.
+                      </p>
+                    )
+                  }
+                />
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   )

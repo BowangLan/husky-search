@@ -1,6 +1,11 @@
 import { eq, sql } from "drizzle-orm"
 
-import { CoursesTable, ProgramsTable, db } from "@/lib/db/schema"
+import {
+  CoursesTable,
+  MyPlanQuarterCoursesTable,
+  ProgramsTable,
+  db,
+} from "@/lib/db/schema"
 
 export class CourseService {
   static async getCoursesByProgram(programCode: string) {
@@ -38,8 +43,13 @@ export class CourseService {
         quarters: CoursesTable.quarters,
         programCode: CoursesTable.programCode,
         programName: ProgramsTable.name,
+        myplanData: MyPlanQuarterCoursesTable.data,
       })
       .from(CoursesTable)
+      .leftJoin(
+        MyPlanQuarterCoursesTable,
+        eq(CoursesTable.code, MyPlanQuarterCoursesTable.code)
+      )
       .where(eq(CoursesTable.code, code))
       .leftJoin(ProgramsTable, eq(CoursesTable.programCode, ProgramsTable.code))
 
@@ -90,3 +100,7 @@ export class CourseService {
     return courses
   }
 }
+
+export type CourseDetail = NonNullable<
+  Awaited<ReturnType<typeof CourseService.getCourseByCode>>
+>
