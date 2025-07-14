@@ -1,3 +1,4 @@
+import { unstable_ViewTransition as ViewTransition } from "react"
 import Link from "next/link"
 import { CourseDetail } from "@/services/course-service"
 import {
@@ -18,6 +19,7 @@ import {
   CourseCreditBadge,
   CourseGenEdRequirements,
   CourseLevelBadge,
+  CourseProgramBadgeLink,
 } from "../course-modules"
 import { ExternalLink } from "../ui/external-link"
 import { ValueLabelPairRow } from "../ui/value-label-pair-row"
@@ -30,7 +32,7 @@ export function CourseDetailPage({ course }: { course: CourseDetail }) {
       <div className="container mx-auto px-4 py-4 sm:px-6 lg:px-8">
         {/* Back Navigation */}
         <div className="bg-background">
-          <BackButton />
+          <BackButton url={`/majors/${course.programCode}`} />
         </div>
 
         {/* Course Header */}
@@ -43,28 +45,21 @@ export function CourseDetailPage({ course }: { course: CourseDetail }) {
             >
               {`${course.subject} ${course.number}`}
             </Badge> */}
-              <Link
-                href={`/majors/${course.programCode}`}
-                prefetch
-                scroll={false}
-              >
-                <Badge
-                  variant="outline"
-                  className="bg-gradient-to-r from-purple-500/10 to-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 cursor-pointer hover:opacity-80 trans"
-                >
-                  {course.programName || "No program"}
-                </Badge>
-              </Link>
+              <CourseProgramBadgeLink course={course} />
               {/* <CourseCreditBadge course={course} /> */}
             </div>
             <div className="space-y-1">
-              <h1 className="text-3xl font-medium tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-                {course.code}
-              </h1>
+              <ViewTransition>
+                <h1 className="text-3xl font-medium tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+                  {course.code}
+                </h1>
+              </ViewTransition>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-normal text-foreground sm:text-xl lg:text-2xl opacity-60">
-                  {course.title}
-                </h2>
+                <ViewTransition name={`course-title-${course.id}`}>
+                  <h2 className="text-base font-normal text-foreground sm:text-xl lg:text-2xl opacity-60">
+                    {course.title}
+                  </h2>
+                </ViewTransition>
               </div>
             </div>
             <div className="flex flex-col items-start md:flex-row md:items-center gap-2">

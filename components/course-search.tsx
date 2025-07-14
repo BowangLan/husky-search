@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { Search, X } from "lucide-react"
 import { motion } from "motion/react"
 
@@ -32,7 +31,6 @@ export function CourseSearch() {
   const [loading, setLoading] = useState(false)
   const [showResults, setShowResults] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
-  const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
