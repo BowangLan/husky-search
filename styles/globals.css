@@ -70,7 +70,7 @@
 .dark {
   /* Background Colors */
   --background: oklch(0.141 0.005 285.823);
-  --card: oklch(0.21 0.006 285.885);
+  --card: oklch(0.205 0 0);
   --popover: oklch(0.21 0.006 285.885);
   --sidebar: oklch(0.21 0.006 285.885);
 
@@ -195,4 +195,13 @@
 
 .trans {
   transition: all 0.5s cubic-bezier(0.19, 1.0, 0.22, 1.0);
+}
+
+.text-muted-foreground {
+  color: var(--muted-foreground);
+}
+
+.subtext {
+  font-weight: 300;
+  color: var(--muted-foreground);
 }

@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm"
+import { count, eq, sql } from "drizzle-orm"
 
 import {
   CoursesTable,
@@ -33,6 +33,11 @@ export class CourseService {
       .orderBy(CoursesTable.code)
 
     return courses
+  }
+
+  static async getTotalCourseCount() {
+    const tcount = await db.select({ count: count() }).from(CoursesTable)
+    return tcount[0].count
   }
 
   static async getCourseByCode(code: string) {

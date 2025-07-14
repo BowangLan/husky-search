@@ -15,7 +15,7 @@ import {
 
 export function CourseCardLink({ course }: { course: DatabaseCourse }) {
   return (
-    <Card className="relative h-full group isolate">
+    <Card className="relative group isolate">
       <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       <Link
         href={`/courses/${course.code}`}
