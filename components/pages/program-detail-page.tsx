@@ -1,3 +1,4 @@
+// @ts-ignore
 import { unstable_ViewTransition as ViewTransition } from "react"
 import { notFound } from "next/navigation"
 import { CourseService } from "@/services/course-service"
