@@ -17,7 +17,7 @@ export const CourseGenEdRequirements = ({
     return null
   }
 
-  const genEdReqs = course.myplanData?.genEduReqs || []
+  const genEdReqs = course.myplanData.genEduReqs
 
   return (
     // <ViewTransition name={`course-gen-ed-requirements-${course.id}`}>
