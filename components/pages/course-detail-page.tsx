@@ -21,8 +21,10 @@ import {
   CourseGenEdRequirements,
   CourseLevelBadge,
   CourseProgramBadgeLink,
+  getCourseCreditString,
 } from "../course-modules"
 import { ExternalLink } from "../ui/external-link"
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 import { ValueLabelPairRow } from "../ui/value-label-pair-row"
 
 export function CourseDetailPage({ course }: { course: CourseDetail }) {
@@ -39,7 +41,7 @@ export function CourseDetailPage({ course }: { course: CourseDetail }) {
         {/* Course Header */}
         <div className="mb-12">
           <section className="my-4 md:my-8 space-y-2 md:space-y-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {/* <Badge
               variant="secondary"
               className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20"
@@ -47,14 +49,30 @@ export function CourseDetailPage({ course }: { course: CourseDetail }) {
               {`${course.subject} ${course.number}`}
             </Badge> */}
               <CourseProgramBadgeLink course={course} />
+              <CourseLevelBadge course={course} />
               {/* <CourseCreditBadge course={course} /> */}
             </div>
             <div className="space-y-1">
-              <ViewTransition>
-                <h1 className="text-3xl font-medium tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-                  {course.code}
-                </h1>
-              </ViewTransition>
+              <div className="flex items-baseline gap-2">
+                <ViewTransition>
+                  <h1 className="text-3xl font-medium tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+                    {course.code}
+                  </h1>
+                </ViewTransition>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <span className="text-muted-foreground text-base md:text-lg lg:text-xl inline-block ml-2 font-mono">
+                      ({getCourseCreditString(course)})
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    <p>
+                      This course is worth {getCourseCreditString(course)}{" "}
+                      credits.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <div className="flex items-center gap-2">
                 <ViewTransition name={`course-title-${course.id}`}>
                   <h2 className="text-base font-normal text-foreground sm:text-xl lg:text-2xl opacity-60">
@@ -65,8 +83,8 @@ export function CourseDetailPage({ course }: { course: CourseDetail }) {
             </div>
             <div className="flex flex-col items-start md:flex-row md:items-center gap-2">
               <div className="flex items-center gap-2">
-                <CourseLevelBadge course={course} />
-                <CourseCreditBadge course={course} />
+                {/* <CourseLevelBadge course={course} /> */}
+                {/* <CourseCreditBadge course={course} /> */}
                 <CourseGenEdRequirements course={course} />
               </div>
               <div className="flex-1"></div>

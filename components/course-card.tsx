@@ -12,6 +12,7 @@ import {
   CourseCreditBadge,
   CourseGenEdRequirements,
   CourseProgramBadgeLink,
+  getCourseCreditString,
 } from "./course-modules"
 
 export function CourseCardLink({ course }: { course: DatabaseCourse }) {
@@ -38,18 +39,28 @@ export function CourseCardLink({ course }: { course: DatabaseCourse }) {
 
       <CardContent>
         <div className="space-y-3">
-          <ViewTransition name={`course-title-${course.id}`}>
-            <h3 className="text-lg leading-tight tracking-tight text-foreground group-hover:text-foreground/90 transition-colors duration-200 line-clamp-2">
-              {course.title}
-            </h3>
-          </ViewTransition>
-          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed font-light">
-            {course.description}
-          </p>
-          <div className="flex items-center gap-2 flex-wrap">
-            <CourseProgramBadgeLink course={course} size="sm" />
-            <CourseCreditBadge course={course} size="sm" />
-            <CourseGenEdRequirements course={course} size="sm" />
+          <div className="flex flex-col">
+            <div className="flex items-baseline">
+              <h3 className="text-base md:text-lg font-medium">
+                {course.code}
+              </h3>
+              <span className="text-muted-foreground text-sm inline-block ml-2 font-mono">
+                ({getCourseCreditString(course)})
+              </span>
+            </div>
+            <ViewTransition name={`course-title-${course.id}`}>
+              <h3 className="text-sm font-normal text-foreground opacity-60 line-clamp-1">
+                {course.title}
+              </h3>
+            </ViewTransition>
+            {/* <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed font-light">
+              {course.description}
+            </p> */}
+            <div className="flex items-center gap-2 flex-wrap mt-2">
+              <CourseProgramBadgeLink course={course} size="sm" />
+              {/* <CourseCreditBadge course={course} size="sm" /> */}
+              <CourseGenEdRequirements course={course} size="sm" />
+            </div>
           </div>
         </div>
       </CardContent>

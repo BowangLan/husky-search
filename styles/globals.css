@@ -205,3 +205,11 @@
   font-weight: 300;
   color: var(--muted-foreground);
 }
+
+.bg-primary {
+  background-color: var(--primary);
+}
+
+.fill-primary {
+  fill: var(--primary);
+}
