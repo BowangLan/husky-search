@@ -24,14 +24,12 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
         scroll={false}
       ></Link>
 
-      <div className="relative aspect-video w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-muted/50 to-muted/30">
+      <div className="relative aspect-video w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-muted/50 to-muted/30 hidden md:block">
         {/* Placeholder for course image */}
         <div className="flex h-full items-center justify-center">
-          <ViewTransition name={`course-code-${course.code}`}>
-            <div className="text-4xl font-medium text-muted-foreground/30">
-              {course.code}
-            </div>
-          </ViewTransition>
+          <div className="text-3xl font-medium text-muted-foreground/30">
+            {course.code}
+          </div>
         </div>
       </div>
 
@@ -39,10 +37,12 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
         <div className="space-y-3">
           <div className="flex flex-col">
             <div className="flex items-baseline">
-              <h3 className="text-base md:text-lg font-medium">
-                {course.code}
-              </h3>
-              <span className="text-muted-foreground text-sm inline-block ml-2 font-mono">
+              <ViewTransition name={`course-code-${course.code}`}>
+                <h3 className="text-base md:text-lg font-medium">
+                  {course.code}
+                </h3>
+              </ViewTransition>
+              <span className="text-muted-foreground text-xs md:text-sm inline-block ml-2 font-mono">
                 ({course.data[0]?.data.credit ?? ""})
               </span>
               <div className="flex-1"></div>
@@ -51,7 +51,7 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
               </div> */}
             </div>
             <ViewTransition name={`course-title-${course.code}`}>
-              <h3 className="text-sm font-normal text-foreground opacity-60 line-clamp-1">
+              <h3 className="text-xs md:text-sm font-normal text-foreground opacity-60 line-clamp-1">
                 {course.title}
               </h3>
             </ViewTransition>

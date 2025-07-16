@@ -62,12 +62,12 @@ export const CourseProgramBadgeLink = ({
   return (
     <ViewTransition name={`course-program-${course.code}`}>
       <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
           <Link
             href={`/majors/${course.subjectAreaCode}`}
             prefetch
             scroll={false}
-            className="z-20"
+            className="z-20 flex"
           >
             <Badge size={size} variant="purple-outline">
               {capitalize(course.subjectAreaTitle)}

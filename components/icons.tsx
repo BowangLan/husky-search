@@ -21,7 +21,7 @@ export const Icons = {
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
     >
-      <g clip-path="url(#clip0_2033_3)">
+      <g clipPath="url(#clip0_2033_3)">
         <rect width="984" height="984" rx="120" fill="#191919" />
         <rect width="984" height="984" fill="url(#pattern0_2033_3)" />
       </g>
