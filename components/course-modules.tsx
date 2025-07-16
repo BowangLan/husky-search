@@ -103,7 +103,7 @@ export const CourseProgramBadgeLink = ({
             scroll={false}
             className="z-20"
           >
-            <Badge size={size} variant="purple">
+            <Badge size={size} variant="purple-outline">
               {course.programName || "No program"}
             </Badge>
           </Link>

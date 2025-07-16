@@ -21,14 +21,14 @@ const badgeVariants = cva(
         purple:
           "border-transparent bg-purple-500 dark:bg-purple-600 text-white [a&]:hover:bg-purple-600",
         "purple-outline":
-          "border-purple-500 text-purple-500 dark:text-purple-400 [a&]:hover:bg-purple-500/10",
+          "border-purple-500 text-purple-500 dark:text-purple-400 bg-purple-500/10 dark:bg-purple-500/10 [a&]:hover:bg-purple-500/10",
         blue: "border-transparent bg-blue-500 text-white [a&]:hover:bg-blue-600",
         "blue-outline":
-          "border-blue-500 text-blue-500 dark:text-blue-400 [a&]:hover:bg-blue-500/10",
+          "border-blue-500 text-blue-500 dark:text-blue-400 bg-blue-500/10 dark:bg-blue-500/10 [a&]:hover:bg-blue-500/10",
         green:
           "border-transparent bg-green-500 text-white [a&]:hover:bg-green-600",
         "green-outline":
-          "border-green-500 text-green-500 dark:text-green-400 [a&]:hover:bg-green-500/10",
+          "border-green-500 text-green-500 dark:text-green-400 bg-green-500/10 dark:bg-green-500/10 [a&]:hover:bg-green-500/10",
       },
       size: {
         default: "text-xs px-2 py-1.5",
