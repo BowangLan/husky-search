@@ -3,10 +3,13 @@ import { and, eq, ilike, like, or } from "drizzle-orm"
 
 import { CoursesTable, ProgramsTable, db } from "@/lib/db/schema"
 
-const hasCourseCode = (query: string) => {
+const extractNumber = (query: string) => {
+  // return the first sequence of numbers {1:3}
   return (
-    (query.length >= 4 && query.match(/^[0-9]{3}$/)) ||
-    query.match(/^ [0-9]{3}$/)
+    query
+      .match(/\d{1,3}/)?.[0]
+      .replace(/\D/g, "")
+      .trim() ?? null
   )
 }
 
@@ -20,11 +23,13 @@ export async function GET(request: NextRequest) {
     }
 
     const q = query.trim()
-    const qWithoutSpace = q.replace(/\s+/g, "")
+    const qWithoutNumber = q.replace(/\d/g, "").trim()
 
-    const courseCode = hasCourseCode(q) ? q : null
+    const courseCode = extractNumber(q)
 
     const searchTerm = `%${q}%`
+
+    console.log("Course Code:", courseCode)
 
     const courses = await db
       .select({
@@ -42,8 +47,11 @@ export async function GET(request: NextRequest) {
       .from(CoursesTable)
       .where(
         or(
-          ilike(CoursesTable.code, qWithoutSpace),
-          ilike(CoursesTable.subject, `${q}%`)
+          // ilike(CoursesTable.code, qWithoutSpace),
+          and(
+            ilike(CoursesTable.subject, `${qWithoutNumber}%`),
+            like(CoursesTable.number, courseCode ? `${courseCode}%` : "%%")
+          )
           // ilike(CoursesTable.title, searchTerm),
           // ilike(CoursesTable.description, searchTerm),
           // ilike(CoursesTable.subject, searchTerm)
