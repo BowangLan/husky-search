@@ -1,4 +1,4 @@
-import { count, eq, sql } from "drizzle-orm"
+import { count, desc, eq, sql } from "drizzle-orm"
 
 import {
   CoursesTable,
@@ -8,30 +8,62 @@ import {
 } from "@/lib/db/schema"
 
 export class CourseService {
-  static async getCoursesByProgram(programCode: string) {
-    const courses = await db
-      .selectDistinctOn([CoursesTable.code], {
-        id: CoursesTable.id,
-        code: CoursesTable.code,
-        title: CoursesTable.title,
-        description: CoursesTable.description,
-        credit: CoursesTable.credit,
-        subject: CoursesTable.subject,
-        number: CoursesTable.number,
-        quarters: CoursesTable.quarters,
-        programCode: CoursesTable.programCode,
-        programName: ProgramsTable.name,
-        myplanData: MyPlanQuarterCoursesTable.data,
-      })
-      .from(CoursesTable)
-      .leftJoin(ProgramsTable, eq(CoursesTable.programCode, ProgramsTable.code))
-      .leftJoin(
-        MyPlanQuarterCoursesTable,
-        eq(CoursesTable.code, MyPlanQuarterCoursesTable.code)
-      )
-      .where(eq(CoursesTable.programCode, programCode))
-      .orderBy(CoursesTable.code)
+  // Shared select fields for course queries
+  private static baseSelect = {
+    id: CoursesTable.id,
+    code: CoursesTable.code,
+    title: CoursesTable.title,
+    description: CoursesTable.description,
+    credit: CoursesTable.credit,
+    subject: CoursesTable.subject,
+    number: CoursesTable.number,
+    quarters: CoursesTable.quarters,
+    programCode: CoursesTable.programCode,
+    programName: ProgramsTable.name,
+  }
 
+  // Shared select fields for course queries with myplanData
+  private static baseSelectWithMyPlan = {
+    ...CourseService.baseSelect,
+    myplanData: MyPlanQuarterCoursesTable.data,
+  }
+
+  // Shared join logic for course queries
+  private static joinPrograms(query: any) {
+    return query.leftJoin(
+      ProgramsTable,
+      eq(CoursesTable.programCode, ProgramsTable.code)
+    )
+  }
+
+  private static joinMyPlan(query: any) {
+    return query.leftJoin(
+      MyPlanQuarterCoursesTable,
+      eq(CoursesTable.code, MyPlanQuarterCoursesTable.code)
+    )
+  }
+
+  static async getCoursesByProgram(programCode: string) {
+    let query = db.select(CourseService.baseSelectWithMyPlan).from(CoursesTable)
+    query = CourseService.joinPrograms(query)
+    query = CourseService.joinMyPlan(query)
+    const courses = await query
+      .where(eq(CoursesTable.programCode, programCode))
+      .groupBy(
+        CoursesTable.id,
+        CoursesTable.code,
+        CoursesTable.title,
+        CoursesTable.description,
+        CoursesTable.credit,
+        CoursesTable.subject,
+        CoursesTable.number,
+        CoursesTable.quarters,
+        CoursesTable.programCode,
+        ProgramsTable.name,
+        MyPlanQuarterCoursesTable.data,
+        MyPlanQuarterCoursesTable.quarter
+      )
+      .orderBy(CoursesTable.code, desc(MyPlanQuarterCoursesTable.quarter))
     return courses
   }
 
@@ -41,73 +73,59 @@ export class CourseService {
   }
 
   static async getCourseByCode(code: string) {
-    const courses = await db
-      .selectDistinctOn([CoursesTable.code], {
-        id: CoursesTable.id,
-        code: CoursesTable.code,
-        title: CoursesTable.title,
-        description: CoursesTable.description,
-        credit: CoursesTable.credit,
-        subject: CoursesTable.subject,
-        number: CoursesTable.number,
-        quarters: CoursesTable.quarters,
-        programCode: CoursesTable.programCode,
-        programName: ProgramsTable.name,
-        myplanData: MyPlanQuarterCoursesTable.data,
-      })
-      .from(CoursesTable)
-      .leftJoin(
-        MyPlanQuarterCoursesTable,
-        eq(CoursesTable.code, MyPlanQuarterCoursesTable.code)
-      )
-      .leftJoin(ProgramsTable, eq(CoursesTable.programCode, ProgramsTable.code))
+    let query = db.select(CourseService.baseSelectWithMyPlan).from(CoursesTable)
+    query = CourseService.joinMyPlan(query)
+    query = CourseService.joinPrograms(query)
+    const courses = await query
       .where(eq(CoursesTable.code, code))
-      .orderBy(CoursesTable.code)
-
+      .groupBy(
+        CoursesTable.id,
+        CoursesTable.code,
+        CoursesTable.title,
+        CoursesTable.description,
+        CoursesTable.credit,
+        CoursesTable.subject,
+        CoursesTable.number,
+        CoursesTable.quarters,
+        CoursesTable.programCode,
+        ProgramsTable.name,
+        MyPlanQuarterCoursesTable.data,
+        MyPlanQuarterCoursesTable.quarter
+      )
+      .orderBy(CoursesTable.code, desc(MyPlanQuarterCoursesTable.quarter))
     return courses.length > 0 ? courses[0] : null
   }
 
   static async getAllCourses() {
-    const courses = await db
-      .select({
-        id: CoursesTable.id,
-        code: CoursesTable.code,
-        title: CoursesTable.title,
-        description: CoursesTable.description,
-        credit: CoursesTable.credit,
-        subject: CoursesTable.subject,
-        number: CoursesTable.number,
-        quarters: CoursesTable.quarters,
-        programCode: CoursesTable.programCode,
-        programName: ProgramsTable.name,
-      })
-      .from(CoursesTable)
-      .leftJoin(ProgramsTable, eq(CoursesTable.programCode, ProgramsTable.code))
-      .orderBy(CoursesTable.code)
+    let query = db.select(CourseService.baseSelect).from(CoursesTable)
+    query = CourseService.joinPrograms(query)
+    const courses = await query
+      .orderBy(CoursesTable.code, desc(MyPlanQuarterCoursesTable.quarter))
       .limit(20)
-
     return courses
   }
 
   static async getRandomCourses(count: number) {
-    const courses = await db
-      .select({
-        id: CoursesTable.id,
-        code: CoursesTable.code,
-        title: CoursesTable.title,
-        description: CoursesTable.description,
-        credit: CoursesTable.credit,
-        subject: CoursesTable.subject,
-        number: CoursesTable.number,
-        quarters: CoursesTable.quarters,
-        programCode: CoursesTable.programCode,
-        programName: ProgramsTable.name,
-      })
-      .from(CoursesTable)
-      .leftJoin(ProgramsTable, eq(CoursesTable.programCode, ProgramsTable.code))
+    let query = db.select(CourseService.baseSelectWithMyPlan).from(CoursesTable)
+    query = CourseService.joinPrograms(query)
+    query = CourseService.joinMyPlan(query)
+    const courses = await query
+      .groupBy(
+        CoursesTable.id,
+        CoursesTable.code,
+        CoursesTable.title,
+        CoursesTable.description,
+        CoursesTable.credit,
+        CoursesTable.subject,
+        CoursesTable.number,
+        CoursesTable.quarters,
+        CoursesTable.programCode,
+        ProgramsTable.name,
+        MyPlanQuarterCoursesTable.data,
+        MyPlanQuarterCoursesTable.quarter
+      )
       .orderBy(sql`RANDOM()`)
       .limit(count)
-
     return courses
   }
 }

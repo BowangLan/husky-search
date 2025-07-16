@@ -24,34 +24,13 @@ export const CoursesTable = pgTable(
     subject: text("subject").notNull(),
     number: text("number").notNull(),
     quarters: text("quarters").notNull(),
-    programCode: text("programCode").references(() => ProgramsTable.code),
+    programCode: text("programCode").references(() => ProgramsTable.code, {
+      onDelete: "set null",
+    }),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   },
   (users) => [uniqueIndex("uw_courses_unique_code_idx").on(users.code)]
-)
-
-export const MyPlanQuarterCoursesTable = pgTable(
-  "myplan_quarter_courses",
-  {
-    id: serial("id").primaryKey(),
-    code: text("code").notNull(),
-    quarter: text("quarter").notNull(),
-    data: jsonb("data").$type<MyPlanCourse>(),
-    // detail: jsonb("detail").$type<MyPlanCourseDetail>(),
-    subjectAreaCode: text("subjectAreaCode")
-      .references(() => MyPlanSubjectAreasTable.code)
-      .notNull(),
-    hasDuplicate: boolean("hasDuplicate").notNull().default(false),
-    createdAt: timestamp("createdAt").defaultNow().notNull(),
-    updatedAt: timestamp("updatedAt").defaultNow().notNull(),
-  },
-  (myplanCourses) => [
-    uniqueIndex("myplan_quarter_courses_unique_code_idx").on(
-      myplanCourses.code,
-      myplanCourses.quarter
-    ),
-  ]
 )
 
 export const MyPlanSubjectAreasTable = pgTable(
@@ -79,11 +58,35 @@ export const MyPlanSubjectAreasTable = pgTable(
   ]
 )
 
+export const MyPlanQuarterCoursesTable = pgTable(
+  "myplan_quarter_courses",
+  {
+    id: serial("id").primaryKey(),
+    code: text("code").notNull(),
+    quarter: text("quarter").notNull(),
+    data: jsonb("data").$type<MyPlanCourse>(),
+    myplanId: text("myplanId").notNull().unique(),
+    // detail: jsonb("detail").$type<MyPlanCourseDetail>(),
+    subjectAreaCode: text("subjectAreaCode")
+      .references(() => MyPlanSubjectAreasTable.code)
+      .notNull(),
+    hasDuplicate: boolean("hasDuplicate").notNull().default(false),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+  },
+  (myplanCourses) => [
+    uniqueIndex("myplan_quarter_courses_unique_code_idx").on(
+      myplanCourses.code,
+      myplanCourses.quarter
+    ),
+  ]
+)
+
 export const ProgramsTable = pgTable(
   "uw_programs",
   {
     id: serial("id").primaryKey(),
-    name: text("name").notNull().unique(),
+    name: text("name").notNull(),
     code: text("code").unique().notNull(),
     myplanSubjectAreaId: integer("myplanSubjectAreaId"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),

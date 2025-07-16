@@ -1,8 +1,9 @@
 import json
+from scripts.db import run_query
 
 COURSES_TABLE = "uw_courses"
 MYPLAN_SUBJECT_AREAS_TABLE = "myplan_subject_areas"
-MYPLAN_COURSES_TABLE = "myplan_courses"
+MYPLAN_COURSES_TABLE = "myplan_quarter_courses"
 
 
 def get_all_courses_with_id(cursor) -> str:
@@ -66,3 +67,74 @@ def sql_update_course_myplan_not_found():
     SET "myplanNotFound" = true
     WHERE code = %s
     """
+
+
+def get_myplan_courses():
+    data = run_query(
+        f"""
+    SELECT c.id, c.code, c.quarter, c.data, c."subjectAreaCode"
+    FROM {MYPLAN_COURSES_TABLE} c
+    """
+    )
+    return [
+        {
+            "id": row[0],
+            "code": row[1],
+            "quarter": row[2],
+            "data": row[3],
+            "subjectAreaCode": row[4],
+        }
+        for row in data
+    ]
+
+
+def insert_myplan_courses(cursor, courses: list[dict]):
+    cursor.executemany(
+        """INSERT INTO myplan_quarter_courses 
+        (code, quarter, data, "subjectAreaCode", "myplanId")
+        VALUES (%s, %s, %s, %s, %s)
+        ON CONFLICT (code, quarter) DO UPDATE SET
+            "hasDuplicate" = TRUE
+        """,
+        [
+            (
+                course["code"],
+                course["quarter"],
+                course["data"],
+                course["subjectAreaCode"],
+                course["myplanId"],
+            )
+            for course in courses
+        ],
+    )
+
+
+def get_subject_areas_from_db():
+    data = run_query(
+        """
+    SELECT s."quotedCode", s.code, s."courseDuplicate",
+    (
+        SELECT count(c.id)
+        FROM myplan_quarter_courses c
+        WHERE c."subjectAreaCode" = s.code
+    ) as count,
+    (
+        SELECT count(c.id)
+        FROM myplan_quarter_courses c
+        WHERE c."subjectAreaCode" = s.code and jsonb_array_length(c.data->'sectionGroups') > 0
+    ) as count_with_section_groups
+    FROM myplan_subject_areas s
+    """
+    )
+
+    result = [
+        {
+            "quotedCode": row[0],
+            "code": row[1],
+            "courseDuplicate": row[2],
+            "count": row[3],
+            "count_with_section_groups": row[4],
+        }
+        for row in data
+    ]
+    return result

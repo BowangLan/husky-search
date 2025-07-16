@@ -22,3 +22,9 @@ def with_db(func):
 def run_query(conn, cursor, query):
     cursor.execute(query)
     return cursor.fetchall()
+
+
+MYPLAN_SUBJECTS_TABLE = "myplan_subject_areas"
+PROGRAMS_TABLE = "uw_programs"
+COURSES_TABLE = "uw_courses"
+MYPLAN_COURSES_TABLE = "myplan_quarter_courses"
