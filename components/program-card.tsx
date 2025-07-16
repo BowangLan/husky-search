@@ -37,8 +37,9 @@ export function ProgramCardLink({ program }: { program: ProgramInfo }) {
           <ViewTransition name={`program-title-${program.id}`}>
             <h3 className="font-medium text-center text-base md:text-lg lg:text-xl text-foreground group-hover:text-foreground/90 transition-colors duration-200 line-clamp-2">
               {/* {program.name} */}
-              {/* {program.myplanSubjectArea?.title ?? program.name} */}
-              {decodeURIComponent(program.code.toUpperCase())}
+              {program.myplanSubjectArea?.code ??
+                decodeURIComponent(program.code.toUpperCase())}
+              {/* {decodeURIComponent(program.code.toUpperCase())} */}
             </h3>
           </ViewTransition>
 
@@ -49,7 +50,8 @@ export function ProgramCardLink({ program }: { program: ProgramInfo }) {
           )} */}
 
           <div className="text-xs text-muted-foreground text-center">
-            {program.name}
+            {/* {program.name} */}
+            {program.myplanSubjectArea?.title ?? program.name}
           </div>
 
           {/* <div className="flex items-center justify-between">
