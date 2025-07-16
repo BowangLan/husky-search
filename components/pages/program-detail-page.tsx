@@ -2,13 +2,12 @@
 import { unstable_ViewTransition as ViewTransition } from "react"
 import { notFound } from "next/navigation"
 import { CourseService } from "@/services/course-service"
-import { ProgramService } from "@/services/program-service"
+import { ProgramDetail, ProgramService } from "@/services/program-service"
 
-import { Course, DatabaseCourse } from "@/types/course"
+import { MyPlanCourseCodeGroup } from "@/types/myplan"
 import { Program } from "@/types/program"
+import { capitalize } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { AnimatedList } from "@/components/animated-list"
 import { CourseCardGrid, CourseCardLink } from "@/components/course-card"
 
 import { PageTitle, PageWithHeaderLayout } from "../page-wrapper"
@@ -17,8 +16,8 @@ export function ProgramDetailPage({
   program,
   courses,
 }: {
-  program: Program
-  courses: DatabaseCourse[]
+  program: ProgramDetail
+  courses: MyPlanCourseCodeGroup[]
 }) {
   return (
     <PageWithHeaderLayout
@@ -29,13 +28,13 @@ export function ProgramDetailPage({
       }
       title={
         <ViewTransition name={`program-title-${program.id}`}>
-          <PageTitle>{program.name}</PageTitle>
+          <PageTitle>{capitalize(program.title)}</PageTitle>
         </ViewTransition>
       }
       subtitle={
         <div className="flex items-center gap-2 text-base text-muted-foreground font-light">
           <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-          <span>{program.courseCount} courses available</span>
+          <span>{courses.length} courses available</span>
         </div>
       }
     >

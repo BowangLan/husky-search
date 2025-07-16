@@ -214,6 +214,14 @@
   fill: var(--primary);
 }
 
+.text-primary {
+  color: var(--primary);
+}
+
+.text-primary-foreground {
+  color: var(--primary-foreground);
+}
+
 .px-page {
   @apply px-4 sm:px-6 lg:px-8;
 }

@@ -6,6 +6,7 @@ import Link from "next/link"
 import { ProgramInfo } from "@/services/program-service"
 
 import { Program } from "@/types/program"
+import { capitalize } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 
@@ -33,12 +34,11 @@ export function ProgramCardLink({ program }: { program: ProgramInfo }) {
       </div> */}
 
       <CardContent>
-        <div className="h-12 md:h-20 flex flex-col justify-center items-center gap-2">
+        <div className="h-12 md:h-20 flex flex-col justify-center items-center gap-1">
           <ViewTransition name={`program-title-${program.id}`}>
             <h3 className="font-medium text-center text-base md:text-lg lg:text-xl text-foreground group-hover:text-foreground/90 transition-colors duration-200 line-clamp-2">
               {/* {program.name} */}
-              {program.myplanSubjectArea?.code ??
-                decodeURIComponent(program.code.toUpperCase())}
+              {program.code}
               {/* {decodeURIComponent(program.code.toUpperCase())} */}
             </h3>
           </ViewTransition>
@@ -51,7 +51,7 @@ export function ProgramCardLink({ program }: { program: ProgramInfo }) {
 
           <div className="text-xs text-muted-foreground text-center">
             {/* {program.name} */}
-            {program.myplanSubjectArea?.title ?? program.name}
+            {capitalize(program.title)}
           </div>
 
           {/* <div className="flex items-center justify-between">

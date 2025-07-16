@@ -1,8 +1,11 @@
 import { count, desc, eq, sql } from "drizzle-orm"
 
+import { MyPlanCourse } from "@/types/myplan"
+import { groupQuarterCoursesByCode } from "@/lib/course-utils"
 import {
   CoursesTable,
   MyPlanQuarterCoursesTable,
+  MyPlanSubjectAreasTable,
   ProgramsTable,
   db,
 } from "@/lib/db/schema"
@@ -28,11 +31,31 @@ export class CourseService {
     myplanData: MyPlanQuarterCoursesTable.data,
   }
 
+  private static myplanCourseSelect = {
+    id: MyPlanQuarterCoursesTable.id,
+    code: MyPlanQuarterCoursesTable.code,
+    data: MyPlanQuarterCoursesTable.data,
+    quarter: MyPlanQuarterCoursesTable.quarter,
+    myplanId: MyPlanQuarterCoursesTable.myplanId,
+    subjectAreaCode: MyPlanQuarterCoursesTable.subjectAreaCode,
+    subjectAreaTitle: MyPlanSubjectAreasTable.title,
+  }
+
   // Shared join logic for course queries
   private static joinPrograms(query: any) {
     return query.leftJoin(
       ProgramsTable,
       eq(CoursesTable.programCode, ProgramsTable.code)
+    )
+  }
+
+  private static joinMyPlanSubjectAreas(query: any) {
+    return query.innerJoin(
+      MyPlanSubjectAreasTable,
+      eq(
+        MyPlanQuarterCoursesTable.subjectAreaCode,
+        MyPlanSubjectAreasTable.code
+      )
     )
   }
 
@@ -44,6 +67,23 @@ export class CourseService {
   }
 
   static async getCoursesByProgram(programCode: string) {
+    let query = db
+      .select(CourseService.myplanCourseSelect)
+      .from(MyPlanQuarterCoursesTable)
+    query = CourseService.joinMyPlanSubjectAreas(query)
+    const courses = await query
+      .where(eq(MyPlanQuarterCoursesTable.subjectAreaCode, programCode))
+      .orderBy(
+        MyPlanQuarterCoursesTable.code,
+        desc(MyPlanQuarterCoursesTable.quarter)
+      )
+
+    // group courses by quarter
+    const groupedCourses = groupQuarterCoursesByCode(courses)
+    return groupedCourses
+  }
+
+  static async getCoursesByProgramLegacy(programCode: string) {
     let query = db.select(CourseService.baseSelectWithMyPlan).from(CoursesTable)
     query = CourseService.joinPrograms(query)
     query = CourseService.joinMyPlan(query)
@@ -73,6 +113,19 @@ export class CourseService {
   }
 
   static async getCourseByCode(code: string) {
+    let query = db
+      .select(CourseService.myplanCourseSelect)
+      .from(MyPlanQuarterCoursesTable)
+    query = CourseService.joinMyPlanSubjectAreas(query)
+    const courses = await query
+      .where(eq(MyPlanQuarterCoursesTable.code, code))
+      .orderBy(desc(MyPlanQuarterCoursesTable.quarter))
+
+    const course = courses.length > 0 ? courses[0] : null
+    return course ? groupQuarterCoursesByCode([course])[0] : null
+  }
+
+  static async getCourseByCodeLegacy(code: string) {
     let query = db.select(CourseService.baseSelectWithMyPlan).from(CoursesTable)
     query = CourseService.joinMyPlan(query)
     query = CourseService.joinPrograms(query)
@@ -127,6 +180,19 @@ export class CourseService {
       .orderBy(sql`RANDOM()`)
       .limit(count)
     return courses
+  }
+
+  static async getPopularCourses(count: number) {
+    let query = db
+      .select(CourseService.myplanCourseSelect)
+      .from(MyPlanQuarterCoursesTable)
+    query = CourseService.joinMyPlanSubjectAreas(query)
+    const courses = await query
+      .orderBy(
+        sql`jsonb_array_length(data->'sectionGroups') DESC NULLS LAST`
+      )
+      .limit(count)
+    return groupQuarterCoursesByCode(courses)
   }
 }
 

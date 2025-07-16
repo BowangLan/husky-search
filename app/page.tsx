@@ -4,12 +4,13 @@ import { CourseCardLink } from "@/components/course-card"
 import { PageWithHeaderLayout } from "@/components/page-wrapper"
 
 export default async function IndexPage() {
-  const courses = await CourseService.getRandomCourses(20)
+  // const courses = await CourseService.getRandomCourses(20)
+  const courses = await CourseService.getPopularCourses(20)
   const totalCourseCount = await CourseService.getTotalCourseCount()
 
   return (
     <PageWithHeaderLayout
-      title="Browse Courses at UW"
+      title="Popular Courses at UW"
       subtitle={
         <div className="flex items-center gap-2 text-base text-muted-foreground font-light">
           <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
@@ -27,7 +28,7 @@ export default async function IndexPage() {
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch justify-stretch">
             {courses.map((course) => (
-              <CourseCardLink key={course.id} course={course} />
+              <CourseCardLink key={course.code} course={course} />
             ))}
           </div>
         )}

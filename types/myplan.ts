@@ -32,3 +32,16 @@ export type MyPlanCourse = {
 export type MyPlanCourseDetail = {
   id: string
 }
+
+export type MyPlanCourseCodeGroup = {
+  code: string
+  title: string
+  subjectAreaCode: string
+  subjectAreaTitle: string
+  data: {
+    data: MyPlanCourse
+    quarter: string
+    subjectAreaCode: string
+    myplanId: string
+  }[]
+}

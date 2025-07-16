@@ -4,18 +4,16 @@
 import { unstable_ViewTransition as ViewTransition } from "react"
 import Link from "next/link"
 
-import { DatabaseCourse } from "@/types/course"
+import { MyPlanCourseCodeGroup } from "@/types/myplan"
 import { Card, CardContent } from "@/components/ui/card"
 
 import { AnimatedList } from "./animated-list"
 import {
-  CourseCreditBadge,
   CourseGenEdRequirements,
   CourseProgramBadgeLink,
-  getCourseCreditString,
 } from "./course-modules"
 
-export function CourseCardLink({ course }: { course: DatabaseCourse }) {
+export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
   return (
     <Card className="relative group isolate">
       <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -29,7 +27,7 @@ export function CourseCardLink({ course }: { course: DatabaseCourse }) {
       <div className="relative aspect-video w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-muted/50 to-muted/30">
         {/* Placeholder for course image */}
         <div className="flex h-full items-center justify-center">
-          <ViewTransition name={`course-code-${course.id}`}>
+          <ViewTransition name={`course-code-${course.code}`}>
             <div className="text-4xl font-medium text-muted-foreground/30">
               {course.code}
             </div>
@@ -45,10 +43,14 @@ export function CourseCardLink({ course }: { course: DatabaseCourse }) {
                 {course.code}
               </h3>
               <span className="text-muted-foreground text-sm inline-block ml-2 font-mono">
-                ({getCourseCreditString(course)})
+                ({course.data[0]?.data.credit ?? ""})
               </span>
+              <div className="flex-1"></div>
+              {/* <div className="text-muted-foreground text-sm inline-block ml-2 font-mono">
+                {course.data[0]?.data.sectionGroups.length ?? 0}
+              </div> */}
             </div>
-            <ViewTransition name={`course-title-${course.id}`}>
+            <ViewTransition name={`course-title-${course.code}`}>
               <h3 className="text-sm font-normal text-foreground opacity-60 line-clamp-1">
                 {course.title}
               </h3>
@@ -68,14 +70,18 @@ export function CourseCardLink({ course }: { course: DatabaseCourse }) {
   )
 }
 
-export const CourseCardGrid = ({ courses }: { courses: DatabaseCourse[] }) => {
+export const CourseCardGrid = ({
+  courses,
+}: {
+  courses: MyPlanCourseCodeGroup[]
+}) => {
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       <AnimatedList
         data={courses}
         getItemKey={({ item }) => item.code}
         renderItem={({ item }) => (
-          <CourseCardLink key={item.id} course={item} />
+          <CourseCardLink key={item.code} course={item} />
         )}
       />
     </div>

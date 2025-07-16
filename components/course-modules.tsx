@@ -1,9 +1,9 @@
 // @ts-ignore
 import { unstable_ViewTransition as ViewTransition } from "react"
 import Link from "next/link"
-import { CourseDetail } from "@/services/course-service"
 
-import { DatabaseCourse } from "@/types/course"
+import { MyPlanCourseCodeGroup } from "@/types/myplan"
+import { capitalize } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import {
   Tooltip,
@@ -15,14 +15,14 @@ export const CourseGenEdRequirements = ({
   course,
   size,
 }: {
-  course: CourseDetail | DatabaseCourse
+  course: MyPlanCourseCodeGroup
   size?: React.ComponentProps<typeof Badge>["size"]
 }) => {
-  if (!("myplanData" in course && course.myplanData)) {
+  if (!("data" in course && course.data)) {
     return null
   }
 
-  const genEdReqs = course.myplanData.genEduReqs
+  const genEdReqs = course.data[0].data.genEduReqs
 
   return (
     // <ViewTransition name={`course-gen-ed-requirements-${course.id}`}>
@@ -38,49 +38,15 @@ export const CourseGenEdRequirements = ({
   )
 }
 
-export const getCourseCreditString = (
-  course: CourseDetail | DatabaseCourse
-) => {
-  let s = course.credit
-  if ("myplanData" in course && course.myplanData) {
-    if (typeof course.myplanData.credit === "string") {
-      s = course.myplanData.credit
-    } else if (Array.isArray(course.myplanData.credit)) {
-      s = course.myplanData.credit.join(",")
-    }
-  }
-  return s
-}
-
-export const CourseCreditBadge = ({
+export const CourseLevelBadge = ({
   course,
-  size,
 }: {
-  course: CourseDetail | DatabaseCourse
-  size?: React.ComponentProps<typeof Badge>["size"]
+  course: MyPlanCourseCodeGroup
 }) => {
-  let s = course.credit
-  if ("myplanData" in course && course.myplanData) {
-    if (typeof course.myplanData.credit === "string") {
-      s = course.myplanData.credit
-    } else if (Array.isArray(course.myplanData.credit)) {
-      s = course.myplanData.credit.join(",")
-    }
-  }
   return (
-    <ViewTransition name={`course-credit-${course.id}`}>
-      <Badge size={size} variant="green-outline">
-        {s} Credits
-      </Badge>
-    </ViewTransition>
-  )
-}
-
-export const CourseLevelBadge = ({ course }: { course: CourseDetail }) => {
-  return (
-    <ViewTransition name={`course-level-${course.id}`}>
+    <ViewTransition name={`course-level-${course.code}`}>
       <Badge variant="purple-outline">
-        {`${course.number}`.slice(0, 1) + "00"}
+        {`${course.code}`.slice(0, 1) + "00"}
       </Badge>
     </ViewTransition>
   )
@@ -90,21 +56,21 @@ export const CourseProgramBadgeLink = ({
   course,
   size,
 }: {
-  course: CourseDetail | DatabaseCourse
+  course: MyPlanCourseCodeGroup
   size?: React.ComponentProps<typeof Badge>["size"]
 }) => {
   return (
-    <ViewTransition name={`course-program-${course.id}`}>
+    <ViewTransition name={`course-program-${course.code}`}>
       <Tooltip>
         <TooltipTrigger>
           <Link
-            href={`/majors/${course.programCode}`}
+            href={`/majors/${course.subjectAreaCode}`}
             prefetch
             scroll={false}
             className="z-20"
           >
             <Badge size={size} variant="purple-outline">
-              {course.programName || "No program"}
+              {capitalize(course.subjectAreaTitle)}
             </Badge>
           </Link>
         </TooltipTrigger>
