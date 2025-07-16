@@ -213,3 +213,11 @@
 .fill-primary {
   fill: var(--primary);
 }
+
+.px-page {
+  @apply px-4 sm:px-6 lg:px-8;
+}
+
+.mx-page {
+  @apply mx-auto max-w-7xl;
+}

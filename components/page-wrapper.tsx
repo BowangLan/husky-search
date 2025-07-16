@@ -1,0 +1,48 @@
+import { cn } from "@/lib/utils"
+
+export const PageWithHeaderLayout = ({
+  title,
+  subtitle,
+  children,
+  className,
+}: {
+  title: React.ReactNode
+  subtitle: React.ReactNode
+  children: React.ReactNode
+  className?: string
+}) => {
+  return (
+    <Page className={className}>
+      <section className="px-page mx-page">
+        <div className="w-full mb-16 flex flex-col gap-2">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-2">
+            {title}
+          </h1>
+          <div className="flex items-center gap-2 text-base text-muted-foreground font-light">
+            {subtitle}
+          </div>
+        </div>
+      </section>
+      {children}
+    </Page>
+  )
+}
+
+export const Page = ({
+  className,
+  children,
+}: {
+  className?: string
+  children: React.ReactNode
+}) => {
+  return (
+    <div
+      className={cn(
+        "bg-gradient-to-br from-background via-background to-muted/20 py-16",
+        className
+      )}
+    >
+      {children}
+    </div>
+  )
+}
