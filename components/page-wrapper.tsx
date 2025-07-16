@@ -1,11 +1,13 @@
 import { cn } from "@/lib/utils"
 
 export const PageWithHeaderLayout = ({
+  titleTop,
   title,
   subtitle,
   children,
   className,
 }: {
+  titleTop?: React.ReactNode
   title: React.ReactNode
   subtitle: React.ReactNode
   children: React.ReactNode
@@ -15,9 +17,14 @@ export const PageWithHeaderLayout = ({
     <Page className={className}>
       <section className="px-page mx-page">
         <div className="w-full mb-16 flex flex-col gap-2">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-2">
-            {title}
-          </h1>
+          {titleTop}
+          {typeof title === "string" ? (
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-2">
+              {title}
+            </h1>
+          ) : (
+            title
+          )}
           <div className="flex items-center gap-2 text-base text-muted-foreground font-light">
             {subtitle}
           </div>
@@ -44,5 +51,13 @@ export const Page = ({
     >
       {children}
     </div>
+  )
+}
+
+export const PageTitle = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-2">
+      {children}
+    </h1>
   )
 }

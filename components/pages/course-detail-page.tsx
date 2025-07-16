@@ -31,9 +31,10 @@ export function CourseDetailPage({ course }: { course: CourseDetail }) {
   const genEdReqs = course.myplanData?.genEduReqs || []
 
   return (
-    <div className="bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto px-4 py-4 sm:px-6 lg:px-8">
+    <div className="bg-gradient-to-br from-background via-background to-muted/20 mx-page px-page">
+      <div className="py-4">
         {/* Back Navigation */}
+        {/* TODO: Replace with breadcrumbs */}
         <div className="bg-background">
           <BackButton url={`/majors/${course.programCode}`} />
         </div>
