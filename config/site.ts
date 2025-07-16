@@ -18,9 +18,9 @@ export const siteConfig = {
       href: "/about",
     },
   ],
-  links: {
-    twitter: "https://twitter.com/uw",
-    github: "https://github.com/uw",
-    docs: "https://www.washington.edu/",
-  },
+  // links: {
+  //   twitter: "https://twitter.com/uw",
+  //   github: "https://github.com/uw",
+  //   docs: "https://www.washington.edu/",
+  // },
 }

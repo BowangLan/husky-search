@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link";
+import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 import { NavItem } from "@/types/nav"
@@ -20,10 +20,13 @@ export function MainNav({ items }: MainNavProps) {
     <div className="flex gap-8 md:gap-12">
       <Link href="/" className="flex items-center space-x-2 group">
         <div className="relative">
-          <Icons.logo className="h-6 w-6 transition-transform duration-200 group-hover:scale-110" />
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <Icons.logo
+            size={28}
+            className="transition-transform duration-200 group-hover:scale-110"
+          />
+          {/* <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" /> */}
         </div>
-        <span className="font-semibold text-lg tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+        <span className="font-semibold text-lg tracking-tight bg-gradient-to-r from-foreground to-purple-500 bg-clip-text text-transparent">
           {siteConfig.name}
         </span>
       </Link>
