@@ -11,12 +11,14 @@ export const AnimatedList = <T,>({
   getItemKey,
   itemStyle,
   itemClassName,
+  itemDelay = 0.05,
 }: {
   data: T[]
   renderItem: ({ item, index }: { item: T; index: number }) => React.ReactNode
   getItemKey?: ({ item, index }: { item: T; index: number }) => string
   itemStyle?: React.CSSProperties
   itemClassName?: string
+  itemDelay?: number
 }) => {
   return (
     <>
@@ -34,7 +36,7 @@ export const AnimatedList = <T,>({
           style={
             {
               ...itemStyle,
-              "--motion-delay": `${index * 0.05}s`,
+              "--motion-delay": `${index * (itemDelay)}s`,
             } as React.CSSProperties
           }
           // className={cn("", itemClassName)}

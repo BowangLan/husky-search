@@ -1,7 +1,7 @@
 import { ProgramService } from "@/services/program-service"
 
 import { PageWithHeaderLayout } from "@/components/page-wrapper"
-import { ProgramCardLink } from "@/components/program-card"
+import { ProgramCardGrid } from "@/components/program-card"
 
 export default async function MajorsPage() {
   const programs = await ProgramService.getAllPrograms()
@@ -25,11 +25,7 @@ export default async function MajorsPage() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {programs.map((program) => (
-                <ProgramCardLink key={program.id} program={program} />
-              ))}
-            </div>
+            <ProgramCardGrid programs={programs} />
           )}
         </div>
       </section>

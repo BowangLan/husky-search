@@ -17,3 +17,8 @@ def with_db(func):
 
     return wrapper
 
+
+@with_db
+def run_query(conn, cursor, query):
+    cursor.execute(query)
+    return cursor.fetchall()

@@ -2,6 +2,7 @@ import { InferInsertModel, InferSelectModel } from "drizzle-orm"
 import { drizzle } from "drizzle-orm/node-postgres"
 import {
   boolean,
+  integer,
   jsonb,
   pgTable,
   serial,
@@ -67,6 +68,7 @@ export const MyPlanSubjectAreasTable = pgTable(
     codeNoSpaces: text("codeNoSpaces").notNull(),
     quotedCode: text("quotedCode").notNull(),
     courseDuplicate: boolean("courseDuplicate").notNull().default(false),
+    programId: integer("programId"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   },
@@ -81,8 +83,9 @@ export const ProgramsTable = pgTable(
   "uw_programs",
   {
     id: serial("id").primaryKey(),
-    name: text("name").notNull(),
+    name: text("name").notNull().unique(),
     code: text("code").unique().notNull(),
+    myplanSubjectAreaId: integer("myplanSubjectAreaId"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   },
