@@ -1,7 +1,5 @@
 "use client"
 
-// import { unstable_ViewTransition as ViewTransition } from "react"
-import { unstable_ViewTransition as ViewTransition } from "react"
 import { AnimatePresence } from "motion/react"
 
 export const GlobalLayoutWrapper = ({
@@ -9,10 +7,5 @@ export const GlobalLayoutWrapper = ({
 }: {
   children: React.ReactNode
 }) => {
-  return (
-    <AnimatePresence>
-      <ViewTransition>{children}</ViewTransition>
-      {/* {children} */}
-    </AnimatePresence>
-  )
+  return <AnimatePresence>{children}</AnimatePresence>
 }
