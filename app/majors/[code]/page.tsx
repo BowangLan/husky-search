@@ -9,7 +9,8 @@ export default async function ProgramPage({
 }: {
   params: Promise<{ code: string }>
 }) {
-  const { code } = await params
+  const { code: codeParam } = await params
+  const code = decodeURIComponent(codeParam)
   const program = await ProgramService.getProgramByCode(code)
 
   if (!program) {
