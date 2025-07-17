@@ -28,8 +28,8 @@ import {
   CourseGenEdRequirements,
   CourseProgramBadgeLink,
 } from "../course-modules"
+import { Page } from "../page-wrapper"
 import { ExternalLink } from "../ui/external-link"
-import { ValueLabelPairRow } from "../ui/value-label-pair-row"
 
 export function CourseDetailPage({
   course,
@@ -37,7 +37,7 @@ export function CourseDetailPage({
   course: MyPlanCourseCodeGroup
 }) {
   return (
-    <div className="bg-gradient-to-br from-background via-background to-muted/20 mx-page px-page">
+    <Page className="mx-page px-page py-0">
       <div className="py-4">
         {/* Back Navigation */}
         {/* TODO: Replace with breadcrumbs */}
@@ -166,6 +166,6 @@ export function CourseDetailPage({
           </section>
         </div>
       </div>
-    </div>
+    </Page>
   )
 }

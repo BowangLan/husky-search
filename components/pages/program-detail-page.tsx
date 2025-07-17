@@ -1,14 +1,11 @@
 // @ts-ignore
 import { unstable_ViewTransition as ViewTransition } from "react"
-import { notFound } from "next/navigation"
-import { CourseService } from "@/services/course-service"
-import { ProgramDetail, ProgramService } from "@/services/program-service"
+import { ProgramDetail } from "@/services/program-service"
 
 import { MyPlanCourseCodeGroup } from "@/types/myplan"
-import { Program } from "@/types/program"
 import { capitalize } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { CourseCardGrid, CourseCardLink } from "@/components/course-card"
+import { CourseCardGrid } from "@/components/course-card"
 
 import { PageTitle, PageWithHeaderLayout } from "../page-wrapper"
 

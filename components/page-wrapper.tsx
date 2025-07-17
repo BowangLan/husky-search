@@ -1,3 +1,6 @@
+// @ts-ignore
+import { unstable_ViewTransition as ViewTransition } from "react"
+
 import { cn } from "@/lib/utils"
 
 export const PageWithHeaderLayout = ({
@@ -43,14 +46,16 @@ export const Page = ({
   children: React.ReactNode
 }) => {
   return (
-    <div
-      className={cn(
-        "bg-gradient-to-br from-background via-background to-muted/20 py-16",
-        className
-      )}
-    >
-      {children}
-    </div>
+    <ViewTransition enter="page-enter" exit="page-exit">
+      <div
+        className={cn(
+          "bg-gradient-to-br from-background via-background to-muted/20 py-16",
+          className
+        )}
+      >
+        {children}
+      </div>
+    </ViewTransition>
   )
 }
 
