@@ -11,20 +11,8 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-type Course = {
-  id: number
-  code: string
-  title: string
-  description: string
-  credit: string
-  subject: string
-  number: string
-  quarters: string
-  programCode: string | null
-}
-
 const WIDTH = "300px"
-const WIDTH_FOCUSED = "440px"
+const WIDTH_FOCUSED = "400px"
 
 export function CourseSearch() {
   const [query, setQuery] = useState("")
@@ -97,7 +85,7 @@ export function CourseSearch() {
   }
 
   return (
-    <div className="relative">
+    <div className="relative hidden md:block">
       <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 opacity-50 z-10" />
       <motion.div
         initial={{ width: WIDTH }}
