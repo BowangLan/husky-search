@@ -4,6 +4,7 @@ import { MainNav } from "@/components/main-nav"
 import { ThemeToggle } from "@/components/theme-toggle"
 
 import { CourseSearchMobile } from "./course-search-mobile"
+import { MainNavMobile } from "./main-nav-mobile"
 
 export function SiteHeader() {
   return (
@@ -13,9 +14,8 @@ export function SiteHeader() {
         <div className="flex items-center gap-2">
           <CourseSearchMobile />
           <CourseSearch />
-          <nav className="flex items-center gap-1">
-            <ThemeToggle />
-          </nav>
+          <ThemeToggle />
+          <MainNavMobile items={siteConfig.mainNav} />
         </div>
       </div>
     </header>
