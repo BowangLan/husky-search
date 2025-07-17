@@ -125,13 +125,16 @@ export const parseTermId = (termId: string) => {
   } as const
 
   const quarterLabel = quarterMap[quarter as keyof typeof quarterMap]
-  const quarterLabelShort = quarterMap[quarter as keyof typeof quarterMap]
+  const quarterLabelShort = quarterMap[
+    quarter as keyof typeof quarterMap
+  ].slice(0, 2)
+  const yearShort = year.toString().slice(-2)
 
   const term: Term = {
     year,
     quarter,
     label: `${year} ${quarterLabel}${optionalSuffix}`,
-    labelShort: `${year} ${quarterLabelShort}${optionalSuffix}`,
+    labelShort: `${quarterLabelShort} ${yearShort}`,
   }
 
   return term

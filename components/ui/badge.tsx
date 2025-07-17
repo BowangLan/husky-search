@@ -24,13 +24,23 @@ const badgeVariants = cva(
           "border-transparent bg-purple-500 dark:bg-purple-600 text-white [a&]:hover:bg-purple-600",
         "purple-outline":
           "border-purple-500 text-purple-500 dark:text-purple-400 bg-purple-500/10 dark:bg-purple-500/10 [a&]:hover:bg-purple-500/10",
-        blue: "border-transparent bg-blue-500 text-white [a&]:hover:bg-blue-600",
+        blue: "border-transparent bg-blue-500 dark:bg-blue-600 text-white [a&]:hover:bg-blue-600",
         "blue-outline":
           "border-blue-500 text-blue-500 dark:text-blue-400 bg-blue-500/10 dark:bg-blue-500/10 [a&]:hover:bg-blue-500/10",
         green:
-          "border-transparent bg-green-500 text-white [a&]:hover:bg-green-600",
+          "border-transparent bg-green-500 dark:bg-green-600 text-white [a&]:hover:bg-green-600",
         "green-outline":
           "border-green-500 text-green-500 dark:text-green-400 bg-green-500/10 dark:bg-green-500/10 [a&]:hover:bg-green-500/10",
+        yellow:
+          "border-transparent bg-amber-500 dark:bg-amber-600 text-white [a&]:hover:bg-amber-600",
+        "yellow-outline":
+          "border-amber-500 text-amber-500 dark:text-amber-400 bg-amber-500/10 dark:bg-amber-500/10 [a&]:hover:bg-amber-500/10",
+        red: "border-transparent bg-red-500 text-white [a&]:hover:bg-red-600",
+        "red-outline":
+          "border-red-500 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/10 [a&]:hover:bg-red-500/10",
+        gray: "border-transparent bg-gray-500 text-white [a&]:hover:bg-gray-600",
+        "gray-outline":
+          "border-gray-500 text-gray-500 dark:text-gray-400 bg-gray-500/10 dark:bg-gray-500/10 [a&]:hover:bg-gray-500/10",
       },
       size: {
         default: "text-xs px-2 py-1.5",

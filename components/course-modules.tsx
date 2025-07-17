@@ -3,6 +3,7 @@ import { unstable_ViewTransition as ViewTransition } from "react"
 import Link from "next/link"
 
 import { MyPlanCourseCodeGroup } from "@/types/myplan"
+import { parseTermId } from "@/lib/course-utils"
 import { capitalize } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -80,5 +81,35 @@ export const CourseProgramBadgeLink = ({
         </TooltipContent>
       </Tooltip>
     </ViewTransition>
+  )
+}
+
+export const getQuarterColor = (quarter: number) => {
+  if (quarter === 1) return "blue"
+  if (quarter === 2) return "green"
+  if (quarter === 3) return "yellow"
+  if (quarter === 4) return "red"
+  return "gray"
+}
+
+export const CourseQuarterBadges = ({
+  course,
+}: {
+  course: MyPlanCourseCodeGroup
+}) => {
+  const quarters = course.data.map((c) => c.quarter).map(parseTermId)
+
+  return (
+    <div className="flex flex-wrap gap-2 items-center">
+      {quarters.map((quarter) => (
+        <Badge
+          key={quarter.label}
+          variant={`${getQuarterColor(quarter.quarter)}`}
+          className="text-[11px] px-1.5 py-0.5"
+        >
+          {quarter.labelShort}
+        </Badge>
+      ))}
+    </div>
   )
 }

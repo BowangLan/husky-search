@@ -11,6 +11,7 @@ import { AnimatedList } from "./animated-list"
 import {
   CourseGenEdRequirements,
   CourseProgramBadgeLink,
+  CourseQuarterBadges,
 } from "./course-modules"
 
 export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
@@ -46,6 +47,7 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
               {/* <div className="text-muted-foreground text-sm inline-block ml-2 font-mono">
                 {course.data[0]?.data.sectionGroups.length ?? 0}
               </div> */}
+              <CourseQuarterBadges course={course} />
             </div>
             <ViewTransition>
               <h3 className="text-xs md:text-sm font-normal text-foreground opacity-60 line-clamp-1">
