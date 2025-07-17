@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
+import { CourseSearchResultItem } from "@/services/course-service"
 import { Search, X } from "lucide-react"
 import { motion } from "motion/react"
 
@@ -27,11 +28,12 @@ const WIDTH_FOCUSED = "440px"
 
 export function CourseSearch() {
   const [query, setQuery] = useState("")
-  const [courses, setCourses] = useState<Course[]>([])
+  const [courses, setCourses] = useState<CourseSearchResultItem[]>([])
   const [loading, setLoading] = useState(false)
   const [showResults, setShowResults] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     if (isFocused) {
@@ -63,16 +65,32 @@ export function CourseSearch() {
       return
     }
 
+    // Cancel any pending request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+
+    // Create new abort controller for this request
+    abortControllerRef.current = new AbortController()
+
     setLoading(true)
     try {
-      const response = await fetch(`/api/search?q=${encodeURIComponent(value)}`)
+      const response = await fetch(
+        `/api/search?q=${encodeURIComponent(value)}`,
+        {
+          signal: abortControllerRef.current.signal,
+        }
+      )
       const data = await response.json()
       setCourses(data.courses ?? [])
       setShowResults(true)
     } catch (error) {
-      console.error("Search error:", error)
-      setCourses([])
-      setShowResults(false)
+      // Only handle errors that aren't from aborting
+      if (error instanceof Error && error.name !== "AbortError") {
+        console.error("Search error:", error)
+        setCourses([])
+        setShowResults(false)
+      }
     } finally {
       setLoading(false)
     }

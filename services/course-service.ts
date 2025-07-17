@@ -1,4 +1,4 @@
-import { count, desc, eq, sql } from "drizzle-orm"
+import { and, asc, count, desc, eq, ilike, like, sql } from "drizzle-orm"
 
 import { MyPlanCourse } from "@/types/myplan"
 import { groupQuarterCoursesByCode } from "@/lib/course-utils"
@@ -39,6 +39,15 @@ export class CourseService {
     myplanId: MyPlanQuarterCoursesTable.myplanId,
     subjectAreaCode: MyPlanQuarterCoursesTable.subjectAreaCode,
     subjectAreaTitle: MyPlanSubjectAreasTable.title,
+  }
+
+  private static myplanCourseSelectSimple = {
+    id: MyPlanQuarterCoursesTable.id,
+    code: MyPlanQuarterCoursesTable.code,
+    data: MyPlanQuarterCoursesTable.data,
+    quarter: MyPlanQuarterCoursesTable.quarter,
+    myplanId: MyPlanQuarterCoursesTable.myplanId,
+    subjectAreaCode: MyPlanQuarterCoursesTable.subjectAreaCode,
   }
 
   // Shared join logic for course queries
@@ -188,14 +197,73 @@ export class CourseService {
       .from(MyPlanQuarterCoursesTable)
     query = CourseService.joinMyPlanSubjectAreas(query)
     const courses = await query
-      .orderBy(
-        sql`jsonb_array_length(data->'sectionGroups') DESC NULLS LAST`
-      )
+      .orderBy(sql`jsonb_array_length(data->'sectionGroups') DESC NULLS LAST`)
       .limit(count)
     return groupQuarterCoursesByCode(courses)
+  }
+
+  static async search(
+    keywords: string,
+    {
+      page,
+      pageSize = 20,
+    }: {
+      page: number
+      pageSize?: number
+    }
+  ) {
+    const extractNumber = (query: string) => {
+      // return the first sequence of numbers {1:3}
+      return (
+        query
+          .match(/\d{1,3}/)?.[0]
+          .replace(/\D/g, "")
+          .trim() ?? null
+      )
+    }
+
+    const qWithoutNumber = keywords.replace(/\d/g, "").trim()
+    const courseCode = extractNumber(keywords)
+
+    console.log("Course Code:", courseCode)
+
+    let query = db
+      .select(CourseService.myplanCourseSelectSimple)
+      .from(MyPlanQuarterCoursesTable)
+    query = CourseService.joinMyPlanSubjectAreas(query)
+    const courses = await query
+      .groupBy(
+        MyPlanQuarterCoursesTable.id,
+        MyPlanQuarterCoursesTable.code,
+        MyPlanQuarterCoursesTable.data,
+        MyPlanQuarterCoursesTable.quarter,
+        MyPlanQuarterCoursesTable.myplanId,
+        MyPlanQuarterCoursesTable.subjectAreaCode
+      )
+      .having(
+        and(
+          ilike(
+            sql`regexp_replace(${MyPlanQuarterCoursesTable.code}, ' \d+$', '')`,
+            `${qWithoutNumber}%`
+          ),
+          like(
+            sql`regexp_replace(${MyPlanQuarterCoursesTable.code}, '^[A-Z\s]+ ', '')`,
+            courseCode ? `${courseCode}%` : "%%"
+          )
+        )
+      )
+      .orderBy(asc(MyPlanQuarterCoursesTable.code))
+      .limit(pageSize)
+      .offset((page - 1) * pageSize)
+
+    return courses
   }
 }
 
 export type CourseDetail = NonNullable<
   Awaited<ReturnType<typeof CourseService.getCourseByCode>>
 >
+
+export type CourseSearchResultItem = NonNullable<
+  Awaited<ReturnType<typeof CourseService.search>>
+>[number]
