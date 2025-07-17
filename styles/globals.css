@@ -4,6 +4,7 @@
 @plugin "tailwindcss-motion";
 
 @import "./transitions.css";
+@import "./markdown.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -173,6 +174,7 @@
    Base Styles
    ========================================================================== */
 @layer base {
+
   /* Body Styles */
   body {
     @apply text-foreground font-base bg-background;
@@ -193,6 +195,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }

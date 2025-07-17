@@ -50,16 +50,19 @@ export const PageWithHeaderLayout = ({
 export const Page = ({
   className,
   children,
+  pagePadding = false,
 }: {
   className?: string
   children: React.ReactNode
+  pagePadding?: boolean
 }) => {
   return (
     <ViewTransition enter="page-enter" exit="page-exit">
       <div
         className={cn(
           "bg-gradient-to-br from-background via-background to-muted/20 pb-16",
-          className
+          className,
+          pagePadding ? "px-page mx-page" : ""
         )}
       >
         {children}
