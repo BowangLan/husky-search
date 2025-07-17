@@ -60,7 +60,8 @@ export const CourseProgramBadgeLink = ({
   size?: React.ComponentProps<typeof Badge>["size"]
 }) => {
   return (
-    <ViewTransition name={`course-program-${course.code}`}>
+    // <ViewTransition name={`course-program-${course.code}`}>
+    <ViewTransition>
       <Tooltip>
         <TooltipTrigger asChild>
           <Link

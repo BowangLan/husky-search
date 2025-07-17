@@ -36,11 +36,9 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
         <div className="space-y-3">
           <div className="flex flex-col">
             <div className="flex items-baseline">
-              <ViewTransition name={`course-code-${course.code}`}>
-                <h3 className="text-base md:text-lg font-medium">
-                  {course.code}
-                </h3>
-              </ViewTransition>
+              <h3 className="text-base md:text-lg font-medium">
+                {course.code}
+              </h3>
               <span className="text-muted-foreground text-xs md:text-sm inline-block ml-2 font-mono">
                 ({course.data[0]?.data.credit ?? ""})
               </span>
@@ -49,7 +47,7 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
                 {course.data[0]?.data.sectionGroups.length ?? 0}
               </div> */}
             </div>
-            <ViewTransition name={`course-title-${course.code}`}>
+            <ViewTransition>
               <h3 className="text-xs md:text-sm font-normal text-foreground opacity-60 line-clamp-1">
                 {course.title}
               </h3>

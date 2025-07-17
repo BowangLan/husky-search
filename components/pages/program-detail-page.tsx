@@ -7,6 +7,7 @@ import { capitalize } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { CourseCardGrid } from "@/components/course-card"
 
+import { BackButton } from "../back-button"
 import { PageTitle, PageWithHeaderLayout } from "../page-wrapper"
 
 export function ProgramDetailPage({
@@ -24,7 +25,7 @@ export function ProgramDetailPage({
         </Badge>
       }
       title={
-        <ViewTransition name={`program-title-${program.id}`}>
+        <ViewTransition>
           <PageTitle>{capitalize(program.title)}</PageTitle>
         </ViewTransition>
       }
@@ -34,6 +35,7 @@ export function ProgramDetailPage({
           <span>{courses.length} courses available</span>
         </div>
       }
+      topToolbar={<BackButton url={`/majors`} />}
     >
       <section className="px-page mx-page">
         <div className="mx-auto max-w-7xl">

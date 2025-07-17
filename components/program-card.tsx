@@ -35,7 +35,7 @@ export function ProgramCardLink({ program }: { program: ProgramInfo }) {
 
       <CardContent>
         <div className="h-12 md:h-20 flex flex-col justify-center items-center gap-1">
-          <ViewTransition name={`program-title-${program.id}`}>
+          <ViewTransition>
             <h3 className="font-medium text-center text-base md:text-lg lg:text-xl text-foreground group-hover:text-foreground/90 transition-colors duration-200 line-clamp-2">
               {/* {program.name} */}
               {program.code}
