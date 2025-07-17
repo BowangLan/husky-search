@@ -1,6 +1,6 @@
 import { CourseService } from "@/services/course-service"
 
-import { CourseCardLink } from "@/components/course-card"
+import { CourseCardGrid, CourseCardLink } from "@/components/course-card"
 import { PageWithHeaderLayout } from "@/components/page-wrapper"
 
 export default async function IndexPage() {
@@ -26,10 +26,8 @@ export default async function IndexPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch justify-stretch">
-            {courses.map((course) => (
-              <CourseCardLink key={course.code} course={course} />
-            ))}
+          <div className="min-h-screen py-4">
+            <CourseCardGrid courses={courses} />
           </div>
         )}
       </section>
