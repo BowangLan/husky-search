@@ -36,13 +36,15 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
       <CardContent>
         <div className="space-y-3">
           <div className="flex flex-col">
-            <div className="flex items-baseline">
-              <h3 className="text-base md:text-lg font-medium">
-                {course.code}
-              </h3>
-              <span className="text-muted-foreground text-xs md:text-sm inline-block ml-2 font-mono">
-                ({course.data[0]?.data.credit ?? ""})
-              </span>
+            <div className="flex items-center">
+              <div className="flex items-baseline">
+                <h3 className="text-base md:text-lg font-medium">
+                  {course.code}
+                </h3>
+                <span className="text-muted-foreground text-xs md:text-sm inline-block ml-2 font-mono">
+                  ({course.data[0]?.data.credit ?? ""})
+                </span>
+              </div>
               <div className="flex-1"></div>
               {/* <div className="text-muted-foreground text-sm inline-block ml-2 font-mono">
                 {course.data[0]?.data.sectionGroups.length ?? 0}

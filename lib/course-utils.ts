@@ -12,12 +12,14 @@ export const groupQuarterCoursesByCode = (
   }[]
 ) => {
   const groupedCourses = courses.reduce((acc, course) => {
-    acc[course.code] = {
-      code: course.code,
-      title: course.data.title,
-      subjectAreaCode: course.subjectAreaCode,
-      subjectAreaTitle: course.subjectAreaTitle,
-      data: [],
+    if (!acc[course.code]) {
+      acc[course.code] = {
+        code: course.code,
+        title: course.data.title,
+        subjectAreaCode: course.subjectAreaCode,
+        subjectAreaTitle: course.subjectAreaTitle,
+        data: [],
+      }
     }
     acc[course.code].data.push({
       data: course.data,

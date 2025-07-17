@@ -32,9 +32,9 @@ const badgeVariants = cva(
         "green-outline":
           "border-green-500 text-green-500 dark:text-green-400 bg-green-500/10 dark:bg-green-500/10 [a&]:hover:bg-green-500/10",
         yellow:
-          "border-transparent bg-amber-500 dark:bg-amber-600 text-white [a&]:hover:bg-amber-600",
+          "border-transparent bg-yellow-500 dark:bg-yellow-600 text-white [a&]:hover:bg-yellow-600",
         "yellow-outline":
-          "border-amber-500 text-amber-500 dark:text-amber-400 bg-amber-500/10 dark:bg-amber-500/10 [a&]:hover:bg-amber-500/10",
+          "border-yellow-500 text-yellow-500 dark:text-yellow-400 bg-yellow-500/10 dark:bg-yellow-500/10 [a&]:hover:bg-yellow-500/10",
         red: "border-transparent bg-red-500 text-white [a&]:hover:bg-red-600",
         "red-outline":
           "border-red-500 text-red-500 dark:text-red-400 bg-red-500/10 dark:bg-red-500/10 [a&]:hover:bg-red-500/10",
