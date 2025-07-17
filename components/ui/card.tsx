@@ -2,14 +2,20 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-function Card({ className, ...props }: React.ComponentProps<"div">) {
+function Card({
+  className,
+  hoverInteraction = true,
+  ...props
+}: React.ComponentProps<"div"> & { hoverInteraction?: boolean }) {
   return (
     <div
       data-slot="card"
       className={cn(
         "text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
-        "bg-background dark:bg-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800",
-        "relative h-full overflow-hidden border-border/50 backdrop-blur-sm transition-all duration-300 hover:border-border hover:bg-card/80 hover:shadow-lg hover:shadow-purple-500/5 hover:scale-[1.025] rounded-xl",
+        "bg-background dark:bg-neutral-900",
+        "relative h-full overflow-hidden border-border/50 backdrop-blur-sm transition-all duration-300 rounded-xl",
+        hoverInteraction &&
+          "hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:border-border hover:bg-card/80 hover:shadow-lg hover:shadow-purple-500/5 hover:scale-[1.025]",
         className
       )}
       {...props}

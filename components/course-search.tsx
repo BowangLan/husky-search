@@ -154,7 +154,6 @@ export function CourseSearch() {
                     href={`/courses/${course.code}`}
                     className="w-full flex items-center rounded-lg px-3 py-2 text-left text-sm hover:bg-foreground/10 hover:text-accent-foreground trans cursor-pointer z-20"
                     prefetch
-                    scroll={false}
                     onClick={(e) => {
                       e.stopPropagation()
                       setShowResults(false)

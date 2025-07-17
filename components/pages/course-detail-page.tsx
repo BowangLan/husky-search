@@ -13,17 +13,22 @@ import {
 } from "lucide-react"
 
 import { MyPlanCourseCodeGroup } from "@/types/myplan"
-import { capitalize } from "@/lib/utils"
+import { capitalize, capitalizeSingle } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { BackButton } from "@/components/back-button"
+import { Section, SectionContent, SectionHeader } from "@/components/section"
 
 import {
   CourseGenEdRequirements,
   CourseProgramBadgeLink,
 } from "../course-modules"
 import { ExternalLink } from "../ui/external-link"
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 import { ValueLabelPairRow } from "../ui/value-label-pair-row"
 
 export function CourseDetailPage({
@@ -126,11 +131,39 @@ export function CourseDetailPage({
             </div>
           </section>
 
-          {/* <section>
-            <p className="text-muted-foreground leading-loose max-w-4xl text-sm md:text-base font-light">
-              {course.description}
-            </p>
-          </section> */}
+          <Section>
+            {/* Section header */}
+            <SectionHeader>
+              <div className="flex items-center gap-2">
+                <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                <h3 className="text-base text-muted-foreground font-medium">
+                  Prerequisites
+                </h3>
+              </div>
+            </SectionHeader>
+            <SectionContent>
+              <p className="text-muted-foreground leading-loose max-w-4xl text-sm md:text-base font-light">
+                {course.data[0]!.data.prereqs
+                  ? capitalizeSingle(course.data[0]!.data.prereqs)
+                  : "No prerequisites"}
+              </p>
+            </SectionContent>
+          </Section>
+
+          <section className="space-y-4">
+            <iframe
+              src={`https://myplan.uw.edu/course/#/courses/${course.code}`}
+              className="w-full aspect-video overflow-hidden rounded-xl"
+            ></iframe>
+
+            {/* DawgPath */}
+            {/* <iframe
+              src={`https://dawgpath.uw.edu/course?id=${course.code}&${
+                course.data[0]!.data.campus
+              }`}
+              className="w-full aspect-video overflow-hidden rounded-xl"
+            ></iframe> */}
+          </section>
         </div>
       </div>
     </div>

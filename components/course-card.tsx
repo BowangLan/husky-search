@@ -21,7 +21,6 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
         href={`/courses/${course.code}`}
         className="absolute inset-0 cursor-pointer z-10"
         prefetch
-        scroll={false}
       ></Link>
 
       <div className="relative aspect-video w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-muted/50 to-muted/30 hidden md:block">
