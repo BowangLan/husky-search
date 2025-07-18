@@ -255,8 +255,6 @@ export class CourseService {
     const qWithoutNumber = keywords.replace(/\d/g, "").trim()
     const courseCode = extractNumber(keywords)
 
-    console.log("Course Code:", courseCode)
-
     let query = db
       .select(CourseService.myplanCourseSelectSimple)
       .from(MyPlanQuarterCoursesTable)
