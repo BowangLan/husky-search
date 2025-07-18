@@ -62,7 +62,11 @@ export function ProgramCardLink({ program }: { program: ProgramInfo }) {
     </Card>
   )
 }
-export const ProgramCardGrid = ({ programs }: { programs: ProgramInfo[] }) => {
+export const AnimatedProgramCardGrid = ({
+  programs,
+}: {
+  programs: ProgramInfo[]
+}) => {
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       <AnimatedList
@@ -75,6 +79,16 @@ export const ProgramCardGrid = ({ programs }: { programs: ProgramInfo[] }) => {
           <ProgramCardLink key={item.id} program={item} />
         )}
       />
+    </div>
+  )
+}
+
+export const ProgramCardGrid = ({ programs }: { programs: ProgramInfo[] }) => {
+  return (
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {programs.map((program) => (
+        <ProgramCardLink key={program.id} program={program} />
+      ))}
     </div>
   )
 }

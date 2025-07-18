@@ -5,7 +5,10 @@ import { ProgramInfo, ProgramService } from "@/services/program-service"
 
 import { Input } from "@/components/ui/input"
 import { PageWithHeaderLayout } from "@/components/page-wrapper"
-import { ProgramCardGrid } from "@/components/program-card"
+import {
+  AnimatedProgramCardGrid,
+  ProgramCardGrid,
+} from "@/components/program-card"
 
 export function MajorsPage({ programs }: { programs: ProgramInfo[] }) {
   const [query, setQuery] = useState("")
@@ -51,7 +54,13 @@ export function MajorsPage({ programs }: { programs: ProgramInfo[] }) {
               </div>
             </div>
           ) : (
-            <ProgramCardGrid programs={displayPrograms} />
+            <>
+              {query.length === 0 ? (
+                <AnimatedProgramCardGrid programs={displayPrograms} />
+              ) : (
+                <ProgramCardGrid programs={displayPrograms} />
+              )}
+            </>
           )}
         </div>
       </section>
