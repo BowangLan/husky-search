@@ -41,6 +41,10 @@ const badgeVariants = cva(
         gray: "border-transparent bg-gray-500 text-white [a&]:hover:bg-gray-600",
         "gray-outline":
           "border-gray-500 text-gray-500 dark:text-gray-400 bg-gray-500/10 dark:bg-gray-500/10 [a&]:hover:bg-gray-500/10",
+        orange:
+          "border-transparent bg-orange-500 dark:bg-orange-600 text-white [a&]:hover:bg-orange-600",
+        "orange-outline":
+          "border-orange-500 text-orange-500 dark:text-orange-400 bg-orange-500/10 dark:bg-orange-500/10 [a&]:hover:bg-orange-500/10",
       },
       size: {
         default: "text-xs px-2 py-1.5",

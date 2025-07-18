@@ -37,7 +37,7 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
         <div className="space-y-3">
           <div className="flex flex-col">
             <div className="flex items-center">
-              <div className="flex items-baseline">
+              <div className="flex items-baseline flex-none">
                 <h3 className="text-base md:text-lg font-medium">
                   {course.code}
                 </h3>

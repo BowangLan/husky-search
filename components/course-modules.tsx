@@ -88,7 +88,7 @@ export const getQuarterColor = (quarter: number) => {
   if (quarter === 1) return "blue"
   if (quarter === 2) return "green"
   if (quarter === 3) return "yellow"
-  if (quarter === 4) return "red"
+  if (quarter === 4) return "orange"
   return "gray"
 }
 
@@ -100,7 +100,7 @@ export const CourseQuarterBadges = ({
   const quarters = course.data.map((c) => c.quarter).map(parseTermId)
 
   return (
-    <div className="flex flex-wrap gap-2 items-center">
+    <div className="flex flex-wrap gap-2 items-center justify-end">
       {quarters.map((quarter) => (
         <Badge
           key={quarter.label}

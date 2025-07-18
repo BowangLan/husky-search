@@ -136,7 +136,7 @@ export const parseTermId = (termId: string) => {
     year,
     quarter,
     label: `${year} ${quarterLabel}${optionalSuffix}`,
-    labelShort: `${quarterLabelShort} ${yearShort}`,
+    labelShort: `${quarterLabelShort}${optionalSuffix} ${yearShort}`,
   }
 
   return term

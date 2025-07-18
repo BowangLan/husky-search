@@ -1,6 +1,6 @@
 import { and, asc, count, desc, eq, ilike, like, sql } from "drizzle-orm"
 
-import { MyPlanCourse } from "@/types/myplan"
+import { MyPlanCourse, MyPlanCourseCodeGroup } from "@/types/myplan"
 import { groupQuarterCoursesByCode } from "@/lib/course-utils"
 import {
   CoursesTable,
@@ -192,14 +192,44 @@ export class CourseService {
   }
 
   static async getPopularCourses(count: number) {
+    const totalSectionGroups = sql<number>`
+    SUM(jsonb_array_length(${MyPlanQuarterCoursesTable.data}->'sectionGroups'))
+  `.as("totalSectionGroups") // Give it an alias for use in orderBy
     let query = db
-      .select(CourseService.myplanCourseSelect)
+      // .select(CourseService.myplanCourseSelect)
+      .select({
+        code: MyPlanQuarterCoursesTable.code,
+        title: sql<string>`min(${MyPlanQuarterCoursesTable.data}->>'title')`.as(
+          "title"
+        ),
+        subjectAreaCode: MyPlanQuarterCoursesTable.subjectAreaCode,
+        subjectAreaTitle: MyPlanSubjectAreasTable.title,
+        data: sql<MyPlanCourseCodeGroup["data"]>`
+        array_agg(jsonb_build_object(
+          'data', ${MyPlanQuarterCoursesTable.data},
+          'quarter', ${MyPlanQuarterCoursesTable.quarter},
+          'subjectAreaCode', ${MyPlanQuarterCoursesTable.subjectAreaCode},
+          'myplanId', ${MyPlanQuarterCoursesTable.myplanId}
+        ) ORDER BY ${MyPlanQuarterCoursesTable.quarter} DESC)
+        `,
+      })
       .from(MyPlanQuarterCoursesTable)
     query = CourseService.joinMyPlanSubjectAreas(query)
     const courses = await query
-      .orderBy(sql`jsonb_array_length(data->'sectionGroups') DESC NULLS LAST`)
+      .groupBy(
+        MyPlanQuarterCoursesTable.code,
+        MyPlanQuarterCoursesTable.subjectAreaCode,
+        MyPlanSubjectAreasTable.title
+      )
+      .orderBy(
+        // MyPlanQuarterCoursesTable.code,
+        // sql`jsonb_array_length(data->'sectionGroups') DESC NULLS LAST`,
+        // desc(MyPlanQuarterCoursesTable.quarter)
+        sql`${totalSectionGroups.getSQL()} DESC`
+      )
       .limit(count)
-    return groupQuarterCoursesByCode(courses)
+    // return groupQuarterCoursesByCode(courses)
+    return courses
   }
 
   static async search(
