@@ -1,17 +1,17 @@
 ::view-transition-old(.page-enter) {
-  animation: slide-up-in 0.5s var(--easing-quart-out);
+  animation: slide-up-in 0.7s var(--easing-quart-out);
 }
 
 ::view-transition-new(.page-enter) {
-  animation: slide-up-in 0.5s var(--easing-quart-out);
+  animation: slide-up-in 0.7s var(--easing-quart-out);
 }
 
 ::view-transition-old(.page-exit) {
-  animation: slide-down-out 0.5s var(--easing-quart-out);
+  animation: slide-down-out 0.7s var(--easing-quart-out);
 }
 
 ::view-transition-new(.page-exit) {
-  animation: slide-down-out 0.5s var(--easing-quart-out);
+  animation: slide-down-out 0.7s var(--easing-quart-out);
 }
 
 
