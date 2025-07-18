@@ -1,6 +1,6 @@
 import { CourseService } from "@/services/course-service"
 
-import { CourseCardGrid, CourseCardLink } from "@/components/course-card"
+import { CourseCardGrid } from "@/components/course-card"
 import { PageWithHeaderLayout } from "@/components/page-wrapper"
 
 export default async function IndexPage() {

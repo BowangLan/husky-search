@@ -49,7 +49,6 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
               {/* <div className="text-muted-foreground text-sm inline-block ml-2 font-mono">
                 {course.data[0]?.data.sectionGroups.length ?? 0}
               </div> */}
-              <CourseQuarterBadges course={course} />
             </div>
             <ViewTransition>
               <h3 className="text-xs md:text-sm font-normal text-foreground opacity-60 line-clamp-1">
@@ -63,6 +62,11 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
               <CourseProgramBadgeLink course={course} size="sm" />
               {/* <CourseCreditBadge course={course} size="sm" /> */}
               <CourseGenEdRequirements course={course} size="sm" />
+            </div>
+
+            {/* Row */}
+            <div className="flex items-center gap-2 flex-wrap mt-2">
+              <CourseQuarterBadges course={course} />
             </div>
           </div>
         </div>
