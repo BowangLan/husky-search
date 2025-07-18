@@ -12,6 +12,8 @@ export const AnimatedList = <T,>({
   itemStyle,
   itemClassName,
   itemDelay = 0.05,
+  itemDuration = 0.8,
+  animateLayout = true,
 }: {
   data: T[]
   renderItem: ({ item, index }: { item: T; index: number }) => React.ReactNode
@@ -19,18 +21,24 @@ export const AnimatedList = <T,>({
   itemStyle?: React.CSSProperties
   itemClassName?: string
   itemDelay?: number
+  itemDuration?: number
+  animateLayout?: boolean
 }) => {
   return (
     <>
       {data.map((item, index) => (
         <motion.div
           key={getItemKey ? getItemKey({ item, index }) : index}
-          layoutId={`${getItemKey ? getItemKey({ item, index }) : index}`}
+          layoutId={
+            animateLayout
+              ? `${getItemKey ? getItemKey({ item, index }) : index}`
+              : undefined
+          }
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{
-            duration: 0.8,
+            duration: itemDuration,
             ease: EASE_OUT_CUBIC,
             delay: index * itemDelay,
           }}

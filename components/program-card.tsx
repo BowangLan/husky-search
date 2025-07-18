@@ -69,6 +69,8 @@ export const ProgramCardGrid = ({ programs }: { programs: ProgramInfo[] }) => {
         data={programs}
         getItemKey={({ item }) => item.code}
         itemDelay={0.01}
+        // itemDuration={0.5}
+        animateLayout={false}
         renderItem={({ item }) => (
           <ProgramCardLink key={item.id} program={item} />
         )}
