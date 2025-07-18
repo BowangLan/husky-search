@@ -8,6 +8,7 @@ import { PageWithHeaderLayout } from "@/components/page-wrapper"
 import {
   AnimatedProgramCardGrid,
   ProgramCardGrid,
+  GroupedProgramCardSections,
 } from "@/components/program-card"
 
 export function MajorsPage({ programs }: { programs: ProgramInfo[] }) {
@@ -56,7 +57,7 @@ export function MajorsPage({ programs }: { programs: ProgramInfo[] }) {
           ) : (
             <>
               {query.length === 0 ? (
-                <AnimatedProgramCardGrid programs={displayPrograms} />
+                <GroupedProgramCardSections programs={displayPrograms} />
               ) : (
                 <ProgramCardGrid programs={displayPrograms} />
               )}
