@@ -24,3 +24,7 @@ export const siteConfig = {
   //   docs: "https://www.washington.edu/",
   // },
 }
+
+export const externalLinks = {
+  feedback: "https://forms.gle/BDNCjDo3mCEfA5wz7",
+}
