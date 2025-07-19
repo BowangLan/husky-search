@@ -1,5 +1,6 @@
 import "@/styles/globals.css"
 import { Metadata } from "next"
+import { Analytics } from "@vercel/analytics/next"
 
 import { siteConfig } from "@/config/site"
 import { fontSans } from "@/lib/fonts"
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
               {process.env.NODE_ENV === "development" && <TailwindIndicator />}
             </ThemeProvider>
           </GlobalLayoutWrapper>
+          <Analytics />
         </body>
       </html>
     </>
