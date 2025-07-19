@@ -4,6 +4,7 @@ import { MainNav } from "@/components/main-nav"
 import { ThemeToggle } from "@/components/theme-toggle"
 
 import { CourseSearchMobile } from "./course-search-mobile"
+import HeaderUser from "./header-user"
 import { MainNavMobile } from "./main-nav-mobile"
 
 export function SiteHeader() {
@@ -16,6 +17,7 @@ export function SiteHeader() {
           <CourseSearch />
           <ThemeToggle />
           <MainNavMobile items={siteConfig.mainNav} />
+          <HeaderUser />
         </div>
       </div>
     </header>
