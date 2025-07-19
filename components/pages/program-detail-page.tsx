@@ -152,7 +152,8 @@ export function ProgramDetailPage({
             </div>
           ) : (
             <>
-              <div className="hidden md:block">
+              <div className="">
+                {/* <div className="hidden md:block"> */}
                 <div className="sticky top-16 z-10 bg-background/50 backdrop-blur-md py-4">
                   <CourseFilters
                     filterOptions={filterOptions}
@@ -164,7 +165,7 @@ export function ProgramDetailPage({
                   <CourseCardGridView courses={displayedCourses} />
                 </div>
               </div>
-              <div className="md:hidden flex flex-row">
+              {/* <div className="md:hidden flex">
                 <div className="w-[256px] sticky flex-none top-16 z-10 hidden">
                   <CourseFiltersVertical
                     filterOptions={filterOptions}
@@ -172,11 +173,10 @@ export function ProgramDetailPage({
                     setFilterState={handleFilterStateChange}
                   />
                 </div>
-                <div className="flex-1">
+                <div className="min-h-screen py-4">
                   <CourseCardGridView courses={displayedCourses} />
-                  {/* <CourseCardListView courses={displayedCourses} /> */}
                 </div>
-              </div>
+              </div> */}
             </>
           )}
         </div>
