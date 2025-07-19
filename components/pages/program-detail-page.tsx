@@ -13,10 +13,17 @@ import { MyPlanCourseCodeGroup } from "@/types/myplan"
 import { generateFilterOptions } from "@/lib/course-utils"
 import { capitalize } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { CourseCardGrid } from "@/components/course-card"
+import {
+  CourseCardGridView,
+  CourseCardListView,
+} from "@/components/course-card"
 
 import { BackButton } from "../back-button"
-import { CourseFilterState, CourseFilters } from "../course-filters"
+import {
+  CourseFilterState,
+  CourseFilters,
+  CourseFiltersVertical,
+} from "../course-filters"
 import { PageTitle, PageWithHeaderLayout } from "../page-wrapper"
 
 export function ProgramDetailPage({
@@ -145,15 +152,30 @@ export function ProgramDetailPage({
             </div>
           ) : (
             <>
-              <div className="sticky top-16 z-10 bg-background/50 backdrop-blur-md py-4">
-                <CourseFilters
-                  filterOptions={filterOptions}
-                  filterState={filterState}
-                  setFilterState={handleFilterStateChange}
-                />
+              <div className="hidden md:block">
+                <div className="sticky top-16 z-10 bg-background/50 backdrop-blur-md py-4">
+                  <CourseFilters
+                    filterOptions={filterOptions}
+                    filterState={filterState}
+                    setFilterState={handleFilterStateChange}
+                  />
+                </div>
+                <div className="min-h-screen py-4">
+                  <CourseCardGridView courses={displayedCourses} />
+                </div>
               </div>
-              <div className="min-h-screen py-4">
-                <CourseCardGrid courses={displayedCourses} />
+              <div className="md:hidden flex flex-row">
+                <div className="w-[256px] sticky flex-none top-16 z-10 hidden">
+                  <CourseFiltersVertical
+                    filterOptions={filterOptions}
+                    filterState={filterState}
+                    setFilterState={handleFilterStateChange}
+                  />
+                </div>
+                <div className="flex-1">
+                  <CourseCardGridView courses={displayedCourses} />
+                  {/* <CourseCardListView courses={displayedCourses} /> */}
+                </div>
               </div>
             </>
           )}
