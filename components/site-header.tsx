@@ -17,7 +17,7 @@ export function SiteHeader() {
           <CourseSearch />
           <ThemeToggle />
           <MainNavMobile items={siteConfig.mainNav} />
-          <HeaderUser />
+          {/* <HeaderUser /> */}
         </div>
       </div>
     </header>
