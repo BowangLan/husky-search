@@ -75,7 +75,7 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
   )
 }
 
-export const CourseCardGrid = ({
+export const CourseCardGridView = ({
   courses,
 }: {
   courses: MyPlanCourseCodeGroup[]
@@ -89,6 +89,58 @@ export const CourseCardGrid = ({
           <CourseCardLink key={item.code} course={item} />
         )}
       />
+    </div>
+  )
+}
+
+export const CourseCardListItem = ({
+  course,
+}: {
+  course: MyPlanCourseCodeGroup
+}) => {
+  return (
+    <div className="flex flex-row gap-4 py-3 px-4 relative isolate hover:bg-foreground/5 dark:hover:bg-foreground/10 rounded-lg trans cursor-pointer">
+      <div className="flex flex-col">
+        <div className="flex items-center flex-none">
+          <h3 className="text-base md:text-lg font-medium">{course.code}</h3>
+          <span className="text-muted-foreground text-xs md:text-sm inline-block ml-2 font-mono mt-[1px]">
+            ({course.data[0]?.data.credit ?? ""})
+          </span>
+          <div className="ml-3">
+            <CourseQuarterBadges course={course} />
+          </div>
+        </div>
+        <div className="flex flex-row items-center gap-2">
+          <p className="text-xs md:text-sm text-muted-foreground font-normal">
+            {course.title}
+          </p>
+          {/* <CourseGenEdRequirements course={course} size="sm" /> */}
+        </div>
+      </div>
+      <div className="flex-1"></div>
+      <div className="flex flex-col gap-2 items-end">
+        <div className="flex items-center gap-2 flex-wrap">
+          <CourseGenEdRequirements course={course} size="sm" />
+          <CourseProgramBadgeLink course={course} size="sm" />
+        </div>
+        {/* <div className="flex items-center gap-2 flex-wrap">
+          <CourseQuarterBadges course={course} />
+        </div> */}
+      </div>
+    </div>
+  )
+}
+
+export const CourseCardListView = ({
+  courses,
+}: {
+  courses: MyPlanCourseCodeGroup[]
+}) => {
+  return (
+    <div className="flex flex-col gap-1">
+      {courses.map((course) => (
+        <CourseCardListItem key={course.code} course={course} />
+      ))}
     </div>
   )
 }

@@ -148,7 +148,7 @@ export function CourseDetailPage({
         <section className="space-y-4">
           <iframe
             src={`https://myplan.uw.edu/course/#/courses/${course.code}`}
-            className="w-full aspect-video overflow-hidden rounded-xl"
+            className="w-full aspect-video overflow-hidden rounded-xl md:block hidden"
           ></iframe>
 
           {/* DawgPath */}

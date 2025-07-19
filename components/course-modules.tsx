@@ -25,6 +25,10 @@ export const CourseGenEdRequirements = ({
 
   const genEdReqs = course.data[0].data.genEduReqs
 
+  if (genEdReqs.length === 0) {
+    return null
+  }
+
   return (
     // <ViewTransition name={`course-gen-ed-requirements-${course.id}`}>
     <ViewTransition>

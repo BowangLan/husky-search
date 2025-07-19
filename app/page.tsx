@@ -1,6 +1,6 @@
 import { CourseService } from "@/services/course-service"
 
-import { CourseCardGrid } from "@/components/course-card"
+import { CourseCardGridView } from "@/components/course-card"
 import { PageWithHeaderLayout } from "@/components/page-wrapper"
 
 export default async function IndexPage() {
@@ -27,7 +27,7 @@ export default async function IndexPage() {
           </div>
         ) : (
           <div className="min-h-screen py-4">
-            <CourseCardGrid courses={courses} />
+            <CourseCardGridView courses={courses} />
           </div>
         )}
       </section>
