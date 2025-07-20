@@ -66,12 +66,33 @@ def main():
     print(
         f"Courses with non-null quarter: {len(non_null_quarter_courses)} / {len(courses)}"
     )
+
     # for course in null_termId_courses:
     #     print(f"{course['code']} - {course['data']['termId']}")
     # print(null_quarter_courses[0])
 
     # ------------------------------------------------------------
     # duplicate_check(courses, lambda x: x["code"], no_print=True)
+
+    # ------------------------------------------------------------
+    # get courses by credit
+    courses_by_credit = [
+        course for course in courses if "1" in course["data"]["allCredits"]
+    ]
+    print(f"Courses by credit: {len(courses_by_credit)}")
+    # check if all courses's data['allCredits'] is a string array
+    for course in courses_by_credit:
+        if not isinstance(course["data"]["allCredits"], list):
+            print(f"Course {course['code']} has non-string allCredits")
+            print(course["data"]["allCredits"])
+            break
+    # print the first 5 courses
+    # print("Top 5 courses by credit")
+
+    # ------------------------------------------------------------
+    # get courses with detail
+    courses_with_detail = [course for course in courses if course["detail"]]
+    print(f"Courses with detail: {len(courses_with_detail)} / {len(courses)}")
 
 
 if __name__ == "__main__":

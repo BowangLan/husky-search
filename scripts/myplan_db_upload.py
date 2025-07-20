@@ -2,8 +2,6 @@ import asyncio
 from scripts.myplan_api import MyPlanApiClient, SubjectArea
 from scripts.db_queries import (
     get_empty_myplan_data_courses,
-    sql_update_course_myplan_data,
-    sql_update_course_myplan_not_found,
 )
 from scripts.db import with_db
 from rich import print

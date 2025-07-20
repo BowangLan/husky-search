@@ -66,7 +66,7 @@ export const MyPlanQuarterCoursesTable = pgTable(
     quarter: text("quarter").notNull(),
     data: jsonb("data").$type<MyPlanCourse>().notNull(),
     myplanId: text("myplanId").notNull().unique(),
-    // detail: jsonb("detail").$type<MyPlanCourseDetail>(),
+    detail: jsonb("detail").$type<MyPlanCourseDetail>(),
     subjectAreaCode: text("subjectAreaCode")
       .references(() => MyPlanSubjectAreasTable.code)
       .notNull(),

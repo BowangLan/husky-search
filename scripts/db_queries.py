@@ -51,28 +51,10 @@ def get_empty_myplan_data_courses(cursor) -> set:
     ]
 
 
-def sql_update_course_myplan_data():
-    """Update course myplan data"""
-    return f"""
-    UPDATE {COURSES_TABLE}
-    SET "myplanData" = %s::jsonb
-    WHERE code = %s
-    """
-
-
-def sql_update_course_myplan_not_found():
-    """Update course myplan not found"""
-    return f"""
-    UPDATE {COURSES_TABLE}
-    SET "myplanNotFound" = true
-    WHERE code = %s
-    """
-
-
 def get_myplan_courses():
     data = run_query(
         f"""
-    SELECT c.id, c.code, c.quarter, c.data, c."subjectAreaCode"
+    SELECT c.id, c.code, c.quarter, c.data, c."subjectAreaCode", c.detail
     FROM {MYPLAN_COURSES_TABLE} c
     """
     )
@@ -83,6 +65,7 @@ def get_myplan_courses():
             "quarter": row[2],
             "data": row[3],
             "subjectAreaCode": row[4],
+            "detail": row[5],
         }
         for row in data
     ]

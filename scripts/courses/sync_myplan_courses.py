@@ -5,8 +5,6 @@ from datetime import datetime
 from scripts.myplan_api import MyPlanApiClient, SubjectArea
 from scripts.db_queries import (
     get_empty_myplan_data_courses,
-    sql_update_course_myplan_data,
-    sql_update_course_myplan_not_found,
     get_myplan_courses,
 )
 from scripts.db import (
