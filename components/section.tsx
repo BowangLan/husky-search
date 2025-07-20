@@ -3,16 +3,42 @@ import { cn } from "@/lib/utils"
 export function Section({
   children,
   className,
-}: React.ComponentProps<"section">) {
-  return <section className={cn("mb-6", className)}>{children}</section>
+  withPadding = false,
+}: React.ComponentProps<"section"> & { withPadding?: boolean }) {
+  return (
+    <section
+      className={cn("mb-6", withPadding && "px-page mx-page", className)}
+    >
+      {children}
+    </section>
+  )
 }
 
 export function SectionHeader({
   children,
   className,
-}: React.ComponentProps<"div">) {
+  title,
+  subtitle,
+  border,
+}: React.ComponentProps<"div"> & {
+  border?: boolean
+  title?: React.ReactNode
+  subtitle?: React.ReactNode
+}) {
   return (
-    <div className={cn("border-b border-border pb-2", className)}>
+    <div
+      className={cn(
+        "pb-3 flex items-center flex-row gap-2",
+        border && "border-b border-border pb-4",
+        className
+      )}
+    >
+      {(!!title || !!subtitle) && (
+        <div className="flex-1 flex flex-col gap-1">
+          {!!title && <SectionTitle>{title}</SectionTitle>}
+          {!!subtitle && <SectionSubtitle>{subtitle}</SectionSubtitle>}
+        </div>
+      )}
       {children}
     </div>
   )
@@ -22,5 +48,23 @@ export function SectionContent({
   children,
   className,
 }: React.ComponentProps<"div">) {
-  return <div className={cn("py-3", className)}>{children}</div>
+  return <div className={cn("py-4", className)}>{children}</div>
+}
+
+export function SectionTitle({
+  children,
+  className,
+}: React.ComponentProps<"h2">) {
+  return <h2 className={cn("text-2xl font-bold", className)}>{children}</h2>
+}
+
+export function SectionSubtitle({
+  children,
+  className,
+}: React.ComponentProps<"h3">) {
+  return (
+    <p className={cn("text-base font-light text-muted-foreground", className)}>
+      {children}
+    </p>
+  )
 }

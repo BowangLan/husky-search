@@ -12,8 +12,8 @@ export const PageWithHeaderLayout = ({
   topToolbar,
 }: {
   titleTop?: React.ReactNode
-  title: React.ReactNode
-  subtitle: React.ReactNode
+  title?: React.ReactNode
+  subtitle?: React.ReactNode
   children: React.ReactNode
   className?: string
   topToolbar?: React.ReactNode
@@ -31,7 +31,7 @@ export const PageWithHeaderLayout = ({
         <div className="w-full flex flex-col gap-2">
           {titleTop}
           {typeof title === "string" ? (
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-2">
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-1">
               {title}
             </h1>
           ) : (

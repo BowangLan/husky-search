@@ -124,7 +124,7 @@ const CourseDetailPageContentMobile = ({
 
       <Section>
         {/* Section header */}
-        <SectionHeader>
+        <SectionHeader border>
           <div className="flex items-center gap-2">
             <GraduationCap className="h-4 w-4 text-muted-foreground" />
             <h3 className="text-base text-muted-foreground font-medium">
