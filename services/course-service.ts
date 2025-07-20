@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, ilike, like, sql } from "drizzle-orm"
+import { and, asc, count, desc, eq, ilike, like, or, sql } from "drizzle-orm"
 
 import { MyPlanCourse, MyPlanCourseCodeGroup } from "@/types/myplan"
 import { groupQuarterCoursesByCode } from "@/lib/course-utils"
@@ -351,8 +351,12 @@ export class CourseService {
       )
     }
 
-    const qWithoutNumber = keywords.replace(/\d/g, "").trim()
+    const qWithoutNumber = keywords.replaceAll(/\d/g, "").trim()
     const courseCode = extractNumber(keywords)
+
+    console.log(`Query: '${keywords}'`)
+    console.log(`Q without number: '${qWithoutNumber}%'`)
+    console.log(`Course code: '${courseCode}%'`)
 
     let query = db
       .select({
@@ -370,13 +374,17 @@ export class CourseService {
     const courses = await query
       .where(
         and(
-          ilike(
-            sql`regexp_replace(${MyPlanQuarterCoursesTable.code}, ' \d+$', '')`,
-            `${qWithoutNumber}%`
+          or(
+            sql`regexp_replace(${
+              MyPlanQuarterCoursesTable.code
+            }, '[\s\d]+', '') ilike '${sql.raw(qWithoutNumber)}%'`,
+            sql`regexp_replace(${
+              MyPlanQuarterCoursesTable.code
+            }, '\d+', '') ilike '${sql.raw(qWithoutNumber)}%'`
           ),
           like(
-            sql`regexp_replace(${MyPlanQuarterCoursesTable.code}, '^[A-Z\s]+ ', '')`,
-            courseCode ? `${courseCode}%` : "%%"
+            sql`right(${MyPlanQuarterCoursesTable.code}, 3)`,
+            !!courseCode ? `${courseCode}%` : "%%"
           )
         )
       )
