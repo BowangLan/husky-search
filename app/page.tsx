@@ -32,15 +32,15 @@ export default async function IndexPage() {
 
   return (
     <PageWithHeaderLayout>
-      <Section withPadding>
+      {/* <Section withPadding>
         <SectionHeader
           title="Courses by Credit"
           subtitle="Most popular courses at UW by credit"
         />
         <SectionContent>
-          {/* <CourseCardGridView courses={coursesByCredit} /> */}
+          <CourseCardGridView courses={coursesByCredit} />
         </SectionContent>
-      </Section>
+      </Section> */}
       <Section withPadding>
         <SectionHeader
           title="Popular Courses at UW"
