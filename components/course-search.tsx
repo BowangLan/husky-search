@@ -138,7 +138,7 @@ export function CourseSearch() {
               <div className="space-y-1">
                 {courses.map((course) => (
                   <Link
-                    key={course.id}
+                    key={course.code}
                     href={`/courses/${course.code}`}
                     className="w-full flex items-center rounded-lg px-3 py-2 text-left text-sm hover:bg-foreground/10 hover:text-accent-foreground trans cursor-pointer z-20"
                     prefetch

@@ -44,10 +44,10 @@ export class CourseService {
   private static myplanCourseSelectSimple = {
     id: MyPlanQuarterCoursesTable.id,
     code: MyPlanQuarterCoursesTable.code,
-    data: MyPlanQuarterCoursesTable.data,
-    quarter: MyPlanQuarterCoursesTable.quarter,
-    myplanId: MyPlanQuarterCoursesTable.myplanId,
-    subjectAreaCode: MyPlanQuarterCoursesTable.subjectAreaCode,
+    // data: MyPlanQuarterCoursesTable.data,
+    // quarter: MyPlanQuarterCoursesTable.quarter,
+    // myplanId: MyPlanQuarterCoursesTable.myplanId,
+    // subjectAreaCode: MyPlanQuarterCoursesTable.subjectAreaCode,
   }
 
   // Shared join logic for course queries
@@ -116,8 +116,68 @@ export class CourseService {
     return courses
   }
 
+  static async getCoursesByCredit(
+    credit: string,
+    {
+      page,
+      pageSize = 20,
+    }: {
+      page: number
+      pageSize?: number
+    }
+  ) {
+    let query = db
+      .select({
+        code: MyPlanQuarterCoursesTable.code,
+        title: sql<string>`min(${MyPlanQuarterCoursesTable.data}->>'title')`.as(
+          "title"
+        ),
+        subjectAreaCode: MyPlanQuarterCoursesTable.subjectAreaCode,
+        subjectAreaTitle: MyPlanSubjectAreasTable.title,
+        data: sql<MyPlanCourseCodeGroup["data"]>`
+        array_agg(jsonb_build_object(
+          'data', ${MyPlanQuarterCoursesTable.data},
+          'quarter', ${MyPlanQuarterCoursesTable.quarter},
+          'subjectAreaCode', ${MyPlanQuarterCoursesTable.subjectAreaCode},
+          'myplanId', ${MyPlanQuarterCoursesTable.myplanId}
+        ) ORDER BY ${MyPlanQuarterCoursesTable.quarter} DESC)
+        `,
+      })
+      .from(MyPlanQuarterCoursesTable)
+    query = CourseService.joinMyPlanSubjectAreas(query)
+    const courses = await query
+      .groupBy(
+        MyPlanQuarterCoursesTable.id,
+        MyPlanQuarterCoursesTable.code,
+        MyPlanQuarterCoursesTable.data,
+        MyPlanQuarterCoursesTable.quarter,
+        MyPlanQuarterCoursesTable.myplanId,
+        MyPlanQuarterCoursesTable.subjectAreaCode
+      )
+      .having(
+        // and(
+        //   ilike(
+        //     sql`regexp_replace(${MyPlanQuarterCoursesTable.code}, ' \d+$', '')`,
+        //     `${qWithoutNumber}%`
+        //   ),
+        //   like(
+        //     sql`regexp_replace(${MyPlanQuarterCoursesTable.code}, '^[A-Z\s]+ ', '')`,
+        //     courseCode ? `${courseCode}%` : "%%"
+        //   )
+        // )
+        sql`${credit} = ANY((${MyPlanQuarterCoursesTable.data}->>'allCredits')::text[])`
+      )
+      .orderBy(asc(MyPlanQuarterCoursesTable.code))
+      .limit(pageSize)
+      .offset((page - 1) * pageSize)
+
+    return courses
+  }
+
   static async getTotalCourseCount() {
-    const tcount = await db.select({ count: count() }).from(CoursesTable)
+    const tcount = await db
+      .select({ count: count() })
+      .from(MyPlanQuarterCoursesTable)
     return tcount[0].count
   }
 
@@ -191,12 +251,27 @@ export class CourseService {
     return courses
   }
 
-  static async getPopularCourses(count: number) {
+  static async getCourses(
+    count: number,
+    {
+      page = 1,
+      sortBy = "popular",
+
+      // filters
+      credit,
+      hasPrereq,
+    }: {
+      page?: number
+      sortBy?: "popular" | "code"
+      credit?: string
+      hasPrereq?: boolean
+    } = {}
+  ) {
     const totalSectionGroups = sql<number>`
     SUM(jsonb_array_length(${MyPlanQuarterCoursesTable.data}->'sectionGroups'))
   `.as("totalSectionGroups") // Give it an alias for use in orderBy
-    let query = db
-      // .select(CourseService.myplanCourseSelect)
+
+    let query: any = db
       .select({
         code: MyPlanQuarterCoursesTable.code,
         title: sql<string>`min(${MyPlanQuarterCoursesTable.data}->>'title')`.as(
@@ -215,20 +290,44 @@ export class CourseService {
       })
       .from(MyPlanQuarterCoursesTable)
     query = CourseService.joinMyPlanSubjectAreas(query)
+
+    let whereClauses: any[] = []
+
+    if (credit) {
+      whereClauses.push(
+        sql`${MyPlanQuarterCoursesTable.data}->'allCredits' @> '["${sql.raw(
+          credit
+        )}"]'`
+      )
+    }
+
+    if (typeof hasPrereq === "boolean") {
+      if (hasPrereq) {
+        whereClauses.push(
+          sql`${MyPlanQuarterCoursesTable.data}->>'prereqs' != ''`
+        )
+      } else {
+        whereClauses.push(
+          sql`${MyPlanQuarterCoursesTable.data}->>'prereqs' = ''`
+        )
+      }
+    }
+
+    let sortByClauses = [sql`${totalSectionGroups.getSQL()} DESC`]
+    if (sortBy === "code") {
+      sortByClauses = [asc(MyPlanQuarterCoursesTable.code)]
+    }
+
     const courses = await query
+      .where(and(...whereClauses))
       .groupBy(
         MyPlanQuarterCoursesTable.code,
         MyPlanQuarterCoursesTable.subjectAreaCode,
         MyPlanSubjectAreasTable.title
       )
-      .orderBy(
-        // MyPlanQuarterCoursesTable.code,
-        // sql`jsonb_array_length(data->'sectionGroups') DESC NULLS LAST`,
-        // desc(MyPlanQuarterCoursesTable.quarter)
-        sql`${totalSectionGroups.getSQL()} DESC`
-      )
+      .orderBy(...sortByClauses)
       .limit(count)
-    // return groupQuarterCoursesByCode(courses)
+      .offset((page - 1) * count)
     return courses
   }
 
@@ -256,19 +355,20 @@ export class CourseService {
     const courseCode = extractNumber(keywords)
 
     let query = db
-      .select(CourseService.myplanCourseSelectSimple)
+      .select({
+        code: MyPlanQuarterCoursesTable.code,
+        title: sql<string>`min(${MyPlanQuarterCoursesTable.data}->>'title')`.as(
+          "title"
+        ),
+        // subjectAreaCode: MyPlanQuarterCoursesTable.subjectAreaCode,
+        // subjectAreaTitle: MyPlanSubjectAreasTable.title,
+      })
       .from(MyPlanQuarterCoursesTable)
+
     query = CourseService.joinMyPlanSubjectAreas(query)
+
     const courses = await query
-      .groupBy(
-        MyPlanQuarterCoursesTable.id,
-        MyPlanQuarterCoursesTable.code,
-        MyPlanQuarterCoursesTable.data,
-        MyPlanQuarterCoursesTable.quarter,
-        MyPlanQuarterCoursesTable.myplanId,
-        MyPlanQuarterCoursesTable.subjectAreaCode
-      )
-      .having(
+      .where(
         and(
           ilike(
             sql`regexp_replace(${MyPlanQuarterCoursesTable.code}, ' \d+$', '')`,
@@ -280,6 +380,7 @@ export class CourseService {
           )
         )
       )
+      .groupBy(MyPlanQuarterCoursesTable.code)
       .orderBy(asc(MyPlanQuarterCoursesTable.code))
       .limit(pageSize)
       .offset((page - 1) * pageSize)
