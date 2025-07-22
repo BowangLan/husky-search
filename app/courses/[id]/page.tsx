@@ -9,7 +9,7 @@ export default async function CoursePage({
   params: Promise<{ id: string }>
 }) {
   const { id: courseCode } = await params
-  const course = await CourseService.getCourseByCode(
+  const course = await CourseService.getCourseDetailByCode(
     decodeURIComponent(courseCode)
   )
   if (!course) {

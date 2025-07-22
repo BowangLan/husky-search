@@ -1,6 +1,10 @@
 import { and, asc, count, desc, eq, ilike, like, or, sql } from "drizzle-orm"
 
-import { MyPlanCourse, MyPlanCourseCodeGroup } from "@/types/myplan"
+import {
+  MyPlanCourse,
+  MyPlanCourseCodeGroup,
+  MyPlanCourseDetail,
+} from "@/types/myplan"
 import { groupQuarterCoursesByCode } from "@/lib/course-utils"
 import {
   CoursesTable,
@@ -181,17 +185,76 @@ export class CourseService {
     return tcount[0].count
   }
 
-  static async getCourseByCode(code: string) {
+  static async getCourseDetailByCode(code: string) {
+    type MyPlanCourseCodeGroupWithDetail = {
+      code: string
+      title: string
+      subjectAreaCode: string
+      subjectAreaTitle: string
+      data: {
+        data: MyPlanCourse
+        quarter: string
+        subjectAreaCode: string
+        myplanId: string
+        detail: MyPlanCourseDetail | null
+      }[]
+    }
+
+    const groupQuarterCoursesWithDetailByCode = (
+      courses: {
+        id: number
+        code: string
+        data: MyPlanCourse
+        quarter: string
+        myplanId: string
+        subjectAreaCode: string
+        subjectAreaTitle: string
+        detail: MyPlanCourseDetail | null
+      }[]
+    ) => {
+      const groupedCourses = courses.reduce((acc, course) => {
+        if (!acc[course.code]) {
+          acc[course.code] = {
+            code: course.code,
+            title: course.data.title,
+            subjectAreaCode: course.subjectAreaCode,
+            subjectAreaTitle: course.subjectAreaTitle,
+            data: [],
+          }
+        }
+        acc[course.code].data.push({
+          data: course.data,
+          quarter: course.quarter,
+          subjectAreaCode: course.subjectAreaCode,
+          myplanId: course.myplanId,
+          detail: course.detail,
+        })
+        return acc
+      }, {} as Record<string, MyPlanCourseCodeGroupWithDetail>)
+
+      return Object.values(groupedCourses)
+    }
+
     let query = db
-      .select(CourseService.myplanCourseSelect)
+      .select({
+        id: MyPlanQuarterCoursesTable.id,
+        code: MyPlanQuarterCoursesTable.code,
+        data: MyPlanQuarterCoursesTable.data,
+        quarter: MyPlanQuarterCoursesTable.quarter,
+        myplanId: MyPlanQuarterCoursesTable.myplanId,
+        detail: MyPlanQuarterCoursesTable.detail,
+        subjectAreaCode: MyPlanQuarterCoursesTable.subjectAreaCode,
+        subjectAreaTitle: MyPlanSubjectAreasTable.title,
+      })
       .from(MyPlanQuarterCoursesTable)
     query = CourseService.joinMyPlanSubjectAreas(query)
     const courses = await query
       .where(eq(MyPlanQuarterCoursesTable.code, code))
       .orderBy(desc(MyPlanQuarterCoursesTable.quarter))
 
-    const course = courses.length > 0 ? courses[0] : null
-    return course ? groupQuarterCoursesByCode([course])[0] : null
+    if (courses.length === 0) return null
+
+    return groupQuarterCoursesWithDetailByCode(courses)[0] ?? null
   }
 
   static async getCourseByCodeLegacy(code: string) {
@@ -398,7 +461,7 @@ export class CourseService {
 }
 
 export type CourseDetail = NonNullable<
-  Awaited<ReturnType<typeof CourseService.getCourseByCode>>
+  Awaited<ReturnType<typeof CourseService.getCourseDetailByCode>>
 >
 
 export type CourseSearchResultItem = NonNullable<

@@ -12,7 +12,7 @@ import {
   Users,
 } from "lucide-react"
 
-import { MyPlanCourseCodeGroup } from "@/types/myplan"
+import { MyPlanCourseCodeGroup, MyPlanCourseDetail } from "@/types/myplan"
 import { capitalize, capitalizeSingle } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -34,7 +34,7 @@ import { ExternalLink } from "../ui/external-link"
 const CourseDetailPageContentMobile = ({
   course,
 }: {
-  course: MyPlanCourseCodeGroup
+  course: CourseDetail
 }) => {
   return (
     <div>
@@ -123,20 +123,35 @@ const CourseDetailPageContentMobile = ({
       </section>
 
       <Section>
-        {/* Section header */}
         <SectionHeader border>
           <div className="flex items-center gap-2">
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
-            <h3 className="text-base text-muted-foreground font-medium">
+            {/* <GraduationCap className="h-4 w-4 text-muted-foreground" /> */}
+            <h3 className="text-sm text-muted-foreground font-medium">
               Prerequisites
             </h3>
           </div>
         </SectionHeader>
         <SectionContent>
-          <p className="text-muted-foreground leading-loose max-w-4xl text-sm md:text-base font-light">
+          <p className="leading-relaxed max-w-4xl text-sm md:text-base font-light">
             {course.data[0]!.data.prereqs
               ? capitalizeSingle(course.data[0]!.data.prereqs)
               : "No prerequisites"}
+          </p>
+        </SectionContent>
+      </Section>
+
+      <Section>
+        <SectionHeader border>
+          <div className="flex items-center gap-2">
+            {/* <GraduationCap className="h-4 w-4 text-muted-foreground" /> */}
+            <h3 className="text-sm text-muted-foreground font-medium">
+              Description
+            </h3>
+          </div>
+        </SectionHeader>
+        <SectionContent>
+          <p className="leading-relaxed max-w-4xl text-sm md:text-base font-light">
+            {course.data[0]!.detail?.courseSummaryDetails.courseDescription}
           </p>
         </SectionContent>
       </Section>
@@ -262,7 +277,7 @@ const CourseDetailPageContentDesktop = ({
             </div>
           </SectionHeader>
           <SectionContent>
-            <p className="text-muted-foreground leading-loose max-w-4xl text-sm md:text-base font-light">
+            <p className="text-muted-foreground leading-relaxed max-w-4xl text-sm md:text-base font-light">
               {course.data[0]!.data.prereqs
                 ? capitalizeSingle(course.data[0]!.data.prereqs)
                 : "No prerequisites"}
@@ -283,11 +298,7 @@ const CourseDetailPageContentDesktop = ({
   )
 }
 
-export function CourseDetailPage({
-  course,
-}: {
-  course: MyPlanCourseCodeGroup
-}) {
+export function CourseDetailPage({ course }: { course: CourseDetail }) {
   return (
     <Page className="mx-page px-page py-0">
       <PageTopToolbar>
