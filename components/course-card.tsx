@@ -77,18 +77,26 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
 
 export const CourseCardGridView = ({
   courses,
+  animated = true,
 }: {
   courses: MyPlanCourseCodeGroup[]
+  animated?: boolean
 }) => {
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      <AnimatedList
-        data={courses}
-        getItemKey={({ item }) => item.code}
-        renderItem={({ item }) => (
-          <CourseCardLink key={item.code} course={item} />
-        )}
-      />
+      {animated ? (
+        <AnimatedList
+          data={courses}
+          getItemKey={({ item }) => item.code}
+          renderItem={({ item }) => (
+            <CourseCardLink key={item.code} course={item} />
+          )}
+        />
+      ) : (
+        courses.map((course) => (
+          <CourseCardLink key={course.code} course={course} />
+        ))
+      )}
     </div>
   )
 }

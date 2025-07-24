@@ -1,4 +1,15 @@
-import { and, asc, count, desc, eq, ilike, like, or, sql } from "drizzle-orm"
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  like,
+  or,
+  sql,
+} from "drizzle-orm"
 
 import {
   MyPlanCourse,
@@ -323,11 +334,13 @@ export class CourseService {
       // filters
       credit,
       hasPrereq,
+      subjects,
     }: {
       page?: number
       sortBy?: "popular" | "code"
       credit?: string
       hasPrereq?: boolean
+      subjects?: Set<string>
     } = {}
   ) {
     const totalSectionGroups = sql<number>`
@@ -358,9 +371,15 @@ export class CourseService {
 
     if (credit) {
       whereClauses.push(
-        sql`${MyPlanQuarterCoursesTable.data}->'allCredits' @> '["${sql.raw(
+        sql`(
+        ${MyPlanQuarterCoursesTable.data}->'allCredits' @> '["${sql.raw(
           credit
-        )}"]'`
+        )}"]'
+        OR
+        ${MyPlanQuarterCoursesTable.data}->'allCredits' = '["${sql.raw(
+          credit
+        )}"]'
+      )`
       )
     }
 
@@ -374,6 +393,15 @@ export class CourseService {
           sql`${MyPlanQuarterCoursesTable.data}->>'prereqs' = ''`
         )
       }
+    }
+
+    if (subjects && subjects.size > 0) {
+      whereClauses.push(
+        // sql`${MyPlanQuarterCoursesTable.subjectAreaCode} = ANY(ARRAY[${sql.raw(
+        //   Array.from(subjects).join(",")
+        // )}]::text[])`
+        inArray(MyPlanQuarterCoursesTable.subjectAreaCode, Array.from(subjects))
+      )
     }
 
     let sortByClauses = [sql`${totalSectionGroups.getSQL()} DESC`]
@@ -466,4 +494,8 @@ export type CourseDetail = NonNullable<
 
 export type CourseSearchResultItem = NonNullable<
   Awaited<ReturnType<typeof CourseService.search>>
+>[number]
+
+export type GetCourseResponseItem = NonNullable<
+  Awaited<ReturnType<typeof CourseService.getCourses>>
 >[number]

@@ -11,6 +11,7 @@ export default authkitMiddleware({
       "/",
       "/majors",
       "/login",
+      "/courses/by-credits/:path*",
     ],
   },
 })
