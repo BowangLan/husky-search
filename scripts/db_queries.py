@@ -6,12 +6,15 @@ MYPLAN_SUBJECT_AREAS_TABLE = "myplan_subject_areas"
 MYPLAN_COURSES_TABLE = "myplan_quarter_courses"
 
 
-def get_all_courses_with_id(cursor) -> str:
+def get_all_courses_with_id() -> str:
     """Get all courses from the database"""
-    data = cursor.execute(f"""
-    SELECT id, code FROM {COURSES_TABLE}
-    """).fetchall()
-    return [{"id": row[0], "code": row[1]} for row in data]
+    data = run_query(f"""
+    SELECT id, code, subject, number FROM {COURSES_TABLE}
+    """)
+    return [
+        {"id": row[0], "code": row[1], "subject": row[2], "number": row[3]}
+        for row in data
+    ]
 
 
 def sql_get_course_by_subject_and_number(subject: str, number: str) -> str:
@@ -69,6 +72,34 @@ def get_myplan_courses():
         }
         for row in data
     ]
+
+
+def get_myplan_courses_short():
+    data = run_query(
+        f"""
+    SELECT c.id, c.code, c.quarter, c.data, c."subjectAreaCode"
+    FROM {MYPLAN_COURSES_TABLE} c
+    """
+    )
+    return [
+        {
+            "id": row[0],
+            "code": row[1],
+            "quarter": row[2],
+            "data": row[3],
+            "subjectAreaCode": row[4],
+        }
+        for row in data
+    ]
+
+
+def get_myplan_subjects():
+    data = run_query(
+        f"""
+    SELECT code, title FROM {MYPLAN_SUBJECT_AREAS_TABLE}
+    """
+    )
+    return [{"code": row[0], "title": row[1]} for row in data]
 
 
 def insert_myplan_courses(cursor, courses: list[dict]):

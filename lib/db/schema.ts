@@ -63,6 +63,7 @@ export const MyPlanQuarterCoursesTable = pgTable(
   {
     id: serial("id").primaryKey(),
     code: text("code").notNull(),
+    number: text("number").notNull(),
     quarter: text("quarter").notNull(),
     data: jsonb("data").$type<MyPlanCourse>().notNull(),
     myplanId: text("myplanId").notNull().unique(),
@@ -94,6 +95,16 @@ export const ProgramsTable = pgTable(
   },
   (programs) => [uniqueIndex("uw_programs_unique_code_idx").on(programs.code)]
 )
+
+export const MyPlanCourseDetailTable = pgTable("myplan_course_details", {
+  id: serial("id").primaryKey(),
+  subject: text("subject").notNull(),
+  number: text("number").notNull(),
+  data: jsonb("data").$type<MyPlanCourseDetail>().notNull(),
+  hash: text("hash").notNull().unique(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+})
 
 // Connect to  Postgres
 export const db = drizzle(process.env.DATABASE_URL!)
