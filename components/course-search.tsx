@@ -22,6 +22,7 @@ export function CourseSearch() {
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
+  const currentRequestIdRef = useRef<number>(0)
 
   useEffect(() => {
     if (isFocused) {
@@ -61,6 +62,9 @@ export function CourseSearch() {
     // Create new abort controller for this request
     abortControllerRef.current = new AbortController()
 
+    // Generate a unique request ID for this request
+    const requestId = ++currentRequestIdRef.current
+
     setLoading(true)
     try {
       const response = await fetch(
@@ -70,17 +74,27 @@ export function CourseSearch() {
         }
       )
       const data = await response.json()
-      setCourses(data.courses ?? [])
-      setShowResults(true)
+
+      // Only update state if this is still the current request
+      if (requestId === currentRequestIdRef.current) {
+        setCourses(data.courses ?? [])
+        setShowResults(true)
+      }
     } catch (error) {
       // Only handle errors that aren't from aborting
       if (error instanceof Error && error.name !== "AbortError") {
         console.error("Search error:", error)
-        setCourses([])
-        setShowResults(false)
+        // Only update state if this is still the current request
+        if (requestId === currentRequestIdRef.current) {
+          setCourses([])
+          setShowResults(false)
+        }
       }
     } finally {
-      setLoading(false)
+      // Only set loading to false if this is still the current request
+      if (requestId === currentRequestIdRef.current) {
+        setLoading(false)
+      }
     }
   }
 
