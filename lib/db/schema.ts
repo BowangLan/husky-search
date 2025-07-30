@@ -106,5 +106,13 @@ export const MyPlanCourseDetailTable = pgTable("myplan_course_details", {
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 })
 
+export const CourseCECDataTable = pgTable("course_cec_data", {
+  id: serial("id").primaryKey(),
+  courseUrl: text("courseUrl").notNull().unique(),
+  data: jsonb("data").$type<any>().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+})
+
 // Connect to  Postgres
 export const db = drizzle(process.env.DATABASE_URL!)
