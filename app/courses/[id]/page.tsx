@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache"
 import { notFound } from "next/navigation"
 import { CourseService } from "@/services/course-service"
 
@@ -9,9 +10,17 @@ export default async function CoursePage({
   params: Promise<{ id: string }>
 }) {
   const { id: courseCode } = await params
-  const course = await CourseService.getCourseDetailByCode(
-    decodeURIComponent(courseCode)
-  )
+
+  const course = await unstable_cache(
+    async () => {
+      return await CourseService.getCourseDetailByCode(
+        decodeURIComponent(courseCode)
+      )
+    },
+    ["course-detail", courseCode],
+    { revalidate: 60 * 60 * 24, tags: ["course-detail"] } // 1 day
+  )()
+
   if (!course) {
     return notFound()
   }
