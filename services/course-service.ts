@@ -101,14 +101,13 @@ export class CourseService {
         // ),
       })
       .from(MyPlanQuarterCoursesTable)
-    // .leftJoin(
-    //   CoursesTable,
-    // and(
-    //   eq(MyPlanQuarterCoursesTable.subjectAreaCode, CoursesTable.subject),
-    //   eq(CoursesTable.number, MyPlanQuarterCoursesTable.number)
-    // )
-    //   eq(MyPlanQuarterCoursesTable.code, CoursesTable.code)
-    // )
+      .leftJoin(
+        CoursesTable,
+        and(
+          eq(MyPlanQuarterCoursesTable.subjectAreaCode, CoursesTable.subject),
+          eq(CoursesTable.number, MyPlanQuarterCoursesTable.number)
+        )
+      )
     query = CourseService.joinMyPlanSubjectAreas(query)
     const courses = await query
       .where(eq(MyPlanQuarterCoursesTable.subjectAreaCode, programCode))
