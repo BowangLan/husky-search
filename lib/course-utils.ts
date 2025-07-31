@@ -1,3 +1,5 @@
+import { GetCoursesByProgramResponseItem } from "@/services/course-service"
+
 import { MyPlanCourse, MyPlanCourseCodeGroup } from "@/types/myplan"
 
 export const groupQuarterCoursesByCode = (
@@ -31,6 +33,20 @@ export const groupQuarterCoursesByCode = (
   }, {} as Record<string, MyPlanCourseCodeGroup>)
 
   return Object.values(groupedCourses)
+}
+
+export const groupCoursesByLevel = (
+  courses: GetCoursesByProgramResponseItem[]
+) => {
+  return courses.reduce((acc, course) => {
+    course
+    const level = course.number.slice(0, 1) + "00"
+    if (!acc[level]) {
+      acc[level] = []
+    }
+    acc[level].push(course)
+    return acc
+  }, {} as Record<string, GetCoursesByProgramResponseItem[]>)
 }
 
 export type CourseFilterOptions = {

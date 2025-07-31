@@ -7,10 +7,11 @@ import {
   useMemo,
   useState,
 } from "react"
+import { GetCoursesByProgramResponseItem } from "@/services/course-service"
 import { ProgramDetail } from "@/services/program-service"
 
 import { MyPlanCourseCodeGroup } from "@/types/myplan"
-import { generateFilterOptions } from "@/lib/course-utils"
+import { generateFilterOptions, groupCoursesByLevel } from "@/lib/course-utils"
 import { capitalize } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -25,13 +26,19 @@ import {
   CourseFiltersVertical,
 } from "../course-filters"
 import { PageTitle, PageWithHeaderLayout } from "../page-wrapper"
+import {
+  Section,
+  SectionContent,
+  SectionHeader,
+  SectionTitle,
+} from "../section"
 
 export function ProgramDetailPage({
   program,
   courses,
 }: {
   program: ProgramDetail
-  courses: MyPlanCourseCodeGroup[]
+  courses: GetCoursesByProgramResponseItem[]
 }) {
   const [filterState, setFilterState] = useState<CourseFilterState>({
     credits: new Set(),
@@ -122,6 +129,8 @@ export function ProgramDetailPage({
     )
   }
 
+  const groupedCoursesByLevel = groupCoursesByLevel(displayedCourses)
+
   return (
     <PageWithHeaderLayout
       titleTop={
@@ -142,30 +151,46 @@ export function ProgramDetailPage({
       }
       topToolbar={<BackButton url={`/majors`} />}
     >
-      <section className="px-page mx-page">
-        <div className="mx-auto max-w-7xl">
-          {courses.length === 0 ? (
+      <div>
+        {courses.length === 0 ? (
+          <section className="px-page mx-page">
             <div className="text-center py-12">
               <div className="text-muted-foreground text-lg">
                 No courses found for this program. Please check back later.
               </div>
             </div>
-          ) : (
-            <>
-              <div className="">
-                {/* <div className="hidden md:block"> */}
-                <div className="sticky top-16 z-10 bg-background/50 backdrop-blur-md py-4">
-                  <CourseFilters
-                    filterOptions={filterOptions}
-                    filterState={filterState}
-                    setFilterState={handleFilterStateChange}
-                  />
-                </div>
-                <div className="min-h-screen py-4">
-                  <CourseCardGridView courses={displayedCourses} />
-                </div>
+          </section>
+        ) : (
+          <>
+            <div className="px-page mx-page">
+              {/* <div className="hidden md:block"> */}
+              <div className="sticky top-16 z-10 bg-background/50 backdrop-blur-md py-4">
+                <CourseFilters
+                  filterOptions={filterOptions}
+                  filterState={filterState}
+                  setFilterState={handleFilterStateChange}
+                />
               </div>
-              {/* <div className="md:hidden flex">
+              <div>
+                {Object.entries(groupedCoursesByLevel).map(
+                  ([level, courses]) => (
+                    <Section key={level}>
+                      <SectionHeader>
+                        <SectionTitle>{level} Level</SectionTitle>
+                      </SectionHeader>
+                      <SectionContent>
+                        <CourseCardGridView
+                          courses={courses}
+                          animated={false}
+                        />
+                      </SectionContent>
+                    </Section>
+                  )
+                )}
+                <CourseCardGridView courses={displayedCourses} />
+              </div>
+            </div>
+            {/* <div className="md:hidden flex">
                 <div className="w-[256px] sticky flex-none top-16 z-10 hidden">
                   <CourseFiltersVertical
                     filterOptions={filterOptions}
@@ -177,10 +202,9 @@ export function ProgramDetailPage({
                   <CourseCardGridView courses={displayedCourses} />
                 </div>
               </div> */}
-            </>
-          )}
-        </div>
-      </section>
+          </>
+        )}
+      </div>
     </PageWithHeaderLayout>
   )
 }

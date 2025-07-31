@@ -58,6 +58,8 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
             {/* <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed font-light">
               {course.description}
             </p> */}
+
+            {/* Row */}
             <div className="flex items-center gap-2 flex-wrap mt-2">
               <CourseProgramBadgeLink course={course} size="sm" />
               {/* <CourseCreditBadge course={course} size="sm" /> */}
@@ -67,6 +69,14 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
             {/* Row */}
             <div className="flex items-center gap-2 flex-wrap mt-2">
               <CourseQuarterBadges course={course} />
+            </div>
+
+            {/* Row: description */}
+            <div>
+              <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed font-light">
+                {/* {"No description available"} */}
+                {course.description}
+              </p>
             </div>
           </div>
         </div>

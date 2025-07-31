@@ -54,6 +54,7 @@ export class CourseService {
     myplanId: MyPlanQuarterCoursesTable.myplanId,
     subjectAreaCode: MyPlanQuarterCoursesTable.subjectAreaCode,
     subjectAreaTitle: MyPlanSubjectAreasTable.title,
+    number: MyPlanQuarterCoursesTable.number,
   }
 
   private static myplanCourseSelectSimple = {
@@ -92,8 +93,22 @@ export class CourseService {
 
   static async getCoursesByProgram(programCode: string) {
     let query = db
-      .select(CourseService.myplanCourseSelect)
+      .select({
+        ...CourseService.myplanCourseSelect,
+        description: CoursesTable.description,
+        // sql<string>`min(${MyPlanQuarterCoursesTable.data}->>'description')`.as(
+        //   "description"
+        // ),
+      })
       .from(MyPlanQuarterCoursesTable)
+    // .leftJoin(
+    //   CoursesTable,
+    // and(
+    //   eq(MyPlanQuarterCoursesTable.subjectAreaCode, CoursesTable.subject),
+    //   eq(CoursesTable.number, MyPlanQuarterCoursesTable.number)
+    // )
+    //   eq(MyPlanQuarterCoursesTable.code, CoursesTable.code)
+    // )
     query = CourseService.joinMyPlanSubjectAreas(query)
     const courses = await query
       .where(eq(MyPlanQuarterCoursesTable.subjectAreaCode, programCode))
@@ -103,8 +118,28 @@ export class CourseService {
       )
 
     // group courses by quarter
-    const groupedCourses = groupQuarterCoursesByCode(courses)
-    return groupedCourses
+    const groupedCourses = courses.reduce((acc, course) => {
+      if (!acc[course.code]) {
+        acc[course.code] = {
+          code: course.code,
+          title: course.data.title,
+          subjectAreaCode: course.subjectAreaCode,
+          subjectAreaTitle: course.subjectAreaTitle,
+          description: course.description ?? "",
+          number: course.number,
+          data: [],
+        }
+      }
+      acc[course.code].data.push({
+        data: course.data,
+        quarter: course.quarter,
+        subjectAreaCode: course.subjectAreaCode,
+        myplanId: course.myplanId,
+      })
+      return acc
+    }, {} as Record<string, MyPlanCourseCodeGroup>)
+
+    return Object.values(groupedCourses)
   }
 
   static async getCoursesByProgramLegacy(programCode: string) {
@@ -498,4 +533,8 @@ export type CourseSearchResultItem = NonNullable<
 
 export type GetCourseResponseItem = NonNullable<
   Awaited<ReturnType<typeof CourseService.getCourses>>
+>[number]
+
+export type GetCoursesByProgramResponseItem = NonNullable<
+  Awaited<ReturnType<typeof CourseService.getCoursesByProgram>>
 >[number]

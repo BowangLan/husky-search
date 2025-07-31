@@ -34,6 +34,8 @@ export type MyPlanCourseCodeGroup = {
   title: string
   subjectAreaCode: string
   subjectAreaTitle: string
+  number: string
+  description: string
   data: {
     data: MyPlanCourse
     quarter: string
