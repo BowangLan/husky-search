@@ -18,6 +18,7 @@ export const CoursesTable = pgTable(
   {
     id: serial("id").primaryKey(),
     code: text("code").unique().notNull(),
+    myplanCode: text("myplanCode"),
     title: text("title").notNull(),
     description: text("description").notNull(),
     credit: text("credit").notNull(),
@@ -110,6 +111,14 @@ export const CourseCECDataTable = pgTable("course_cec_data", {
   id: serial("id").primaryKey(),
   courseUrl: text("courseUrl").notNull().unique(),
   data: jsonb("data").$type<any>().notNull(),
+  professor: text("professor").notNull(),
+  role: text("role").notNull(),
+  term: text("term").notNull(),
+  quarter: text("quarter").notNull(),
+  enrolledCount: integer("enrolledCount").notNull().default(0),
+  surveyedCount: integer("surveyedCount").notNull().default(0),
+  courseCode: text("courseCode").notNull(),
+  sessionCode: text("sessionCode").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 })

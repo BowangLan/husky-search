@@ -6,7 +6,7 @@ MYPLAN_SUBJECT_AREAS_TABLE = "myplan_subject_areas"
 MYPLAN_COURSES_TABLE = "myplan_quarter_courses"
 
 
-def get_all_courses_with_id() -> str:
+def get_all_courses_with_id() -> list[dict]:
     """Get all courses from the database"""
     data = run_query(f"""
     SELECT id, code, subject, number FROM {COURSES_TABLE}
