@@ -16,9 +16,10 @@ import {
   MyPlanCourseCodeGroup,
   MyPlanCourseDetail,
 } from "@/types/myplan"
-import { groupQuarterCoursesByCode } from "@/lib/course-utils"
+import { getCourseLatestEnrollCount } from "@/lib/course-utils"
 import {
   CoursesTable,
+  MyPlanCourseDetailTable,
   MyPlanQuarterCoursesTable,
   MyPlanSubjectAreasTable,
   ProgramsTable,
@@ -96,9 +97,7 @@ export class CourseService {
       .select({
         ...CourseService.myplanCourseSelect,
         description: CoursesTable.description,
-        // sql<string>`min(${MyPlanQuarterCoursesTable.data}->>'description')`.as(
-        //   "description"
-        // ),
+        detail: MyPlanCourseDetailTable.data,
       })
       .from(MyPlanQuarterCoursesTable)
       .leftJoin(
@@ -106,6 +105,16 @@ export class CourseService {
         and(
           eq(MyPlanQuarterCoursesTable.subjectAreaCode, CoursesTable.subject),
           eq(CoursesTable.number, MyPlanQuarterCoursesTable.number)
+        )
+      )
+      .leftJoin(
+        MyPlanCourseDetailTable,
+        and(
+          eq(
+            MyPlanCourseDetailTable.subject,
+            MyPlanQuarterCoursesTable.subjectAreaCode
+          ),
+          eq(MyPlanCourseDetailTable.number, MyPlanQuarterCoursesTable.number)
         )
       )
     query = CourseService.joinMyPlanSubjectAreas(query)
@@ -119,6 +128,13 @@ export class CourseService {
     // group courses by quarter
     const groupedCourses = courses.reduce((acc, course) => {
       if (!acc[course.code]) {
+        const enrollInfo = course.detail
+          ? getCourseLatestEnrollCount(course.detail)
+          : {
+              enrollMax: 0,
+              enrollCount: 0,
+            }
+
         acc[course.code] = {
           code: course.code,
           title: course.data.title,
@@ -126,6 +142,8 @@ export class CourseService {
           subjectAreaTitle: course.subjectAreaTitle,
           description: course.description ?? "",
           number: course.number,
+          enrollMax: enrollInfo.enrollMax,
+          enrollCount: enrollInfo.enrollCount,
           data: [],
         }
       }
@@ -236,6 +254,10 @@ export class CourseService {
       title: string
       subjectAreaCode: string
       subjectAreaTitle: string
+      enrollMax: number
+      enrollCount: number
+      description: string
+      number: string
       data: {
         data: MyPlanCourse
         quarter: string
@@ -264,6 +286,14 @@ export class CourseService {
             title: course.data.title,
             subjectAreaCode: course.subjectAreaCode,
             subjectAreaTitle: course.subjectAreaTitle,
+            enrollMax: course.detail
+              ? getCourseLatestEnrollCount(course.detail).enrollMax
+              : 0,
+            enrollCount: course.detail
+              ? getCourseLatestEnrollCount(course.detail).enrollCount
+              : 0,
+            description: "", // TODO
+            number: "", // TODO
             data: [],
           }
         }

@@ -76,6 +76,7 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
               <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed font-light">
                 {/* {"No description available"} */}
                 {/* {course.description} */}
+                {/* {course.enrollCount} / {course.enrollMax} */}
               </p>
             </div>
           </div>

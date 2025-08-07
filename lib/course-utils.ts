@@ -1,39 +1,6 @@
 import { GetCoursesByProgramResponseItem } from "@/services/course-service"
 
-import { MyPlanCourse, MyPlanCourseCodeGroup } from "@/types/myplan"
-
-export const groupQuarterCoursesByCode = (
-  courses: {
-    id: number
-    code: string
-    data: MyPlanCourse
-    quarter: string
-    myplanId: string
-    subjectAreaCode: string
-    subjectAreaTitle: string
-  }[]
-) => {
-  const groupedCourses = courses.reduce((acc, course) => {
-    if (!acc[course.code]) {
-      acc[course.code] = {
-        code: course.code,
-        title: course.data.title,
-        subjectAreaCode: course.subjectAreaCode,
-        subjectAreaTitle: course.subjectAreaTitle,
-        data: [],
-      }
-    }
-    acc[course.code].data.push({
-      data: course.data,
-      quarter: course.quarter,
-      subjectAreaCode: course.subjectAreaCode,
-      myplanId: course.myplanId,
-    })
-    return acc
-  }, {} as Record<string, MyPlanCourseCodeGroup>)
-
-  return Object.values(groupedCourses)
-}
+import { MyPlanCourseCodeGroup, MyPlanCourseDetail } from "@/types/myplan"
 
 export const groupCoursesByLevel = (
   courses: GetCoursesByProgramResponseItem[]
@@ -156,4 +123,109 @@ export const parseTermId = (termId: string) => {
   }
 
   return term
+}
+
+type CourseSession = {
+  code: string
+  enrollMaximum: string
+  enrollCount: string
+}
+
+type TermEnrollCount = {
+  enroll_total_count: number
+  enroll_available_count: number
+}
+
+export const getSessions = (courseDetail: any) => {
+  const sessions: any[] = []
+
+  for (const ins of courseDetail.courseOfferingInstitutionList) {
+    for (const termList of ins.courseOfferingTermList) {
+      for (const offering of termList.activityOfferingItemList) {
+        sessions.push({
+          term: termList.term,
+          ...offering,
+        })
+      }
+    }
+  }
+
+  return sessions
+}
+
+export function getSessionsGroupedByTerm(
+  courseDetail: any
+): Record<string, any[]> {
+  const sessions: Record<string, any[]> = {}
+
+  for (const ins of courseDetail.courseOfferingInstitutionList) {
+    for (const termList of ins.courseOfferingTermList) {
+      for (const offering of termList.activityOfferingItemList) {
+        if (!sessions[termList.term]) {
+          sessions[termList.term] = []
+        }
+        sessions[termList.term].push(offering)
+      }
+    }
+  }
+
+  return sessions
+}
+
+export function getCourseEnrollCount(
+  courseDetail: any
+): Record<string, TermEnrollCount> {
+  const termSessionMap = getSessionsGroupedByTerm(courseDetail)
+  const termEnrollCountMap: Record<string, TermEnrollCount> = {}
+
+  Object.entries(termSessionMap).forEach(([term, sessions]) => {
+    let termEnrollCount = 0
+    let termEnrollAvailableCount = 0
+
+    sessions.forEach((session: CourseSession) => {
+      if (session.code.length === 1) {
+        // only count session with single letter code
+        // e.g. A, B, C, D, etc.
+        // ignore sessions with multiple letter code
+        // e.g. AA, AB, etc.
+        termEnrollCount += parseInt(session.enrollMaximum)
+        termEnrollAvailableCount += parseInt(session.enrollCount)
+      }
+    })
+
+    termEnrollCountMap[term] = {
+      enroll_total_count: termEnrollCount,
+      enroll_available_count: termEnrollAvailableCount,
+    }
+  })
+
+  return termEnrollCountMap
+}
+
+export function getCourseLatestEnrollCount(courseDetail: MyPlanCourseDetail): {
+  enrollMax: number
+  enrollCount: number
+} {
+  let enrollMax = 0
+  let enrollCount = 0
+  for (const ins of courseDetail.courseOfferingInstitutionList) {
+    for (const termList of ins.courseOfferingTermList) {
+      for (const offering of termList.activityOfferingItemList) {
+        if (offering.code.length !== 1) {
+          // ignore non-lecture sessions
+          continue
+        }
+
+        enrollMax += parseInt(offering.enrollMaximum)
+        enrollCount += parseInt(offering.enrollCount)
+      }
+
+      // only get the latest term
+      break
+    }
+  }
+  return {
+    enrollMax,
+    enrollCount,
+  }
 }
