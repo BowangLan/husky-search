@@ -36,9 +36,11 @@ import {
 export function ProgramDetailPage({
   program,
   courses,
+  popularCourses,
 }: {
   program: ProgramDetail
   courses: GetCoursesByProgramResponseItem[]
+  popularCourses: GetCoursesByProgramResponseItem[]
 }) {
   const [filterState, setFilterState] = useState<CourseFilterState>({
     credits: new Set(),
@@ -164,13 +166,24 @@ export function ProgramDetailPage({
           <>
             <div className="px-page mx-page">
               {/* <div className="hidden md:block"> */}
-              <div className="sticky top-16 z-10 bg-background/50 backdrop-blur-md py-4">
+              {/* <div className="sticky top-16 z-10 bg-background/50 backdrop-blur-md py-4">
                 <CourseFilters
                   filterOptions={filterOptions}
                   filterState={filterState}
                   setFilterState={handleFilterStateChange}
                 />
-              </div>
+              </div> */}
+
+              {/* Top 10 Courses */}
+              <Section>
+                <SectionHeader>
+                  <SectionTitle>Popular Courses</SectionTitle>
+                </SectionHeader>
+                <SectionContent>
+                  <CourseCardGridView courses={popularCourses} />
+                </SectionContent>
+              </Section>
+
               <div>
                 {Object.entries(groupedCoursesByLevel).map(
                   ([level, courses]) => (
@@ -187,7 +200,7 @@ export function ProgramDetailPage({
                     </Section>
                   )
                 )}
-                <CourseCardGridView courses={displayedCourses} />
+                {/* <CourseCardGridView courses={displayedCourses} /> */}
               </div>
             </div>
             {/* <div className="md:hidden flex">

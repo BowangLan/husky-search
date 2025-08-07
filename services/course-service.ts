@@ -47,7 +47,7 @@ export class CourseService {
     myplanData: MyPlanQuarterCoursesTable.data,
   }
 
-  private static myplanCourseSelect = {
+  public static myplanCourseSelect = {
     id: MyPlanQuarterCoursesTable.id,
     code: MyPlanQuarterCoursesTable.code,
     data: MyPlanQuarterCoursesTable.data,

@@ -36,8 +36,10 @@ export type MyPlanCourseCodeGroup = {
   subjectAreaTitle: string
   number: string
   description: string
-  enrollMax: number
-  enrollCount: number
+  enrollData?: {
+    enrollMax: number
+    enrollCount: number
+  }
   data: {
     data: MyPlanCourse
     quarter: string

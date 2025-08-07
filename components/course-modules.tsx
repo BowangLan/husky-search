@@ -23,7 +23,7 @@ export const CourseGenEdRequirements = ({
     return null
   }
 
-  const genEdReqs = course.data[0].data.genEduReqs
+  const genEdReqs = course.data[0]?.data?.genEduReqs ?? []
 
   if (genEdReqs.length === 0) {
     return null

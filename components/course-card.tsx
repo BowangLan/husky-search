@@ -13,6 +13,7 @@ import {
   CourseProgramBadgeLink,
   CourseQuarterBadges,
 } from "./course-modules"
+import { Progress } from "./ui/progress"
 
 export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
   return (
@@ -70,6 +71,40 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
             <div className="flex items-center gap-2 flex-wrap mt-2">
               <CourseQuarterBadges course={course} />
             </div>
+
+            {/* Row: enroll progress */}
+            {course.enrollData && (
+              <div className="flex flex-col gap-2 mt-2">
+                <div className="flex justify-between">
+                  {/* <div></div> */}
+                  <span className="text-xs text-muted-foreground">
+                    <span className="font-semibold text-foreground">
+                      {course.enrollData.enrollMax -
+                        course.enrollData.enrollCount}{" "}
+                    </span>
+                    avail of {course.enrollData.enrollMax}
+                  </span>
+                  {/* seats left */}
+                  <span className="text-xs text-muted-foreground">
+                    {Math.round(
+                      (course.enrollData.enrollCount /
+                        course.enrollData.enrollMax) *
+                        100
+                    )}
+                    % full
+                  </span>
+                </div>
+                <Progress
+                  className="h-1.5 bg-neutral-200 dark:bg-neutral-700"
+                  indicatorClassName="bg-green-400 dark:bg-green-500"
+                  value={
+                    (course.enrollData.enrollCount /
+                      course.enrollData.enrollMax) *
+                    100
+                  }
+                />
+              </div>
+            )}
 
             {/* Row: description */}
             <div>

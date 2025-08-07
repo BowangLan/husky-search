@@ -25,6 +25,7 @@ export const CoursesTable = pgTable(
     subject: text("subject").notNull(),
     number: text("number").notNull(),
     quarters: text("quarters").notNull(),
+    genEdReqs: text("genEdReqs").array(),
     programCode: text("programCode").references(() => ProgramsTable.code, {
       onDelete: "set null",
     }),
@@ -73,6 +74,8 @@ export const MyPlanQuarterCoursesTable = pgTable(
       .references(() => MyPlanSubjectAreasTable.code)
       .notNull(),
     hasDuplicate: boolean("hasDuplicate").notNull().default(false),
+    enrollMax: integer("enrollMax").notNull().default(0),
+    enrollCount: integer("enrollCount").notNull().default(0),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   },
@@ -119,6 +122,15 @@ export const CourseCECDataTable = pgTable("course_cec_data", {
   surveyedCount: integer("surveyedCount").notNull().default(0),
   courseCode: text("courseCode").notNull(),
   sessionCode: text("sessionCode").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+})
+
+export const CurrentAcademicTermTable = pgTable("current_academic_term", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  year: integer("year").notNull(),
+  quarter: text("quarter").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 })

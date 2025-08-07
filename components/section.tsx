@@ -56,7 +56,7 @@ export function SectionTitle({
   className,
 }: React.ComponentProps<"h2">) {
   return (
-    <h2 className={cn("text-xl md:text-2xl font-medium", className)}>
+    <h2 className={cn("text-xl md:text-2xl font-medium md:font-semibold", className)}>
       {children}
     </h2>
   )
