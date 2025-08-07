@@ -76,7 +76,7 @@ async function getCoursesByProgram(programCode: string) {
         subjectAreaTitle: course.subjectAreaTitle,
         description: course.description ?? "",
         number: course.number,
-        // enrollData: SHOW_ENROLL_DATA_FOR_ALL_COURSES ? enrollInfo : undefined,
+        enrollData: SHOW_ENROLL_DATA_FOR_ALL_COURSES ? enrollInfo : undefined,
         data: [],
       }
     }
