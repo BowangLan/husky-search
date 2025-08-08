@@ -65,6 +65,9 @@ export class ProgramService {
   }
 
   static async getAllPrograms() {
+    // wait 1 second
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+
     const programs = await db
       .select({
         id: MyPlanSubjectAreasTable.id,

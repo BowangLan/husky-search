@@ -16,6 +16,7 @@ const nextConfig = {
   },
   experimental: {
     viewTransition: true,
+    ppr: true,
   },
 }
 

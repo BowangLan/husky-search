@@ -1,11 +1,12 @@
 "use client"
 
 // @ts-ignore
-import { unstable_ViewTransition as ViewTransition } from "react"
+import { Suspense, unstable_ViewTransition as ViewTransition, use } from "react"
 import Link from "next/link"
 
 import { MyPlanCourseCodeGroup } from "@/types/myplan"
 import { Card, CardContent } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 
 import { AnimatedList } from "./animated-list"
 import {
@@ -121,13 +122,81 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
   )
 }
 
+export const CourseCardSkeleton = () => {
+  return (
+    <Card className="relative group isolate">
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      
+      <div className="relative aspect-video w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-muted/50 to-muted/30 hidden md:block">
+        <Skeleton className="h-full w-full" />
+      </div>
+
+      <CardContent>
+        <div className="space-y-3">
+          <div className="flex flex-col">
+            <div className="flex items-center">
+              <div className="flex items-baseline flex-none">
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-4 w-12 ml-2" />
+              </div>
+              <div className="flex-1"></div>
+            </div>
+            <Skeleton className="h-4 w-48 mt-1" />
+
+            {/* Row */}
+            <div className="flex items-center gap-2 flex-wrap mt-2">
+              <Skeleton className="h-6 w-16 rounded-full" />
+              <Skeleton className="h-6 w-20 rounded-full" />
+            </div>
+
+            {/* Row */}
+            <div className="flex items-center gap-2 flex-wrap mt-2">
+              <Skeleton className="h-6 w-12 rounded-full" />
+              <Skeleton className="h-6 w-14 rounded-full" />
+            </div>
+
+            {/* Row: enroll progress */}
+            <div className="flex flex-col gap-2 mt-2">
+              <div className="flex justify-between">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+              <Skeleton className="h-1.5 w-full" />
+            </div>
+
+            {/* Row: description */}
+            <div>
+              <Skeleton className="h-4 w-full mt-2" />
+              <Skeleton className="h-4 w-3/4 mt-1" />
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+export const CourseCardGridViewSkeleton = () => {
+  return (
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {Array.from({ length: 8 }).map((_, index) => (
+        <CourseCardSkeleton key={index} />
+      ))}
+    </div>
+  )
+}
+
 export const CourseCardGridView = ({
-  courses,
+  courses: coursesFromProps,
   animated = true,
 }: {
-  courses: MyPlanCourseCodeGroup[]
+  courses: MyPlanCourseCodeGroup[] | Promise<MyPlanCourseCodeGroup[]>
   animated?: boolean
 }) => {
+  const courses =
+    coursesFromProps instanceof Promise
+      ? use(coursesFromProps)
+      : coursesFromProps
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {animated ? (
@@ -144,6 +213,18 @@ export const CourseCardGridView = ({
         ))
       )}
     </div>
+  )
+}
+
+export const CourseCardGridViewWithSuspense = ({
+  courses,
+}: {
+  courses: Promise<MyPlanCourseCodeGroup[]>
+}) => {
+  return (
+    <Suspense fallback={<CourseCardGridViewSkeleton />}>
+      <CourseCardGridView courses={courses} />
+    </Suspense>
   )
 }
 
