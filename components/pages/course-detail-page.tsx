@@ -159,7 +159,7 @@ const CourseDetailPageContentMobile = ({
       </Section>
 
       {/* CEC Data */}
-      <div className="w-[300px] flex-none">
+      <div className="w-[300px] flex-none hidden">
         <Section>
           <SectionHeader>
             <div className="flex items-center gap-2">
