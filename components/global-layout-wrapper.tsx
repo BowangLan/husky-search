@@ -4,6 +4,8 @@
 import { AuthKitProvider } from "@workos-inc/authkit-nextjs/components"
 import { AnimatePresence } from "motion/react"
 
+import { TooltipProvider } from "./ui/tooltip"
+
 export const GlobalLayoutWrapper = ({
   children,
 }: {
@@ -11,7 +13,9 @@ export const GlobalLayoutWrapper = ({
 }) => {
   return (
     <AuthKitProvider>
-      <AnimatePresence>{children}</AnimatePresence>
+      <AnimatePresence>
+        <TooltipProvider delayDuration={100}>{children}</TooltipProvider>
+      </AnimatePresence>
     </AuthKitProvider>
   )
 }

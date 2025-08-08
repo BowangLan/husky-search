@@ -5,6 +5,7 @@ import { Suspense, unstable_ViewTransition as ViewTransition, use } from "react"
 import Link from "next/link"
 
 import { MyPlanCourseCodeGroup } from "@/types/myplan"
+import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -15,10 +16,17 @@ import {
   CourseQuarterBadges,
 } from "./course-modules"
 import { Progress } from "./ui/progress"
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip"
 
-export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
+export function CourseCardLink({
+  course,
+  className,
+}: {
+  course: MyPlanCourseCodeGroup
+  className?: string
+}) {
   return (
-    <Card className="relative group isolate">
+    <Card className={cn("relative group isolate", className)}>
       <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       <Link
         href={`/courses/${course.code}`}
@@ -71,22 +79,42 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
             {/* Row */}
             <div className="flex items-center gap-2 flex-wrap mt-2">
               <CourseQuarterBadges course={course} />
+              <div className="flex-1"></div>
+
+              {/* Enroll max */}
+              {course.enrollData && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-xs text-foreground/60 font-light z-20 cursor-default text-right">
+                      <span className="font-medium text-foreground text-sm">
+                        {course.enrollData.enrollMax}
+                      </span>{" "}
+                      seats
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="">
+                      Maximum capacity: {course.enrollData.enrollMax} seats
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
             </div>
 
             {/* Row: enroll progress */}
-            {course.enrollData && (
+            {course.enrollData && course.enrollData.enrollCount && (
               <div className="flex flex-col gap-2 mt-2">
                 <div className="flex justify-between">
                   {/* <div></div> */}
-                  <span className="text-xs text-muted-foreground">
-                    <span className="font-semibold text-foreground">
+                  <span className="text-xs text-foreground/60 font-light">
+                    <span className="font-medium text-foreground text-sm">
                       {course.enrollData.enrollMax -
                         course.enrollData.enrollCount}{" "}
                     </span>
                     avail of {course.enrollData.enrollMax}
                   </span>
                   {/* seats left */}
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-foreground/60 font-light text-right">
                     {Math.round(
                       (course.enrollData.enrollCount /
                         course.enrollData.enrollMax) *
@@ -122,11 +150,11 @@ export function CourseCardLink({ course }: { course: MyPlanCourseCodeGroup }) {
   )
 }
 
-export const CourseCardSkeleton = () => {
+export const CourseCardSkeleton = ({ className }: { className?: string }) => {
   return (
-    <Card className="relative group isolate">
+    <Card className={cn("relative group isolate", className)}>
       <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-      
+
       <div className="relative aspect-video w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-muted/50 to-muted/30 hidden md:block">
         <Skeleton className="h-full w-full" />
       </div>
@@ -198,7 +226,7 @@ export const CourseCardGridView = ({
       ? use(coursesFromProps)
       : coursesFromProps
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {animated ? (
         <AnimatedList
           data={courses}

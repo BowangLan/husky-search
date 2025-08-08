@@ -76,7 +76,11 @@ async function getCoursesByProgram(programCode: string) {
         subjectAreaTitle: course.subjectAreaTitle,
         description: course.description ?? "",
         number: course.number,
-        enrollData: SHOW_ENROLL_DATA_FOR_ALL_COURSES ? enrollInfo : undefined,
+        enrollData: SHOW_ENROLL_DATA_FOR_ALL_COURSES
+          ? enrollInfo
+          : {
+              enrollMax: enrollInfo.enrollMax,
+            },
         data: [],
       }
     }
@@ -152,7 +156,9 @@ async function getPopularCoursesByProgram(programCode: string, limit: number) {
               enrollMax: course.enrollMax,
               enrollCount: course.enrollCount,
             }
-          : undefined,
+          : {
+              enrollMax: course.enrollMax,
+            },
         // genEdReqs: course.genEdReqs,
         data: [],
       }

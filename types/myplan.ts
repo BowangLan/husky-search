@@ -38,7 +38,7 @@ export type MyPlanCourseCodeGroup = {
   description: string
   enrollData?: {
     enrollMax: number
-    enrollCount: number
+    enrollCount?: number
   }
   data: {
     data: MyPlanCourse

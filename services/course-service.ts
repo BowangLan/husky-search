@@ -339,7 +339,7 @@ export class CourseService {
       hasPrereq?: boolean
       subjects?: Set<string>
     } = {}
-  ) {
+  ): Promise<MyPlanCourseCodeGroup[]> {
     let query: any = db
       .select({
         code: MyPlanQuarterCoursesTable.code,
@@ -407,12 +407,45 @@ export class CourseService {
       .groupBy(
         MyPlanQuarterCoursesTable.code,
         MyPlanQuarterCoursesTable.subjectAreaCode,
-        MyPlanSubjectAreasTable.title
+        MyPlanSubjectAreasTable.title,
+        MyPlanQuarterCoursesTable.enrollMax
       )
       .orderBy(...sortByClauses)
       .limit(count)
       .offset((page - 1) * count)
+
     return courses
+
+    const courses1 = courses.reduce((acc: any, course: any) => {
+      if (!acc[course.code]) {
+        acc[course.code] = {
+          code: course.code,
+          title: course.title,
+          subjectAreaCode: course.subjectAreaCode,
+          subjectAreaTitle:
+            course.detail?.courseSummaryDetails?.curriculumTitle ?? "",
+          number: course.number,
+          description: course.description,
+          // enrollData: SHOW_ENROLL_DATA_FOR_POPULAR_COURSES
+          //   ? {
+          //       enrollMax: course.enrollMax,
+          //       enrollCount: course.enrollCount,
+          //     }
+          //   : undefined,
+          // genEdReqs: course.genEdReqs,
+          data: [],
+        }
+
+        acc[course.code].data.push({
+          data: course.myplanShortData,
+          quarter: course.quarter,
+          subjectAreaCode: course.subjectAreaCode,
+          myplanId: course.myplanId,
+        })
+      }
+      return acc
+    }, {} as Record<string, MyPlanCourseCodeGroup>)
+    return Object.values(courses1)
   }
 
   static async search(

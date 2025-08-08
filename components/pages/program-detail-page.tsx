@@ -19,6 +19,7 @@ import {
 } from "@/components/course-card"
 
 import { BackButton } from "../back-button"
+import { CourseCardHorizontalList } from "../course-card-horizontal-list"
 import {
   CourseFilterState,
   CourseFilters,
@@ -179,27 +180,33 @@ export function ProgramDetailPage({
                   <SectionTitle>Popular Courses</SectionTitle>
                 </SectionHeader>
                 <SectionContent>
-                  <CourseCardGridView courses={popularCourses} />
+                  {/* <CourseCardGridView courses={popularCourses} /> */}
+                  <CourseCardHorizontalList courses={popularCourses} />
                 </SectionContent>
               </Section>
 
               <div>
                 {Object.entries(groupedCoursesByLevel).map(
-                  ([level, courses]) => (
-                    <Section key={level}>
-                      <SectionHeader>
-                        <SectionTitle>{level} Level</SectionTitle>
-                      </SectionHeader>
-                      <SectionContent>
-                        <CourseCardGridView
-                          courses={courses}
-                          animated={false}
+                  ([level, courses]) => {
+                    const sortedCourses = courses.sort((a, b) => {
+                      return a.code.localeCompare(b.code)
+                    })
+                    return (
+                      <Section key={level}>
+                        <SectionHeader
+                          title={`${level} Level`}
+                          subtitle={`${sortedCourses.length} courses`}
                         />
-                      </SectionContent>
-                    </Section>
-                  )
+                        <SectionContent>
+                          <CourseCardGridView
+                            courses={sortedCourses}
+                            animated={false}
+                          />
+                        </SectionContent>
+                      </Section>
+                    )
+                  }
                 )}
-                {/* <CourseCardGridView courses={displayedCourses} /> */}
               </div>
             </div>
             {/* <div className="md:hidden flex">
