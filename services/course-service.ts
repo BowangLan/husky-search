@@ -92,73 +92,6 @@ export class CourseService {
     )
   }
 
-  static async getCoursesByProgram(programCode: string) {
-    let query = db
-      .select({
-        ...CourseService.myplanCourseSelect,
-        description: CoursesTable.description,
-        detail: MyPlanCourseDetailTable.data,
-      })
-      .from(MyPlanQuarterCoursesTable)
-      .leftJoin(
-        CoursesTable,
-        and(
-          eq(MyPlanQuarterCoursesTable.subjectAreaCode, CoursesTable.subject),
-          eq(CoursesTable.number, MyPlanQuarterCoursesTable.number)
-        )
-      )
-      .leftJoin(
-        MyPlanCourseDetailTable,
-        and(
-          eq(
-            MyPlanCourseDetailTable.subject,
-            MyPlanQuarterCoursesTable.subjectAreaCode
-          ),
-          eq(MyPlanCourseDetailTable.number, MyPlanQuarterCoursesTable.number)
-        )
-      )
-    query = CourseService.joinMyPlanSubjectAreas(query)
-    const courses = await query
-      .where(eq(MyPlanQuarterCoursesTable.subjectAreaCode, programCode))
-      .orderBy(
-        MyPlanQuarterCoursesTable.code,
-        desc(MyPlanQuarterCoursesTable.quarter)
-      )
-
-    // group courses by quarter
-    const groupedCourses = courses.reduce((acc, course) => {
-      if (!acc[course.code]) {
-        const enrollInfo = course.detail
-          ? getCourseLatestEnrollCount(course.detail)
-          : {
-              enrollMax: 0,
-              enrollCount: 0,
-            }
-
-        acc[course.code] = {
-          code: course.code,
-          title: course.data.title,
-          subjectAreaCode: course.subjectAreaCode,
-          subjectAreaTitle: course.subjectAreaTitle,
-          description: course.description ?? "",
-          number: course.number,
-          enrollMax: enrollInfo.enrollMax,
-          enrollCount: enrollInfo.enrollCount,
-          data: [],
-        }
-      }
-      acc[course.code].data.push({
-        data: course.data,
-        quarter: course.quarter,
-        subjectAreaCode: course.subjectAreaCode,
-        myplanId: course.myplanId,
-      })
-      return acc
-    }, {} as Record<string, MyPlanCourseCodeGroup>)
-
-    return Object.values(groupedCourses)
-  }
-
   static async getCoursesByProgramLegacy(programCode: string) {
     let query = db.select(CourseService.baseSelectWithMyPlan).from(CoursesTable)
     query = CourseService.joinPrograms(query)
@@ -407,10 +340,6 @@ export class CourseService {
       subjects?: Set<string>
     } = {}
   ) {
-    const totalSectionGroups = sql<number>`
-    SUM(jsonb_array_length(${MyPlanQuarterCoursesTable.data}->'sectionGroups'))
-  `.as("totalSectionGroups") // Give it an alias for use in orderBy
-
     let query: any = db
       .select({
         code: MyPlanQuarterCoursesTable.code,
@@ -468,7 +397,7 @@ export class CourseService {
       )
     }
 
-    let sortByClauses = [sql`${totalSectionGroups.getSQL()} DESC`]
+    let sortByClauses = [sql`${MyPlanQuarterCoursesTable.enrollMax} DESC`]
     if (sortBy === "code") {
       sortByClauses = [asc(MyPlanQuarterCoursesTable.code)]
     }
@@ -562,8 +491,4 @@ export type CourseSearchResultItem = NonNullable<
 
 export type GetCourseResponseItem = NonNullable<
   Awaited<ReturnType<typeof CourseService.getCourses>>
->[number]
-
-export type GetCoursesByProgramResponseItem = NonNullable<
-  Awaited<ReturnType<typeof CourseService.getCoursesByProgram>>
 >[number]

@@ -1,10 +1,6 @@
-import { GetCoursesByProgramResponseItem } from "@/services/course-service"
-
 import { MyPlanCourseCodeGroup, MyPlanCourseDetail } from "@/types/myplan"
 
-export const groupCoursesByLevel = (
-  courses: GetCoursesByProgramResponseItem[]
-) => {
+export const groupCoursesByLevel = (courses: MyPlanCourseCodeGroup[]) => {
   return courses.reduce((acc, course) => {
     course
     const level = course.number.slice(0, 1) + "00"
@@ -13,7 +9,7 @@ export const groupCoursesByLevel = (
     }
     acc[level].push(course)
     return acc
-  }, {} as Record<string, GetCoursesByProgramResponseItem[]>)
+  }, {} as Record<string, MyPlanCourseCodeGroup[]>)
 }
 
 export type CourseFilterOptions = {

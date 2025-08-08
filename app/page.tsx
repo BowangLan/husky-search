@@ -49,7 +49,7 @@ export default async function IndexPage() {
       <Section withPadding>
         <SectionHeader
           title="Popular Courses at UW"
-          subtitle="Most popular courses at UW by section count"
+          subtitle="Most popular courses at UW by seat count"
         />
         <SectionContent>
           <CourseCardGridViewWithSuspense courses={courses} />

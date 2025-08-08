@@ -7,7 +7,6 @@ import {
   useMemo,
   useState,
 } from "react"
-import { GetCoursesByProgramResponseItem } from "@/services/course-service"
 import { ProgramDetail } from "@/services/program-service"
 
 import { MyPlanCourseCodeGroup } from "@/types/myplan"
@@ -39,8 +38,8 @@ export function ProgramDetailPage({
   popularCourses,
 }: {
   program: ProgramDetail
-  courses: GetCoursesByProgramResponseItem[]
-  popularCourses: GetCoursesByProgramResponseItem[]
+  courses: MyPlanCourseCodeGroup[]
+  popularCourses: MyPlanCourseCodeGroup[]
 }) {
   const [filterState, setFilterState] = useState<CourseFilterState>({
     credits: new Set(),
