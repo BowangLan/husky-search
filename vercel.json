@@ -4,14 +4,6 @@
     {
       "path": "/api/every-5-minutes",
       "schedule": "*/5 * * * *"
-    },
-    {
-      "path": "/api/every-10-minutes",
-      "schedule": "*/10 * * * *"
-    },
-    {
-      "path": "/api/every-30-minutes",
-      "schedule": "*/30 * * * *"
     }
   ],
   "functions": {
