@@ -48,6 +48,11 @@ export type MyPlanCourseCodeGroup = {
   }[]
 }
 
+export type MyPlanCourseCodeGroupWithDetail = MyPlanCourseCodeGroup & {
+  detail?: MyPlanCourseDetail
+  cecData?: any
+}
+
 export type MyPlanCourseDetail = {
   courseSummaryDetails: {
     courseId: string

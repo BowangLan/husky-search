@@ -1,7 +1,6 @@
 // @ts-ignore
 import { unstable_ViewTransition as ViewTransition } from "react"
 import Link from "next/link"
-import { CourseDetail } from "@/services/course-service"
 import {
   ArrowLeft,
   Award,
@@ -12,7 +11,10 @@ import {
   Users,
 } from "lucide-react"
 
-import { MyPlanCourseCodeGroup, MyPlanCourseDetail } from "@/types/myplan"
+import {
+  MyPlanCourseCodeGroup,
+  MyPlanCourseCodeGroupWithDetail,
+} from "@/types/myplan"
 import { capitalize, capitalizeSingle } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -34,7 +36,7 @@ import { ExternalLink } from "../ui/external-link"
 const CourseDetailPageContentMobile = ({
   course,
 }: {
-  course: CourseDetail
+  course: MyPlanCourseCodeGroupWithDetail
 }) => {
   return (
     <div>
@@ -151,10 +153,28 @@ const CourseDetailPageContentMobile = ({
         </SectionHeader>
         <SectionContent>
           <p className="leading-relaxed max-w-4xl text-sm md:text-base font-light">
-            {course.data[0]!.detail?.courseSummaryDetails.courseDescription}
+            {course.detail?.courseSummaryDetails.courseDescription}
           </p>
         </SectionContent>
       </Section>
+
+      {/* CEC Data */}
+      <div className="w-[300px] flex-none">
+        <Section>
+          <SectionHeader>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base text-muted-foreground font-medium">
+                CEC Data
+              </h3>
+            </div>
+          </SectionHeader>
+          <SectionContent>
+            <p className="text-muted-foreground leading-relaxed max-w-4xl text-sm md:text-base font-light">
+              {JSON.stringify(course.cecData)}
+            </p>
+          </SectionContent>
+        </Section>
+      </div>
 
       <section className="space-y-4">
         <iframe
@@ -177,7 +197,7 @@ const CourseDetailPageContentMobile = ({
 const CourseDetailPageContentDesktop = ({
   course,
 }: {
-  course: MyPlanCourseCodeGroup
+  course: MyPlanCourseCodeGroupWithDetail
 }) => {
   return (
     <div className="flex flex-row gap-4">
@@ -286,6 +306,24 @@ const CourseDetailPageContentDesktop = ({
         </Section>
       </div>
 
+      {/* CEC Data */}
+      <div className="w-[300px] flex-none">
+        <Section>
+          <SectionHeader>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base text-muted-foreground font-medium">
+                CEC Data
+              </h3>
+            </div>
+          </SectionHeader>
+          <SectionContent>
+            <p className="text-muted-foreground leading-relaxed max-w-4xl text-sm md:text-base font-light">
+              {JSON.stringify(course.cecData)}
+            </p>
+          </SectionContent>
+        </Section>
+      </div>
+
       <div className="flex-1">
         <section className="space-y-4">
           <iframe
@@ -298,7 +336,11 @@ const CourseDetailPageContentDesktop = ({
   )
 }
 
-export function CourseDetailPage({ course }: { course: CourseDetail }) {
+export function CourseDetailPage({
+  course,
+}: {
+  course: MyPlanCourseCodeGroupWithDetail
+}) {
   return (
     <Page className="mx-page px-page py-0">
       <PageTopToolbar>

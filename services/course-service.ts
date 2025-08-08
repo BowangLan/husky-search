@@ -14,10 +14,12 @@ import {
 import {
   MyPlanCourse,
   MyPlanCourseCodeGroup,
+  MyPlanCourseCodeGroupWithDetail,
   MyPlanCourseDetail,
 } from "@/types/myplan"
 import { getCourseLatestEnrollCount } from "@/lib/course-utils"
 import {
+  CourseCECDataTable,
   CoursesTable,
   CurrentAcademicTermTable,
   MyPlanCourseDetailTable,
@@ -183,87 +185,100 @@ export class CourseService {
   }
 
   static async getCourseDetailByCode(code: string) {
-    type MyPlanCourseCodeGroupWithDetail = {
-      code: string
-      title: string
-      subjectAreaCode: string
-      subjectAreaTitle: string
-      enrollMax: number
-      enrollCount: number
-      description: string
-      number: string
-      data: {
-        data: MyPlanCourse
-        quarter: string
-        subjectAreaCode: string
-        myplanId: string
-        detail: MyPlanCourseDetail | null
-      }[]
-    }
+    const courses = await db
+      .select({
+        id: CoursesTable.id,
+        code: CoursesTable.code,
+        title: CoursesTable.title,
+        description: CoursesTable.description,
+        subjectAreaCode: CoursesTable.subject,
+        number: CoursesTable.number,
+        quarter: MyPlanQuarterCoursesTable.quarter,
+        myplanShortData: MyPlanQuarterCoursesTable.data,
+        detail: MyPlanCourseDetailTable.data,
+        enrollMax: MyPlanQuarterCoursesTable.enrollMax,
+        enrollCount: MyPlanQuarterCoursesTable.enrollCount,
+        genEdReqs: CoursesTable.genEdReqs,
+        myplanId: MyPlanQuarterCoursesTable.myplanId,
 
-    const groupQuarterCoursesWithDetailByCode = (
-      courses: {
-        id: number
-        code: string
-        data: MyPlanCourse
-        quarter: string
-        myplanId: string
-        subjectAreaCode: string
-        subjectAreaTitle: string
-        detail: MyPlanCourseDetail | null
-      }[]
-    ) => {
-      const groupedCourses = courses.reduce((acc, course) => {
-        if (!acc[course.code]) {
-          acc[course.code] = {
-            code: course.code,
-            title: course.data.title,
-            subjectAreaCode: course.subjectAreaCode,
-            subjectAreaTitle: course.subjectAreaTitle,
-            enrollMax: course.detail
-              ? getCourseLatestEnrollCount(course.detail).enrollMax
-              : 0,
-            enrollCount: course.detail
-              ? getCourseLatestEnrollCount(course.detail).enrollCount
-              : 0,
-            description: "", // TODO
-            number: "", // TODO
-            data: [],
-          }
+        // TODO: Get the actual CEC data for the course
+        cecData: sql<any>`
+        (
+          SELECT COALESCE(
+            json_agg(
+              ${CourseCECDataTable}.*
+            ), '[]'
+          )
+          FROM ${CourseCECDataTable}
+          WHERE ${CourseCECDataTable.courseCode} ilike '%${sql.raw(code)}%'
+        )
+        `,
+      })
+      .from(CoursesTable)
+      .innerJoin(
+        MyPlanQuarterCoursesTable,
+        and(
+          eq(
+            sql`CONCAT(${MyPlanQuarterCoursesTable.subjectAreaCode}, ${MyPlanQuarterCoursesTable.number})`,
+            CoursesTable.myplanCode
+          )
+        )
+      )
+      .innerJoin(
+        CurrentAcademicTermTable,
+        eq(CurrentAcademicTermTable.name, MyPlanQuarterCoursesTable.quarter)
+      )
+      .leftJoin(
+        MyPlanCourseDetailTable,
+        and(
+          eq(
+            MyPlanCourseDetailTable.subject,
+            MyPlanQuarterCoursesTable.subjectAreaCode
+          ),
+          eq(MyPlanCourseDetailTable.number, MyPlanQuarterCoursesTable.number)
+        )
+      )
+      .where(
+        and(
+          eq(CoursesTable.code, code)
+          // eq(CurrentAcademicTermTable.name, MyPlanQuarterCoursesTable.quarter)
+        )
+      )
+
+    const g = courses.reduce((acc, course) => {
+      if (!acc[course.code]) {
+        acc[course.code] = {
+          code: course.code,
+          title: course.title,
+          subjectAreaCode: course.subjectAreaCode,
+          subjectAreaTitle:
+            course.detail?.courseSummaryDetails?.curriculumTitle ?? "",
+          number: course.number,
+          description: course.description,
+          enrollData: {
+            enrollMax: course.enrollMax,
+            enrollCount: course.enrollCount,
+          },
+          detail: course.detail ?? undefined,
+          data: [],
+          cecData: course.cecData ?? undefined,
         }
+
         acc[course.code].data.push({
-          data: course.data,
+          data: course.myplanShortData,
           quarter: course.quarter,
           subjectAreaCode: course.subjectAreaCode,
           myplanId: course.myplanId,
-          detail: course.detail,
         })
-        return acc
-      }, {} as Record<string, MyPlanCourseCodeGroupWithDetail>)
+      }
+      return acc
+    }, {} as Record<string, MyPlanCourseCodeGroupWithDetail>)
 
-      return Object.values(groupedCourses)
+    if (Object.keys(g).length === 0) {
+      return null
     }
 
-    let query = db
-      .select({
-        id: MyPlanQuarterCoursesTable.id,
-        code: MyPlanQuarterCoursesTable.code,
-        data: MyPlanQuarterCoursesTable.data,
-        quarter: MyPlanQuarterCoursesTable.quarter,
-        myplanId: MyPlanQuarterCoursesTable.myplanId,
-        detail: MyPlanQuarterCoursesTable.detail,
-        subjectAreaCode: MyPlanQuarterCoursesTable.subjectAreaCode,
-        subjectAreaTitle: MyPlanSubjectAreasTable.title,
-      })
-      .from(MyPlanQuarterCoursesTable)
-    query = CourseService.joinMyPlanSubjectAreas(query)
-    const courses = await query
-      .where(eq(MyPlanQuarterCoursesTable.code, code))
-      .orderBy(desc(MyPlanQuarterCoursesTable.quarter))
-
-    if (courses.length === 0) return null
-
-    return groupQuarterCoursesWithDetailByCode(courses)[0] ?? null
+    return Object.values(g)[0]
   }
 
   static async getCourseByCodeLegacy(code: string) {
@@ -621,10 +636,6 @@ export class CourseService {
     return courses
   }
 }
-
-export type CourseDetail = NonNullable<
-  Awaited<ReturnType<typeof CourseService.getCourseDetailByCode>>
->
 
 export type CourseSearchResultItem = NonNullable<
   Awaited<ReturnType<typeof CourseService.search>>
