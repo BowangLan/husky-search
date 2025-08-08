@@ -1,0 +1,22 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/every-5-minutes",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/every-10-minutes",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/every-30-minutes",
+      "schedule": "*/30 * * * *"
+    }
+  ],
+  "functions": {
+    "api/every-5-minutes": {
+      "runtime": "python3.12"
+    }
+  }
+}
