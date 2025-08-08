@@ -184,7 +184,7 @@ export default async function ProgramPage({
   params: Promise<{ code: string }>
 }) {
   const { code: codeParam } = await params
-  const code = decodeURIComponent(codeParam)
+  const code = decodeURIComponent(codeParam).toUpperCase()
 
   const program = await unstable_cache(
     async () => {

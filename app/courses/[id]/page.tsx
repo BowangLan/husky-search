@@ -14,7 +14,7 @@ export default async function CoursePage({
   const course = await unstable_cache(
     async () => {
       return await CourseService.getCourseDetailByCode(
-        decodeURIComponent(courseCode)
+        decodeURIComponent(courseCode).toUpperCase()
       )
     },
     ["course-detail", courseCode],
