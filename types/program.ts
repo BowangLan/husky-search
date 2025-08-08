@@ -1,6 +1,9 @@
-export type Program = {
+export type ProgramInfo = {
   id: number
-  name: string
   code: string
+  title: string
   courseCount: number
-} 
+  collegeCode: string
+  collegeTitle: string
+  campus: string
+}

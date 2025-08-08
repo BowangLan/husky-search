@@ -1,19 +1,15 @@
 "use client"
 
 import { use, useState } from "react"
-import { ProgramInfo, ProgramService } from "@/services/program-service"
 
+import { ProgramInfo } from "@/types/program"
 import { Input } from "@/components/ui/input"
-import { Skeleton } from "@/components/ui/skeleton"
 import {
   PageWithHeaderLayout,
   PageWithHeaderLayoutSkeleton,
 } from "@/components/page-wrapper"
-import {
-  AnimatedProgramCardGrid,
-  GroupedProgramCardSections,
-  ProgramCardGrid,
-} from "@/components/program-card"
+import { ProgramCardGrid } from "@/components/program-card-grid"
+import { GroupedProgramCardSections } from "@/components/program-card-grouped-sections"
 
 export function MajorsPage({
   programs: programsFromProps,

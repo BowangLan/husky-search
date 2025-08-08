@@ -87,14 +87,15 @@ export function CourseCardLink({
                   <TooltipTrigger asChild>
                     <span className="text-xs text-foreground/60 font-light z-20 cursor-default text-right">
                       <span className="font-medium text-foreground text-sm">
-                        {course.enrollData.enrollMax}
+                        {course.enrollData.enrollMax.toLocaleString()}
                       </span>{" "}
                       seats
                     </span>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="">
-                      Maximum capacity: {course.enrollData.enrollMax} seats
+                      Maximum capacity:{" "}
+                      {course.enrollData.enrollMax.toLocaleString()} seats
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -103,7 +104,7 @@ export function CourseCardLink({
 
             {/* Row: enroll progress */}
             {course.enrollData && course.enrollData.enrollCount && (
-              <div className="flex flex-col gap-2 mt-2">
+              <div className="flex flex-col gap-1 mt-2">
                 <div className="flex justify-between">
                   {/* <div></div> */}
                   <span className="text-xs text-foreground/60 font-light">
@@ -111,7 +112,7 @@ export function CourseCardLink({
                       {course.enrollData.enrollMax -
                         course.enrollData.enrollCount}{" "}
                     </span>
-                    avail of {course.enrollData.enrollMax}
+                    avail of {course.enrollData.enrollMax.toLocaleString()}
                   </span>
                   {/* seats left */}
                   <span className="text-xs text-foreground/60 font-light text-right">

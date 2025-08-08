@@ -19,6 +19,7 @@ import {
 import { getCourseLatestEnrollCount } from "@/lib/course-utils"
 import {
   CoursesTable,
+  CurrentAcademicTermTable,
   MyPlanCourseDetailTable,
   MyPlanQuarterCoursesTable,
   MyPlanSubjectAreasTable,
@@ -322,7 +323,114 @@ export class CourseService {
     return courses
   }
 
-  static async getCourses(
+  static async getCourses({
+    programCode,
+    limit,
+    sortBy = "popular",
+    withEnrollData = true,
+  }: {
+    programCode?: string
+    limit: number
+    sortBy?: "popular" | "course-code"
+    withEnrollData?: boolean
+  }) {
+    const whereClauses: any[] = []
+
+    if (programCode) {
+      whereClauses.push(eq(CoursesTable.subject, programCode))
+    }
+
+    let sortByClause: any
+    if (sortBy === "popular") {
+      sortByClause = desc(MyPlanQuarterCoursesTable.enrollCount)
+    } else if (sortBy === "course-code") {
+      sortByClause = asc(CoursesTable.code)
+    } else {
+      sortByClause = asc(CoursesTable.code)
+    }
+
+    const courses1 = await db
+      .select({
+        id: CoursesTable.id,
+        code: CoursesTable.code,
+        title: CoursesTable.title,
+        description: CoursesTable.description,
+        subjectAreaCode: CoursesTable.subject,
+        number: CoursesTable.number,
+        quarter: MyPlanQuarterCoursesTable.quarter,
+        myplanShortData: MyPlanQuarterCoursesTable.data,
+        detail: MyPlanCourseDetailTable.data,
+        enrollMax: MyPlanQuarterCoursesTable.enrollMax,
+        enrollCount: MyPlanQuarterCoursesTable.enrollCount,
+        genEdReqs: CoursesTable.genEdReqs,
+        myplanId: MyPlanQuarterCoursesTable.myplanId,
+      })
+      .from(CoursesTable)
+      .innerJoin(
+        MyPlanQuarterCoursesTable,
+        and(
+          eq(
+            sql`CONCAT(${MyPlanQuarterCoursesTable.subjectAreaCode}, ${MyPlanQuarterCoursesTable.number})`,
+            CoursesTable.myplanCode
+          )
+        )
+      )
+      .innerJoin(
+        CurrentAcademicTermTable,
+        eq(CurrentAcademicTermTable.name, MyPlanQuarterCoursesTable.quarter)
+      )
+      .leftJoin(
+        MyPlanCourseDetailTable,
+        and(
+          eq(
+            MyPlanCourseDetailTable.subject,
+            MyPlanQuarterCoursesTable.subjectAreaCode
+          ),
+          eq(MyPlanCourseDetailTable.number, MyPlanQuarterCoursesTable.number)
+        )
+      )
+      .where(and(...whereClauses))
+      .orderBy(sortByClause)
+      .limit(limit)
+
+    const courses = courses1.reduce((acc, course) => {
+      if (!acc[course.code]) {
+        acc[course.code] = {
+          code: course.code,
+          title: course.title,
+          subjectAreaCode: course.subjectAreaCode,
+          subjectAreaTitle:
+            course.detail?.courseSummaryDetails?.curriculumTitle ?? "",
+          number: course.number,
+          description: course.description,
+          enrollData: withEnrollData
+            ? {
+                enrollMax: course.enrollMax,
+                enrollCount: course.enrollCount,
+              }
+            : {
+                enrollMax: course.enrollMax,
+              },
+          // genEdReqs: course.genEdReqs,
+          data: [],
+        }
+
+        acc[course.code].data.push({
+          data: course.myplanShortData,
+          quarter: course.quarter,
+          subjectAreaCode: course.subjectAreaCode,
+          myplanId: course.myplanId,
+        })
+      }
+      return acc
+    }, {} as Record<string, MyPlanCourseCodeGroup>)
+
+    return Object.values(courses).toSorted(
+      (a, b) => (b.enrollData?.enrollMax ?? 0) - (a.enrollData?.enrollMax ?? 0)
+    )
+  }
+
+  static async getCoursesLeg(
     count: number,
     {
       page = 1,

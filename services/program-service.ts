@@ -1,5 +1,6 @@
 import { count, eq } from "drizzle-orm"
 
+import { ProgramInfo } from "@/types/program"
 import {
   CoursesTable,
   MyPlanQuarterCoursesTable,
@@ -64,10 +65,7 @@ export class ProgramService {
     return program
   }
 
-  static async getAllPrograms() {
-    // wait 1 second
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
+  static async getAllPrograms(): Promise<ProgramInfo[]> {
     const programs = await db
       .select({
         id: MyPlanSubjectAreasTable.id,
@@ -78,9 +76,9 @@ export class ProgramService {
         collegeTitle: MyPlanSubjectAreasTable.collegeTitle,
         departmentCode: MyPlanSubjectAreasTable.departmentCode,
         departmentTitle: MyPlanSubjectAreasTable.departmentTitle,
-        codeNoSpaces: MyPlanSubjectAreasTable.codeNoSpaces,
-        quotedCode: MyPlanSubjectAreasTable.quotedCode,
-        courseDuplicate: MyPlanSubjectAreasTable.courseDuplicate,
+        // codeNoSpaces: MyPlanSubjectAreasTable.codeNoSpaces,
+        // quotedCode: MyPlanSubjectAreasTable.quotedCode,
+        // courseDuplicate: MyPlanSubjectAreasTable.courseDuplicate,
         courseCount: count(MyPlanQuarterCoursesTable.code),
       })
       .from(MyPlanSubjectAreasTable)
@@ -142,10 +140,6 @@ export class ProgramService {
     return programs
   }
 }
-
-export type ProgramInfo = Awaited<
-  ReturnType<typeof ProgramService.getAllPrograms>
->[number]
 
 export type ProgramDetail = Awaited<
   ReturnType<typeof ProgramService.getProgramByCode>
