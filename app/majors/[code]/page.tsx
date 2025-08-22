@@ -49,11 +49,12 @@ export default async function ProgramPage({
         limit: ALL_COURSES_LIMIT,
         sortBy: "popular",
         withEnrollData: SHOW_ENROLL_DATA_FOR_ALL_COURSES,
+        programCode: code,
       })
     },
     ["program-courses", code],
     // { revalidate: 60 * 60 * 24, tags: ["program-courses"] } // 1 day
-    { revalidate: 1, tags: ["program-courses"] } // 1 day
+    { revalidate: 1, tags: ["program-courses", code] } // 1 day
   )()
 
   // get top 10 courses sort by enroll max
