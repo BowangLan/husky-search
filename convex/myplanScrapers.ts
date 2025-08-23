@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { action } from "./_generated/server";
+import { action, internalAction, query } from "./_generated/server";
+import { api } from "./_generated/api";
 
 // TypeScript interfaces for data types
 export interface Course {
@@ -103,7 +104,7 @@ function getHeaders() {
 }
 
 // Convex action to search for courses
-export const searchCourses = action({
+export const scrapeSearchCourses = action({
   args: {
     query: v.string(),
     startTime: v.optional(v.string()),
@@ -148,7 +149,7 @@ export const searchCourses = action({
 });
 
 // Convex action to get subject areas
-export const getSubjectAreas = action({
+export const scrapeSubjectAreas = action({
   args: {},
   handler: async (ctx): Promise<SubjectArea[]> => {
     const headers = getHeaders();
@@ -174,7 +175,7 @@ export const getSubjectAreas = action({
 });
 
 // Convex action to get instructors
-export const getInstructors = action({
+export const scrapeInstructors = action({
   args: {},
   handler: async (ctx): Promise<Instructor[]> => {
     const headers = getHeaders();
@@ -200,18 +201,14 @@ export const getInstructors = action({
 });
 
 // Convex action to get course details
-export const getCourseDetail = action({
+export const scrapeCourseDetail = action({
   args: {
     courseCode: v.string(),
-    courseId: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<Record<string, any>> => {
     const headers = getHeaders();
 
     const url = new URL(`${BASE_URL}/courses/${args.courseCode}/details`);
-    if (args.courseId) {
-      url.searchParams.append("courseId", args.courseId);
-    }
 
     try {
       const response = await fetch(url.toString(), {
@@ -235,3 +232,82 @@ export const getCourseDetail = action({
     }
   },
 });
+
+
+export const scrapeCourseDetailTest = action({
+  args: {},
+  handler: async (ctx): Promise<Record<string, any>> => {
+    const TEST_COURSE_CODE = "INFO 200"
+
+    const data = await ctx.runAction(api.myplanScrapers.scrapeCourseDetail, {
+      courseCode: TEST_COURSE_CODE,
+    });
+
+    return data;
+  }
+});
+
+export const getCourseDetailCronJobs = query({
+  args: {
+    intervalSeconds: v.number(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.query("myplanDetailCronJobs").withIndex("by_interval_seconds", (q) => q.eq("intervalSeconds", args.intervalSeconds)).collect();
+  }
+})
+
+export const courseDetailCronJob5m = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    const courseCodes = await ctx.runQuery(api.myplanScrapers.getCourseDetailCronJobs, {
+      intervalSeconds: 300,
+    });
+    for (const courseCode of courseCodes) {
+      await ctx.runAction(api.myplanScrapers.scrapeCourseDetail, {
+        courseCode: courseCode.courseCode,
+      });
+    }
+  }
+})
+
+export const courseDetailCronJob1m = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    const courseCodes = await ctx.runQuery(api.myplanScrapers.getCourseDetailCronJobs, {
+      intervalSeconds: 60,
+    });
+    for (const courseCode of courseCodes) {
+      await ctx.runAction(api.myplanScrapers.scrapeCourseDetail, {
+        courseCode: courseCode.courseCode,
+      });
+    }
+  }
+})
+
+export const courseDetailCronJob10m = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    const courseCodes = await ctx.runQuery(api.myplanScrapers.getCourseDetailCronJobs, {
+      intervalSeconds: 10 * 60,
+    });
+    for (const courseCode of courseCodes) {
+      await ctx.runAction(api.myplanScrapers.scrapeCourseDetail, {
+        courseCode: courseCode.courseCode,
+      });
+    }
+  }
+})
+
+export const courseDetailCronJob15m = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    const courseCodes = await ctx.runQuery(api.myplanScrapers.getCourseDetailCronJobs, {
+      intervalSeconds: 15 * 60,
+    });
+    for (const courseCode of courseCodes) {
+      await ctx.runAction(api.myplanScrapers.scrapeCourseDetail, {
+        courseCode: courseCode.courseCode,
+      });
+    }
+  }
+})

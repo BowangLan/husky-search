@@ -13,9 +13,14 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as canvas from "../canvas.js";
 import type * as cec from "../cec.js";
+import type * as cecDetailScrapers from "../cecDetailScrapers.js";
+import type * as cecIndexScrapers from "../cecIndexScrapers.js";
+import type * as constants from "../constants.js";
+import type * as crons from "../crons.js";
 import type * as dawgpath from "../dawgpath.js";
-import type * as myplan from "../myplan.js";
+import type * as myplanScrapers from "../myplanScrapers.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -26,9 +31,14 @@ import type * as myplan from "../myplan.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  canvas: typeof canvas;
   cec: typeof cec;
+  cecDetailScrapers: typeof cecDetailScrapers;
+  cecIndexScrapers: typeof cecIndexScrapers;
+  constants: typeof constants;
+  crons: typeof crons;
   dawgpath: typeof dawgpath;
-  myplan: typeof myplan;
+  myplanScrapers: typeof myplanScrapers;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

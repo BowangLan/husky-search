@@ -17,7 +17,7 @@ const headers = {
   "Referer": `https://dawgpath.uw.edu/`
 }
 
-export const getCourseDetail = action({
+export const scrapeCourseDetail = action({
   args: {
     courseCode: v.string(),
   },
@@ -37,7 +37,7 @@ export const getCourseDetail = action({
   }
 })
 
-export const getSubjectCoi = action({
+export const scrapeSubjectCoi = action({
   args: {
     subjectCode: v.string(),
   },
@@ -57,7 +57,7 @@ export const getSubjectCoi = action({
   }
 })
 
-export const getSubjectPrereqs = action({
+export const scrapeSubjectPrereqs = action({
   args: {
     subjectCode: v.string(),
   },
@@ -77,7 +77,7 @@ export const getSubjectPrereqs = action({
   }
 })
 
-export const getAllSubjectCoi = action({
+export const scrapeAllSubjectCoi = action({
   args: {},
   handler: async (ctx) => {
     const response = await fetch("https://dawgpath.uw.edu/api/v1/coi/curric/", {
