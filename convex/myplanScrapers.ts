@@ -1,6 +1,8 @@
 import { v } from "convex/values";
-import { action, internalAction, query } from "./_generated/server";
-import { api } from "./_generated/api";
+import { action, internalAction, internalMutation, mutation, query } from "./_generated/server";
+import { api, internal } from "./_generated/api";
+import { MyplanCourseInfo, myplanCourseInfoObj, MyplanCourseTermData } from "./schema";
+import { processCourseDetail } from "./myplanUtils";
 
 // TypeScript interfaces for data types
 export interface Course {
@@ -64,19 +66,6 @@ interface SearchCoursesPayload {
   days?: string[];
 }
 
-// Helper functions
-function generateChecksum(data: string): string {
-  // Note: In a real implementation, you'd need a proper MD5 implementation
-  // For now, this is a placeholder
-  return btoa(data).slice(0, 32);
-}
-
-function generateCsrfToken(): string {
-  // Simplified CSRF token generation
-  const timestamp = Date.now().toString();
-  return btoa(timestamp + Math.random().toString()).slice(0, 64);
-}
-
 function generateRequestId(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0;
@@ -88,8 +77,8 @@ function generateRequestId(): string {
 // Base API configuration
 const BASE_URL = "https://course-app-api.planning.sis.uw.edu/api";
 
-const MYPLAN_COOKIE = `_ga_VQZHV3SH3P=GS2.1.s1746589140$o1$g1$t1746589227$j0$l0$h0; _hjSessionUser_3542396=eyJpZCI6ImNhYzQ2MjlmLTM4YzgtNTY3Ni1iYmIzLTI0NjMxYzdkNmU4YyIsImNyZWF0ZWQiOjE3NDcxOTc3MjU4ODUsImV4aXN0aW5nIjp0cnVlfQ==; _fbp=fb.1.1747197726331.115911875945980748; _ga_0V5LFWD2KQ=GS2.1.s1747935853$o1$g1$t1747936345$j19$l0$h0$dR2YvLwKSS1jCphuMmKjS-bP4T4IWuOGjQA; _ga_YHX5G0W6DX=GS2.1.s1747937532$o2$g0$t1747937532$j0$l0$h0; _ga_K5Q4WV298H=GS2.1.s1747933199$o1$g1$t1747938514$j0$l0$h0; _ga_5NP8JDX6NQ=GS2.1.s1748087044$o3$g0$t1748087046$j58$l0$h0$dG4XvxCAG0rfpOKPrtoRi1AbSSPVA4UkpLA; _ga_MX29D1QWGH=GS2.1.s1748087044$o3$g0$t1748087046$j58$l0$h0$dxC1HkbqNja6xDBYDEseQwSEKt83uCm8LWw; _ga_0VMRR09G41=GS2.1.s1748364465$o1$g0$t1748364470$j0$l0$h0; _ga_S51TRWK3R8=GS2.1.s1750134110$o4$g0$t1750134111$j59$l0$h0; ps_rvm_ZkiN=%7B%22pssid%22%3A%2238Y0jAzv3GjOFtQ7-1750107949183%22%2C%22last-visit%22%3A%221750134111689%22%7D; _ga=GA1.1.107335358.1742470468; _uetvid=c9d07890307d11f0b754537bf5d08d37|kj0mft|1748066424492|2|1|bat.bing.com/p/insights/c/j; _ga_MBEGNXVCWH=GS2.1.s1750704315$o1$g1$t1750704355$j20$l0$h72956306; _ga_YJ09SKYQ9C=GS2.1.s1750704315$o1$g1$t1750704355$j20$l0$h0; _ga_WGSVEGE14H=GS2.1.s1750707773$o11$g1$t1750707795$j38$l0$h0; _ga_B3VH61T4DT=GS2.1.s1750711023$o40$g0$t1750711023$j60$l0$h0; _clck=ghtic3%7C2%7Cfx9%7C0%7C2009; _ga_29JYF25HLW=GS2.1.s1751472063$o2$g1$t1751472878$j60$l0$h1135471766; fs_uid=#o-1V47MT-na1#0d1e305f-fceb-4356-a2f3-2a575a93a39d:00a92d97-a482-4617-8a9c-61f71a39812c:1753945821112::1#efac8273#/1775255924; _ga_BFQJ094C4L=GS2.1.s1754551810$o9$g0$t1754551810$j60$l0$h0; sessionId=458bc690f1e39c9047f8bfe6b10e83c5078c594486e5ecf6cce59c9867e6453f; _ga_TNNYEHDN9L=GS2.1.s1755648147$o51$g1$t1755648171$j36$l0$h0`
-const MYPLAN_CSRF_TOKEN = `e1902bf7b723dd19d4219e72de34cf34affa8ccfeb7f66a669789f0c7b639de727d583fc5042ff67eea91f5ba8b969507b6c02d0f1239b2070439315ce58fb264a673b52de3a4804eb62983d1b2c71c4e946b0975ed5308ec5edb03e582bbf4e61cdd132538975e02ec66797b872ae6f8b22a4063c033c6b9402e407ed40b1d2`
+const MYPLAN_COOKIE = `_ga_VQZHV3SH3P=GS2.1.s1746589140$o1$g1$t1746589227$j0$l0$h0; _hjSessionUser_3542396=eyJpZCI6ImNhYzQ2MjlmLTM4YzgtNTY3Ni1iYmIzLTI0NjMxYzdkNmU4YyIsImNyZWF0ZWQiOjE3NDcxOTc3MjU4ODUsImV4aXN0aW5nIjp0cnVlfQ==; _fbp=fb.1.1747197726331.115911875945980748; _ga_0V5LFWD2KQ=GS2.1.s1747935853$o1$g1$t1747936345$j19$l0$h0$dR2YvLwKSS1jCphuMmKjS-bP4T4IWuOGjQA; _ga_YHX5G0W6DX=GS2.1.s1747937532$o2$g0$t1747937532$j0$l0$h0; _ga_K5Q4WV298H=GS2.1.s1747933199$o1$g1$t1747938514$j0$l0$h0; _ga_5NP8JDX6NQ=GS2.1.s1748087044$o3$g0$t1748087046$j58$l0$h0$dG4XvxCAG0rfpOKPrtoRi1AbSSPVA4UkpLA; _ga_MX29D1QWGH=GS2.1.s1748087044$o3$g0$t1748087046$j58$l0$h0$dxC1HkbqNja6xDBYDEseQwSEKt83uCm8LWw; _ga_0VMRR09G41=GS2.1.s1748364465$o1$g0$t1748364470$j0$l0$h0; _ga_S51TRWK3R8=GS2.1.s1750134110$o4$g0$t1750134111$j59$l0$h0; ps_rvm_ZkiN=%7B%22pssid%22%3A%2238Y0jAzv3GjOFtQ7-1750107949183%22%2C%22last-visit%22%3A%221750134111689%22%7D; _ga=GA1.1.107335358.1742470468; _uetvid=c9d07890307d11f0b754537bf5d08d37|kj0mft|1748066424492|2|1|bat.bing.com/p/insights/c/j; _ga_MBEGNXVCWH=GS2.1.s1750704315$o1$g1$t1750704355$j20$l0$h72956306; _ga_YJ09SKYQ9C=GS2.1.s1750704315$o1$g1$t1750704355$j20$l0$h0; _clck=ghtic3%7C2%7Cfx9%7C0%7C2009; _ga_29JYF25HLW=GS2.1.s1751472063$o2$g1$t1751472878$j60$l0$h1135471766; fs_uid=#o-1V47MT-na1#0d1e305f-fceb-4356-a2f3-2a575a93a39d:00a92d97-a482-4617-8a9c-61f71a39812c:1753945821112::1#efac8273#/1775255924; _ga_BFQJ094C4L=GS2.1.s1755704221$o11$g0$t1755704221$j60$l0$h0; _ga_WGSVEGE14H=GS2.1.s1755881067$o12$g1$t1755881072$j55$l0$h0; _ga_B3VH61T4DT=GS2.1.s1756226703$o48$g1$t1756226763$j60$l0$h0; sessionId=a345400b08af2e39588bfce7786ecf8f4ed5c045371eb0b4ea25729526a2a1a6; _ga_TNNYEHDN9L=GS2.1.s1756228422$o55$g1$t1756228599$j60$l0$h0`
+const MYPLAN_CSRF_TOKEN = `e2470579cfc6be3b539cfb58f157630de12db2ece70a1d84c24227840943fc1529b05820c05bf32f67f12de3bc93e621d550fe88a7b4aa556fd4161e98dff5370caf01a4f30c250d79266a2f8c123482ee702151535550822eda436b7a162938ba0cc040d7c9f8cb76041ce312af094bf4229ceb69544409d060e099a3c6db79`
 
 function getHeaders() {
   return {
@@ -225,13 +214,62 @@ export const scrapeCourseDetail = action({
       }
 
       const data = await response.json();
+
       return data;
+
+      // return {
+      //   ...processCourseDetail(data),
+      //   // raw: data,
+      // }
     } catch (error) {
       console.error(`Error making request to MyPlan API: ${error}`);
       return {};
     }
   },
 });
+
+
+export const scrapeAndSaveCourseDetail = internalAction({
+  args: {
+    courseCode: v.string(),
+  },
+  handler: async (ctx, args) => {
+    console.log(`Scraping course detail for ${args.courseCode}`);
+    const data = await ctx.runAction(api.myplanScrapers.scrapeCourseDetail, {
+      courseCode: args.courseCode,
+    });
+
+    console.log(`Upserting course detail for ${args.courseCode}`);
+    await ctx.runMutation(internal.myplan.upsertCourseDetail, {
+      courseCode: args.courseCode,
+      detailData: data,
+    });
+
+    console.log(`Upserted course detail for ${args.courseCode}`);
+  }
+})
+
+export const scrapeAndSaveCourseDetailBatch = internalAction({
+  args: {
+    courseCodes: v.array(v.string()),
+    batchSize: v.optional(v.number()),
+    batchDelay: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const batchSize = args.batchSize ?? 2;
+    const batchDelay = args.batchDelay ?? 1000; // 1 second
+
+    for (let i = 0; i < args.courseCodes.length; i += batchSize) {
+      const batch = args.courseCodes.slice(i, i + batchSize);
+      console.log(`Processing batch ${i / batchSize + 1} of ${Math.ceil(args.courseCodes.length / batchSize)}`);
+      await Promise.all(batch.map(async (courseCode) => {
+        await ctx.scheduler.runAfter(i * batchDelay, internal.myplanScrapers.scrapeAndSaveCourseDetail, {
+          courseCode: courseCode,
+        });
+      }));
+    }
+  }
+})
 
 
 export const scrapeCourseDetailTest = action({
@@ -247,66 +285,194 @@ export const scrapeCourseDetailTest = action({
   }
 });
 
+export const scrapeAndSaveSearchResultsForAllSubjectAreas = action({
+  args: {
+    offset: v.optional(v.number()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+
+    const subjectAreas = await ctx.runAction(api.myplanScrapers.scrapeSubjectAreas, {});
+    const kvStoreCourseCodes = new Set(await ctx.runQuery(internal.myplan.getKVStoreCourseCodes, {}));
+
+    const offset = args.offset ?? 0;
+    const limit = args.limit ?? undefined
+    const filteredSubjectAreas = subjectAreas.slice(offset, limit);
+
+    let i = 0;
+    let totalCourses = 0;
+    let totalExistingCourses = 0;
+
+    const courses: MyplanCourseInfo[] = [];
+
+    // Process subject areas in batches of 100
+    const batchSize = 20;
+    for (let i = 0; i < filteredSubjectAreas.length; i += batchSize) {
+      const batch = filteredSubjectAreas.slice(i, i + batchSize);
+      console.log(`Processing subject area batch ${i / batchSize + 1} of ${Math.ceil(filteredSubjectAreas.length / batchSize)}`);
+
+      const searchData = await Promise.all(batch.map(async (subjectArea) => {
+        const searchData = await ctx.runAction(api.myplanScrapers.scrapeSearchCourses, {
+          query: subjectArea.code,
+        });
+        return searchData;
+      }));
+
+      for (const batchSearchData of searchData) {
+        for (const course of batchSearchData) {
+          if (kvStoreCourseCodes.has(course.code)) {
+            // console.log(`Course ${course.code} already exists in KV store`);
+            totalExistingCourses++;
+            continue;
+          }
+          courses.push({
+            courseCode: course.code,
+            courseId: course.courseId,
+            description: "", // Not available in search results
+            title: course.title,
+            credit: course.credit,
+            campus: course.campus,
+            subjectArea: course.subject,
+            courseNumber: course.code.slice(-3),
+            prereqs: course.prereqs,
+          });
+        }
+      }
+    }
+
+    for (let i = 0; i < courses.length; i += 100) {
+      console.log(`Processing batch ${i / 100 + 1} of ${Math.ceil(courses.length / 100)}`);
+      const batch = courses.slice(i, i + 100);
+      await ctx.runMutation(internal.myplan.addCourseCodesToKVStore, {
+        courseCodes: batch.map((course) => course.courseCode),
+      });
+      await Promise.all(batch.map(async (course) => {
+        await ctx.runMutation(internal.myplan.upsertCourseInfo, {
+          ...course
+        });
+        // await ctx.runMutation(internal.myplan.upsertCourseSearch, {
+        //   courseCode: course.courseCode,
+        //   searchData: course,
+        // });
+      }));
+    }
+
+
+    console.log(`Scraped ${totalCourses + totalExistingCourses} courses for ${i} subject areas`);
+    console.log(`Saved ${totalCourses} courses`);
+    console.log(`Skipped ${totalExistingCourses} courses`);
+
+    return {
+      success: true,
+      totalCourses: totalCourses,
+      totalExistingCourses: totalExistingCourses,
+      totalSubjectAreas: i,
+    };
+  }
+});
+
+
+export const kickOffScrapersForCoursesWithoutTermData = internalAction({
+  args: {},
+  handler: async (ctx, args) => {
+    let count = 0;
+    let page = 1;
+    let paginatedResults = await ctx.runQuery(api.myplan.list, {
+      select: ["_id", "currentTermData", "courseCode"],
+      limit: 500,
+    })
+
+    let coursesWithoutTermData = paginatedResults.page.filter((course) => !course.currentTermData);
+    count += paginatedResults.page.length;
+
+    while (!paginatedResults.isDone) {
+      paginatedResults = await ctx.runQuery(api.myplan.list, {
+        select: ["_id", "currentTermData", "courseCode"],
+        cursor: paginatedResults.continueCursor,
+        limit: 500,
+      })
+
+      coursesWithoutTermData.push(...paginatedResults.page.filter((course) => !course.currentTermData) as any[]);
+      count += paginatedResults.page.length;
+      page++;
+
+      // console.log(`Page ${page} fetched, found ${coursesWithoutTermData.length} courses without term data so far`);
+    }
+
+    console.log(`Found ${coursesWithoutTermData.length} courses without term data`);
+
+    // Kick off scrapers in batches
+    const batchSize = 3;
+    const secondsPerBatch = 1;
+    let batchI = 0;
+    for (let i = 0; i < coursesWithoutTermData.length; i += batchSize) {
+      const batch = coursesWithoutTermData.slice(i, i + batchSize);
+      console.log(`Kicking off scrapers for batch ${batchI + 1} (size = ${batch.length}) (codes = ${batch.map((course) => course.courseCode).join(", ")})`);
+      await ctx.scheduler.runAfter(batchI * secondsPerBatch, internal.myplanScrapers.scrapeAndSaveCourseDetailBatch, {
+        courseCodes: batch.map((course) => course.courseCode),
+      });
+      batchI++;
+      // break;
+    }
+
+    console.log(`Kicked off ${batchI} scrapers. Should all be started in ${batchI * secondsPerBatch} seconds`);
+
+    // print first 5 course codes
+    console.log(coursesWithoutTermData.slice(0, 5).map((course) => course.courseCode));
+
+
+    // return {
+    //   totalCourses: count,
+    //   coursesWithoutTermData: coursesWithoutTermData.length,
+    // }
+  }
+});
+
+
+/**
+ * Cron jobs for scraping course detail
+ */
+
+
 export const getCourseDetailCronJobs = query({
+  args: {
+    intervalSeconds: v.number(),
+    cursor: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.query("myplanCourses")
+      .withIndex("by_update_interval_seconds", (q) => q.eq("updateIntervalSeconds", args.intervalSeconds))
+      .paginate({
+        numItems: 100,
+        cursor: args.cursor ?? null,
+      });
+  }
+})
+
+export const runCourseDetailCronJob = internalAction({
   args: {
     intervalSeconds: v.number(),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.query("myplanDetailCronJobs").withIndex("by_interval_seconds", (q) => q.eq("intervalSeconds", args.intervalSeconds)).collect();
-  }
-})
+    console.log("Running course detail cron job for interval", args.intervalSeconds);
 
-export const courseDetailCronJob5m = internalAction({
-  args: {},
-  handler: async (ctx) => {
-    const courseCodes = await ctx.runQuery(api.myplanScrapers.getCourseDetailCronJobs, {
-      intervalSeconds: 300,
+    let paginationResult = await ctx.runQuery(api.myplanScrapers.getCourseDetailCronJobs, {
+      intervalSeconds: args.intervalSeconds,
     });
-    for (const courseCode of courseCodes) {
-      await ctx.runAction(api.myplanScrapers.scrapeCourseDetail, {
-        courseCode: courseCode.courseCode,
+
+    await ctx.runAction(internal.myplanScrapers.scrapeAndSaveCourseDetailBatch, {
+      courseCodes: paginationResult.page.map((course) => course.courseCode),
+    });
+
+    while (!paginationResult.isDone) {
+      console.log(`Processing ${paginationResult.page.length} courses`);
+      const courses = paginationResult.page;
+      paginationResult = await ctx.runQuery(api.myplanScrapers.getCourseDetailCronJobs, {
+        intervalSeconds: args.intervalSeconds,
+        cursor: paginationResult.continueCursor,
       });
-    }
-  }
-})
-
-export const courseDetailCronJob1m = internalAction({
-  args: {},
-  handler: async (ctx) => {
-    const courseCodes = await ctx.runQuery(api.myplanScrapers.getCourseDetailCronJobs, {
-      intervalSeconds: 60,
-    });
-    for (const courseCode of courseCodes) {
-      await ctx.runAction(api.myplanScrapers.scrapeCourseDetail, {
-        courseCode: courseCode.courseCode,
-      });
-    }
-  }
-})
-
-export const courseDetailCronJob10m = internalAction({
-  args: {},
-  handler: async (ctx) => {
-    const courseCodes = await ctx.runQuery(api.myplanScrapers.getCourseDetailCronJobs, {
-      intervalSeconds: 10 * 60,
-    });
-    for (const courseCode of courseCodes) {
-      await ctx.runAction(api.myplanScrapers.scrapeCourseDetail, {
-        courseCode: courseCode.courseCode,
-      });
-    }
-  }
-})
-
-export const courseDetailCronJob15m = internalAction({
-  args: {},
-  handler: async (ctx) => {
-    const courseCodes = await ctx.runQuery(api.myplanScrapers.getCourseDetailCronJobs, {
-      intervalSeconds: 15 * 60,
-    });
-    for (const courseCode of courseCodes) {
-      await ctx.runAction(api.myplanScrapers.scrapeCourseDetail, {
-        courseCode: courseCode.courseCode,
+      await ctx.runAction(internal.myplanScrapers.scrapeAndSaveCourseDetailBatch, {
+        courseCodes: courses.map((course) => course.courseCode),
       });
     }
   }

@@ -20,7 +20,9 @@ import type * as cecIndexScrapers from "../cecIndexScrapers.js";
 import type * as constants from "../constants.js";
 import type * as crons from "../crons.js";
 import type * as dawgpath from "../dawgpath.js";
+import type * as myplan from "../myplan.js";
 import type * as myplanScrapers from "../myplanScrapers.js";
+import type * as myplanUtils from "../myplanUtils.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -38,7 +40,9 @@ declare const fullApi: ApiFromModules<{
   constants: typeof constants;
   crons: typeof crons;
   dawgpath: typeof dawgpath;
+  myplan: typeof myplan;
   myplanScrapers: typeof myplanScrapers;
+  myplanUtils: typeof myplanUtils;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,
