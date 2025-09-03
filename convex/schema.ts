@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { Infer, v } from "convex/values";
+import { dawgpathCourseFields } from "./dawgpath";
 
 export const cecCourseFields = {
   url: v.string(),
@@ -115,7 +116,11 @@ export default defineSchema({
 
   myplanCourses: defineTable({
     ...myplanCourseFullFields,
-  }).index("by_course_code", ["courseCode"])
+  })
+    .index("by_course_code", ["courseCode"])
+    .searchIndex("by_course_code_search", {
+      searchField: "courseCode",
+    })
     .index("by_course_id", ["courseId"])
     .index("by_subject_area", ["subjectArea"])
     .index("by_update_interval_seconds", ["updateIntervalSeconds"])
@@ -123,6 +128,20 @@ export default defineSchema({
     .index("by_current_term_data", ["currentTermData"])
     .index("by_stats_enroll_percent", ["statsEnrollPercent"])
     .index("by_stats_enroll_max", ["statsEnrollMax"]),
+
+  dawgpathCourses: defineTable({
+    ...dawgpathCourseFields,
+  })
+    .index("by_course_code", ["courseCode"])
+    .index("by_detail_data", ["detailData"]),
+  dawgpathSubjects: defineTable({
+    subjectCode: v.string(),
+    name: v.string(),
+  })
+    .index("by_subject_code", ["subjectCode"])
+    .searchIndex("by_name", {
+      searchField: "name",
+    }),
 
   kvStore: defineTable({
     key: v.string(),
