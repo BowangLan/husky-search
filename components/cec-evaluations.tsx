@@ -4,11 +4,11 @@ import { useMemo } from "react"
 import { api } from "@/convex/_generated/api"
 import { useQuery } from "convex/react"
 
+import { getColor5 } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CECEvalPieChart, CECRatingRow } from "@/components/cec-eval-pie-chart"
-import { Section, SectionContent, SectionHeader } from "@/components/section"
+import { BigStat } from "@/components/big-stat"
 
-import CECEvalProgressBar from "./cec-eval-progress-bar"
+import { type CECRatingRow } from "./cec-eval-progress-bar"
 
 export type CECCourseEvaluation = {
   _id: string
@@ -70,6 +70,13 @@ export function CECEvaluations({ courseCode }: { courseCode: string }) {
 
   if (data === undefined) return null
 
+  const groupedByProfessor = sorted.reduce((acc, item) => {
+    const professor = item.professor || "Unknown"
+    acc[professor] = acc[professor] || []
+    acc[professor]!.push(item)
+    return acc
+  }, {} as Record<string, typeof sorted>)
+
   return (
     <Card hoverInteraction={false}>
       <CardHeader>
@@ -84,42 +91,104 @@ export function CECEvaluations({ courseCode }: { courseCode: string }) {
           </p>
         ) : (
           <div className="grid gap-4 md:gap-6">
-            {sorted.map((ev) => {
-              const surveyed = ev.data?.caption?.surveyed
-              const enrolled = ev.data?.caption?.enrolled
-              const questions: CECRatingRow[] =
-                (ev.data?.table_data_list_of_dicts as CECRatingRow[]) || []
+            {Object.entries(groupedByProfessor).map(([professor, evals]) => {
               return (
-                <Card key={ev._id} hoverInteraction={false}>
-                  <CardHeader>
-                    <CardTitle className="flex flex-col gap-1">
+                <div key={professor} className="grid gap-4 md:gap-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col">
                       <span className="text-base md:text-lg font-semibold">
-                        {formatTerm(ev.term)} ·{" "}
-                        {ev.professor ||
-                          ev.data?.h2?.split("&nbsp;&nbsp;")?.[0] ||
-                          "Instructor"}
+                        {professor}
                       </span>
-                      <span className="text-muted-foreground text-xs md:text-sm font-normal">
-                        {ev.role ? `${ev.role}` : ""}
-                        {ev.sessionCode ? ` · ${ev.sessionCode}` : ""}
-                        {surveyed || enrolled
-                          ? ` · ${surveyed || "?"} Surveyed / ${
-                              enrolled || "?"
-                            } Enrolled`
-                          : ""}
+                      <span className="text-xs md:text-sm text-muted-foreground">
+                        {evals.length} evaluation{evals.length > 1 ? "s" : ""}
                       </span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                      {questions.map((q) => (
-                        <div key={q.Question}>
-                          <CECEvalProgressBar key={q.Question} row={q} />
-                        </div>
-                      ))}
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                  <div className="grid gap-4">
+                    {evals.map((ev) => {
+                      const surveyed = ev.data?.caption?.surveyed
+                      const enrolled = ev.data?.caption?.enrolled
+                      const questions: CECRatingRow[] =
+                        (ev.data?.table_data_list_of_dicts as CECRatingRow[]) ||
+                        []
+                      const medians = questions
+                        .map((q) => parseFloat((q.Median || "").toString()))
+                        .filter((n) => Number.isFinite(n)) as number[]
+                      const avgMedian =
+                        medians.length > 0
+                          ? (
+                              medians.reduce((a, b) => a + b, 0) /
+                              medians.length
+                            ).toFixed(1)
+                          : "—"
+                      return (
+                        <Card key={ev._id} hoverInteraction={false}>
+                          <CardHeader>
+                            <CardTitle className="flex items-center justify-between gap-2">
+                              <span className="text-sm font-semibold">
+                                {formatTerm(ev.term)}
+                              </span>
+                              <span className="text-xs text-muted-foreground font-normal">
+                                {ev.role ? `${ev.role}` : ""}
+                                {ev.sessionCode ? ` · ${ev.sessionCode}` : ""}
+                              </span>
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid-cols-3 gap-3 hidden">
+                              <BigStat
+                                compact
+                                label="Median"
+                                value={avgMedian}
+                                color="violet"
+                              />
+                              <BigStat
+                                compact
+                                label="Surveyed"
+                                value={surveyed || "?"}
+                                total={enrolled || "?"}
+                                color="sky"
+                              />
+                              <BigStat
+                                compact
+                                label="Questions"
+                                value={questions.length}
+                                color="emerald"
+                              />
+                            </div>
+                            {questions.length > 0 ? (
+                              <div className="grid gap-2 md:grid-cols-3 lg:grid-cols-4">
+                                {questions.map((q) => {
+                                  const mean = (q.Median || "")
+                                    .toString()
+                                    .trim()
+                                  return (
+                                    <div
+                                      key={q.Question}
+                                      className="flex flex-col rounded-md border p-4 gap-1"
+                                    >
+                                      <div className="text-sm text-muted-foreground">
+                                        {q.Question.replace(":", "")}
+                                      </div>
+                                      <div
+                                        className="shrink-0 text-base md:text-lg font-semibold leading-4"
+                                        style={{
+                                          color: getColor5(parseFloat(mean)),
+                                        }}
+                                      >
+                                        {mean}
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            ) : null}
+                          </CardContent>
+                        </Card>
+                      )
+                    })}
+                  </div>
+                </div>
               )
             })}
           </div>

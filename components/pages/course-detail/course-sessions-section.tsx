@@ -11,6 +11,7 @@ import {
   Info,
   KeyRound,
   MapPin,
+  Pin,
   X,
 } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
@@ -32,11 +33,11 @@ import {
 const SessionRow = ({
   session,
   courseData,
-  last,
+  pinned,
 }: {
   session: any
   courseData: CourseDetail
-  last: boolean
+  pinned?: boolean
 }) => {
   const [copiedId, setCopiedId] = useState<string | number | null>(null)
 
@@ -55,7 +56,7 @@ const SessionRow = ({
 
   const enrollCount = Number((session as any).enrollCount ?? 0)
   const enrollMaximum = Number((session as any).enrollMaximum ?? 0)
-  const isClosed = enrollCount === enrollMaximum
+  const isClosed = enrollCount >= enrollMaximum
   const capacityPct = Math.min(
     100,
     (enrollCount / Math.max(1, enrollMaximum)) * 100
@@ -69,14 +70,16 @@ const SessionRow = ({
 
   return (
     <div key={session.id} className="group relative">
+      <Separator />
+
       {/* Accent gradient bar */}
-      <div
+      {/* <div
         className={cn(
           "absolute left-0 top-0 h-full w-[2px] opacity-0 transition-opacity duration-300",
           "bg-gradient-to-b from-purple-500 via-fuchsia-500 to-blue-500",
           "group-hover:opacity-100"
         )}
-      />
+      /> */}
 
       <div
         className="px-4 py-4 md:px-6 flex w-full flex-col gap-3 md:grid md:items-center md:gap-6"
@@ -87,21 +90,11 @@ const SessionRow = ({
       >
         {/* Session code */}
         <div>
-          <div className="flex items-center gap-2">
+          <div className={cn("flex items-center gap-2")}>
+            {pinned && <Pin className="size-3.5 text-violet-500" />}
             <h3 className="text-sm md:text-base font-medium tracking-tight">
               {session.code}
-              {/* {session.id} */}
-              {/* {sessionRaw?.activityId} */}
             </h3>
-            {/* <div className="hidden lg:block">
-                      <Badge
-                        variant="secondary"
-                        size="sm"
-                        className="uppercase"
-                      >
-                        {capitalize(session.type)}
-                      </Badge>
-                    </div> */}
             {sessionRaw.addCodeRequired && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -288,7 +281,7 @@ const SessionRow = ({
                       isClosed && "text-muted-foreground"
                     )}
                   >
-                    {enrollMaximum - enrollCount}
+                    {Math.max(0, enrollMaximum - enrollCount)}
                   </span>
                   {" avail of "}
                   <span>{enrollMaximum}</span>
@@ -353,7 +346,7 @@ const SessionRow = ({
         <div className="absolute inset-0 bg-foreground/[0.02] dark:bg-foreground/[0.03]" />
       </div>
 
-      {!last && <Separator className="mx-4 md:mx-6" />}
+      {/* {!last && <Separator />} */}
     </div>
   )
 }
@@ -466,7 +459,7 @@ const SessionsOverview = ({
       return session.stateKey
     }
 
-    if (enrollCount === enrollMaximum) {
+    if (enrollCount >= enrollMaximum) {
       return "closed"
     }
 
@@ -608,22 +601,21 @@ export const CourseSessionsSection = ({
     displayedSessions = displayedSessions.filter((s: any) =>
       selectedSessionIds.includes(s.id)
     )
-  } else if (pinnedSessionIds.length > 0) {
-    displayedSessions = displayedSessions.filter((s: any) =>
-      pinnedSessionIds.includes(s.id)
-    )
   }
+  const pinnedSessions = sessions.filter((s: any) =>
+    pinnedSessionIds.includes(s.id)
+  )
 
   return (
     <Card
-      className="overflow-hidden"
+      className="overflow-hidden py-0 md:py-0 min-h-screen"
       hoverInteraction={false}
       // onMouseLeave={() => setSelectedSessionIds([])}
     >
-      <CardContent>
+      <CardContent className="px-0 md:px-0">
         {/* Overall enroll status */}
         <div
-          className="mb-4 mx-4"
+          className="my-4 mx-4 md:mx-6 md:my-6"
           onMouseLeave={() => setSelectedSessionIds([])}
         >
           <SessionsOverview
@@ -635,13 +627,18 @@ export const CourseSessionsSection = ({
           />
         </div>
         <div>
-          {displayedSessions.map((session, idx) => (
+          {pinnedSessions.map((session, idx) => (
             <SessionRow
               key={session.id}
               session={session}
               courseData={data}
-              last={idx === sessions.length - 1}
+              pinned
             />
+          ))}
+        </div>
+        <div>
+          {displayedSessions.map((session, idx) => (
+            <SessionRow key={session.id} session={session} courseData={data} />
           ))}
         </div>
       </CardContent>

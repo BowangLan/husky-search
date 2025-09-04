@@ -16,6 +16,7 @@ export type CECRatingRow = {
   Fair?: string
   Poor?: string
   "Very Poor"?: string
+  Mean?: string
   Median?: string
 }
 

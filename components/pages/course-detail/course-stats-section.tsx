@@ -9,6 +9,7 @@ import {
   standardDeviationGPA,
   weightedMeanGPA,
 } from "@/lib/gpa-utils"
+import { getColor4, getColor100 } from "@/lib/utils"
 import {
   Card,
   CardContent,
@@ -19,7 +20,6 @@ import {
 import { BigStat } from "@/components/big-stat"
 import { GPADistroChart } from "@/components/gpa-distro-chart"
 
-import { CourseEnrollTrendSection } from "./course-enroll-trend-section"
 import {
   CourseMetadataSection,
   CourseMetadataSectionCard,
@@ -42,6 +42,7 @@ export const EasinessStat = ({ data }: { data: CourseDetail }) => {
       formatValue={(v) => Number(v).toFixed(0)}
       // icon={<Gauge />}
       helperText="How easy a class tends to be based on GPA distribution (higher is easier)."
+      color={getColor100(easiness)}
     />
   )
 }
@@ -55,8 +56,14 @@ export const MeanGPAStat = ({ data }: { data: CourseDetail }) => {
   if (typeof meanGPA !== "number") return null
 
   const mean = Number((meanGPA / 10).toFixed(1))
-  const meanColor =
-    mean >= 3.7 ? "emerald" : mean >= 3.2 ? "sky" : mean >= 2.7 ? "amber" : "rose"
+  const meanColor = getColor4(mean)
+  // mean >= 3.7
+  //   ? "emerald"
+  //   : mean >= 3.2
+  //   ? "sky"
+  //   : mean >= 2.7
+  //   ? "amber"
+  //   : "rose"
 
   return (
     <BigStat
@@ -79,8 +86,14 @@ export const WeightedGPAStat = ({ data }: { data: CourseDetail }) => {
   if (typeof weightedGPA !== "number") return null
 
   const weighted = Number((weightedGPA / 10).toFixed(1))
-  const weightedColor =
-    weighted >= 3.7 ? "emerald" : weighted >= 3.2 ? "sky" : weighted >= 2.7 ? "amber" : "rose"
+  const weightedColor = getColor4(weighted)
+  // weighted >= 3.7
+  //   ? "emerald"
+  //   : weighted >= 3.2
+  //   ? "sky"
+  //   : weighted >= 2.7
+  //   ? "amber"
+  //   : "rose"
 
   return (
     <BigStat

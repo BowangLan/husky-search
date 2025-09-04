@@ -66,3 +66,27 @@ export function calculateEasiness(data: { gpa: number; count: number }[], option
   return score;
 }
 
+
+export const getColor5 = (value: number) => {
+  if (value >= 4) return "var(--color-green-500)"
+  if (value >= 3) return "var(--color-yellow-500)"
+  if (value >= 2) return "var(--color-orange-500)"
+  if (value >= 1) return "var(--color-red-500)"
+  return "var(--color-gray-500)"
+}
+export const getColor4 = (value: number) => {
+  if (value >= 3.5) return "green"
+  if (value >= 3) return "yellow"
+  if (value >= 2) return "orange"
+  if (value >= 1) return "red"
+  return "gray"
+}
+
+export const getColor100 = (value: number) => {
+  if (value >= 90) return "green"
+  if (value >= 80) return "blue"
+  if (value >= 60) return "yellow"
+  if (value >= 40) return "orange"
+  if (value >= 20) return "red"
+  return "gray"
+}

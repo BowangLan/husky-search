@@ -1,7 +1,7 @@
 "use client"
 
 // @ts-ignore
-import { unstable_ViewTransition as ViewTransition } from "react"
+import { unstable_ViewTransition as ViewTransition, useState } from "react"
 import Link from "next/link"
 import { api } from "@/convex/_generated/api"
 import { useQuery } from "convex/react"
@@ -19,7 +19,12 @@ import {
   MyPlanCourseCodeGroup,
   MyPlanCourseCodeGroupWithDetail,
 } from "@/types/myplan"
-import { calculateEasiness, capitalize, capitalizeSingle } from "@/lib/utils"
+import {
+  calculateEasiness,
+  capitalize,
+  capitalizeSingle,
+  cn,
+} from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import {
   Tooltip,
@@ -35,6 +40,7 @@ import {
   CourseProgramBadgeLink,
 } from "../course-modules"
 import { Page, PageTopToolbar } from "../page-wrapper"
+import { Button } from "../ui/button"
 import {
   Card,
   CardContent,
@@ -43,6 +49,7 @@ import {
   CardTitle,
 } from "../ui/card"
 import { ExternalLink } from "../ui/external-link"
+import { CourseDetailHeader } from "./course-detail/course-detail-header"
 import { CourseMetadataSection } from "./course-detail/course-metadata-section"
 import { CourseSessionsSection } from "./course-detail/course-sessions-section"
 import { CourseDetailStatsSection } from "./course-detail/course-stats-section"
@@ -78,105 +85,42 @@ const CourseDetailPageContentMobile = ({
 }: {
   course: MyPlanCourseCodeGroupWithDetail
 }) => {
+  const [tab, setTab] = useState<"sessions" | "cec">("sessions")
   return (
     <div className="space-y-4">
       {/* Course Header */}
-      <section className="my-4 md:my-8 space-y-2 md:space-y-4">
-        <div className="flex items-center gap-2">
-          {/* <Badge
-              variant="secondary"
-              className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20"
-            >
-              {`${course.subject} ${course.number}`}
-            </Badge> */}
-          <CourseProgramBadgeLink course={course} />
-          {/* <CourseLevelBadge course={course} /> */}
-          {/* <CourseCreditBadge course={course} /> */}
-        </div>
-        <div className="space-y-1">
-          <div className="flex items-baseline gap-2">
-            <ViewTransition>
-              <h1 className="text-3xl font-medium text-foreground sm:text-4xl lg:text-5xl">
-                {course.code.slice(0, -3)}
-                <span className="font-semibold text-primary">
-                  {course.code.slice(-3, -2)}
-                </span>
-                {course.code.slice(-2)}
-              </h1>
-            </ViewTransition>
-            <Tooltip>
-              <TooltipTrigger>
-                <span className="text-muted-foreground text-base md:text-lg lg:text-xl inline-block ml-2 font-mono">
-                  ({course.data[0]!.data.credit})
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p>
-                  This course is worth {course.data[0]!.data.credit} credits.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          <div className="flex items-center gap-2">
-            <ViewTransition>
-              <h2 className="text-base font-normal text-foreground sm:text-xl lg:text-2xl opacity-60">
-                {course.title}
-              </h2>
-            </ViewTransition>
-          </div>
-        </div>
-        <div className="flex flex-col items-start md:flex-row md:items-center gap-2">
-          <div className="flex items-center gap-2">
-            {/* <CourseLevelBadge course={course} /> */}
-            {/* <CourseCreditBadge course={course} /> */}
-            <CourseGenEdRequirements course={course} />
-          </div>
-          <div className="flex-1"></div>
-          <div className="flex items-center gap-6">
-            <ExternalLink
-              href={`https://myplan.uw.edu/course/#/courses/${course.code}`}
-            >
-              View on MyPlan
-            </ExternalLink>
-            <ExternalLink
-              href={`https://dawgpath.uw.edu/course?id=${course.code}&campus=seattle`}
-            >
-              View on DawgPath
-            </ExternalLink>
-          </div>
-        </div>
-        <div className="items-center gap-2 hidden">
-          {/* Program */}
-          <Link
-            href={`/majors/${course.subjectAreaCode}`}
-            prefetch
-            scroll={false}
-          >
-            <Badge
-              size="lg"
-              variant="outline"
-              className="bg-gradient-to-r from-purple-500/10 to-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 cursor-pointer hover:opacity-80 trans"
-            >
-              <GraduationCap className="h-5 w-5 mr-2" />
-              {capitalize(course.subjectAreaTitle)}
-            </Badge>
-          </Link>
-        </div>
-      </section>
-
-      {/* <div className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-4 md:gap-6">
-        <div>
-          <CourseDetailStatsSection courseCode={course.code} />
-          <CourseSessionsSection courseCode={course.code} />
-        </div>
-        <div>
-          <CourseMetadataSection course={course} />
-        </div>
-      </div> */}
-
+      <CourseDetailHeader course={course} />
       <CourseDetailStatsSection courseCode={course.code} />
-      <CourseSessionsSection courseCode={course.code} />
-      <CECEvaluations courseCode={course.code} />
+
+      <div className="flex items-center my-6">
+        <Button
+          variant="ghost"
+          onClick={() => setTab("sessions")}
+          className={cn(
+            "relative overflow-hidden transition-all duration-300 border-b-2 rounded-none hover:bg-muted/50 active:bg-muted trans",
+            tab === "sessions"
+              ? "border-b-foreground hover:border-b-violet-500 bg-transparent hover:bg-foreground/10 active:bg-foreground/15"
+              : "border-b-transparent hover:bg-foreground/10 active:bg-foreground/15"
+          )}
+        >
+          Sessions
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={() => setTab("cec")}
+          className={cn(
+            "relative overflow-hidden transition-all duration-300 border-b-2 rounded-none hover:bg-muted/50 active:bg-muted trans",
+            tab === "cec"
+              ? "border-b-foreground hover:border-b-violet-500 bg-transparent hover:bg-foreground/10 active:bg-foreground/15"
+              : "border-b-transparent hover:bg-foreground/10 active:bg-foreground/15"
+          )}
+        >
+          CEC Evaluations
+        </Button>
+      </div>
+
+      {tab === "sessions" && <CourseSessionsSection courseCode={course.code} />}
+      {tab === "cec" && <CECEvaluations courseCode={course.code} />}
 
       {/* {gpaDistro && gpaDistro.length > 0 ? (
         <EasinessPieChart data={gpaDistro} />
