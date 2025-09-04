@@ -324,7 +324,9 @@ const SessionRow = ({
                   isClosed && "bg-foreground/10"
                 )}
                 indicatorClassName={cn(
-                  "bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500",
+                  "bg-gradient-to-r from-green-400 via-green-500 to-green-600",
+                  sessionRaw.enrollStatus === "add code required" &&
+                    "from-amber-400 via-amber-500 to-amber-600",
                   isClosed && "from-red-600 via-red-500 to-red-700"
                 )}
               />

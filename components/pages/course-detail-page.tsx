@@ -34,7 +34,7 @@ import {
 import { BackButton } from "@/components/back-button"
 import { Section, SectionContent, SectionHeader } from "@/components/section"
 
-import CECEvaluations from "../cec-evaluations"
+import CECEvaluations from "./course-detail/cec-evaluations"
 import {
   CourseGenEdRequirements,
   CourseProgramBadgeLink,
@@ -49,6 +49,7 @@ import {
   CardTitle,
 } from "../ui/card"
 import { ExternalLink } from "../ui/external-link"
+import { Skeleton } from "../ui/skeleton"
 import { CourseDetailHeader } from "./course-detail/course-detail-header"
 import { CourseMetadataSection } from "./course-detail/course-metadata-section"
 import { CourseSessionsSection } from "./course-detail/course-sessions-section"
@@ -260,6 +261,100 @@ const CourseDetailPageContentDesktop = ({
   )
 }
 
+const CourseDetailPageSkeleton = () => {
+  return (
+    <div className="space-y-4">
+      {/* Header skeleton */}
+      <section className="my-4 md:my-8 space-y-3">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-6 w-28 rounded-md" />
+          <Skeleton className="h-6 w-16 rounded-md" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-48 rounded-md" />
+          <Skeleton className="h-6 w-64 rounded-md" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-6 w-20 rounded-md" />
+          <Skeleton className="h-6 w-16 rounded-md" />
+          <Skeleton className="h-6 w-24 rounded-md" />
+        </div>
+        <div className="flex items-center gap-6">
+          <Skeleton className="h-4 w-28 rounded-md" />
+          <Skeleton className="h-4 w-32 rounded-md" />
+        </div>
+      </section>
+
+      {/* Stats skeleton */}
+      <section className="grid grid-cols-1 gap-4">
+        <Card hoverInteraction={false} className="flex-1">
+          <CardContent className="py-4">
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-8 w-32" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card hoverInteraction={false} className="flex-1">
+          <CardContent className="py-4">
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-8 w-32" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card hoverInteraction={false} className="flex-1">
+          <CardContent className="py-4">
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-8 w-32" />
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Tabs skeleton */}
+      <div className="flex items-center my-6 gap-4">
+        <Skeleton className="h-8 w-24 rounded-none" />
+        <Skeleton className="h-8 w-36 rounded-none" />
+      </div>
+
+      {/* Sessions skeleton */}
+      <Card className="overflow-hidden" hoverInteraction={false}>
+        <CardContent className="px-0">
+          <div className="my-4 mx-4 space-y-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="px-0">
+                <div className="border-t" />
+                <div className="px-4 py-4 md:px-6 grid gap-3" style={{ gridTemplateColumns: "minmax(96px,108px) minmax(96px,160px) 1.5fr auto minmax(160px,240px)" }}>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-3 w-10" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-28" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-8 w-16" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="h-2 w-full" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
 export function CourseDetailPage({
   course,
 }: {
@@ -278,7 +373,11 @@ export function CourseDetailPage({
         <CourseDetailPageContentDesktop course={course} />
       </div> */}
       <div className="pb-12">
-        <CourseDetailPageContentMobile course={course} />
+        {c ? (
+          <CourseDetailPageContentMobile course={course} />
+        ) : (
+          <CourseDetailPageSkeleton />
+        )}
         {/* <CECEvaluations items={(c as any)?.cecCourse} /> */}
       </div>
     </Page>
