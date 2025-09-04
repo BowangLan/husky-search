@@ -4,6 +4,26 @@ import { CourseService } from "@/services/course-service"
 
 import { CourseDetailPage } from "@/components/pages/course-detail-page"
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id: courseCode } = await params
+  const course = await CourseService.getCourseDetailByCode(
+    decodeURIComponent(courseCode).toUpperCase()
+  )
+
+  if (!course) {
+    return notFound()
+  }
+
+  return {
+    title: `${course.code}`,
+    description: course.description,
+  }
+}
+
 export default async function CoursePage({
   params,
 }: {

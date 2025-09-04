@@ -9,6 +9,7 @@ import { GlobalLayoutWrapper } from "@/components/global-layout-wrapper"
 import { SiteHeader } from "@/components/site-header"
 import { TailwindIndicator } from "@/components/tailwind-indicator"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/sonner"
 
 export const metadata: Metadata = {
   title: {
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <div className="flex-1 min-h-0">{children}</div>
               </div>
               {process.env.NODE_ENV === "development" && <TailwindIndicator />}
+              <Toaster position="top-center" richColors closeButton duration={1600} />
             </ThemeProvider>
           </GlobalLayoutWrapper>
           <Analytics />

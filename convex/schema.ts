@@ -35,6 +35,7 @@ export const myplanCourseTermDataObj = v.object({
     newThisYear: v.boolean(),
     stateKey: v.string(),
     type: v.string(),
+    addCodeRequired: v.optional(v.boolean()),
     // meetingDetailsList: v.array(v.object({
     //   building: v.string(),
     //   campus: v.string(),

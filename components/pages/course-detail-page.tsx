@@ -1,6 +1,10 @@
+"use client"
+
 // @ts-ignore
 import { unstable_ViewTransition as ViewTransition } from "react"
 import Link from "next/link"
+import { api } from "@/convex/_generated/api"
+import { useQuery } from "convex/react"
 import {
   ArrowLeft,
   Award,
@@ -15,9 +19,8 @@ import {
   MyPlanCourseCodeGroup,
   MyPlanCourseCodeGroupWithDetail,
 } from "@/types/myplan"
-import { capitalize, capitalizeSingle } from "@/lib/utils"
+import { calculateEasiness, capitalize, capitalizeSingle } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Tooltip,
   TooltipContent,
@@ -26,12 +29,49 @@ import {
 import { BackButton } from "@/components/back-button"
 import { Section, SectionContent, SectionHeader } from "@/components/section"
 
+import CECEvaluations from "../cec-evaluations"
 import {
   CourseGenEdRequirements,
   CourseProgramBadgeLink,
 } from "../course-modules"
 import { Page, PageTopToolbar } from "../page-wrapper"
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../ui/card"
 import { ExternalLink } from "../ui/external-link"
+import { CourseMetadataSection } from "./course-detail/course-metadata-section"
+import { CourseSessionsSection } from "./course-detail/course-sessions-section"
+import { CourseDetailStatsSection } from "./course-detail/course-stats-section"
+
+const BigStat = ({
+  label,
+  value,
+  total,
+}: {
+  label: string
+  value: string | number
+  total?: string | number
+}) => {
+  return (
+    <Card hoverInteraction={false} className="flex-1">
+      <CardContent>
+        <div className="flex flex-col gap-2">
+          <span className="text-sm text-muted-foreground">{label}</span>
+          <span className="text-2xl font-semibold tracking-tight md:text-3xl">
+            {value}
+            {total && (
+              <span className="text-sm text-muted-foreground"> / {total}</span>
+            )}
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
 const CourseDetailPageContentMobile = ({
   course,
@@ -39,7 +79,7 @@ const CourseDetailPageContentMobile = ({
   course: MyPlanCourseCodeGroupWithDetail
 }) => {
   return (
-    <div>
+    <div className="space-y-4">
       {/* Course Header */}
       <section className="my-4 md:my-8 space-y-2 md:space-y-4">
         <div className="flex items-center gap-2">
@@ -124,72 +164,30 @@ const CourseDetailPageContentMobile = ({
         </div>
       </section>
 
-      <Section>
-        <SectionHeader border>
-          <div className="flex items-center gap-2">
-            {/* <GraduationCap className="h-4 w-4 text-muted-foreground" /> */}
-            <h3 className="text-sm text-muted-foreground font-medium">
-              Prerequisites
-            </h3>
-          </div>
-        </SectionHeader>
-        <SectionContent>
-          <p className="leading-relaxed max-w-4xl text-sm md:text-base font-light">
-            {course.data[0]!.data.prereqs
-              ? capitalizeSingle(course.data[0]!.data.prereqs)
-              : "No prerequisites"}
-          </p>
-        </SectionContent>
-      </Section>
+      {/* <div className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-4 md:gap-6">
+        <div>
+          <CourseDetailStatsSection courseCode={course.code} />
+          <CourseSessionsSection courseCode={course.code} />
+        </div>
+        <div>
+          <CourseMetadataSection course={course} />
+        </div>
+      </div> */}
 
-      <Section>
-        <SectionHeader border>
-          <div className="flex items-center gap-2">
-            {/* <GraduationCap className="h-4 w-4 text-muted-foreground" /> */}
-            <h3 className="text-sm text-muted-foreground font-medium">
-              Description
-            </h3>
-          </div>
-        </SectionHeader>
-        <SectionContent>
-          <p className="leading-relaxed max-w-4xl text-sm md:text-base font-light">
-            {course.detail?.courseSummaryDetails.courseDescription}
-          </p>
-        </SectionContent>
-      </Section>
+      <CourseDetailStatsSection courseCode={course.code} />
+      <CourseSessionsSection courseCode={course.code} />
+      <CECEvaluations courseCode={course.code} />
 
-      {/* CEC Data */}
-      <div className="w-[300px] flex-none hidden">
-        <Section>
-          <SectionHeader>
-            <div className="flex items-center gap-2">
-              <h3 className="text-base text-muted-foreground font-medium">
-                CEC Data
-              </h3>
-            </div>
-          </SectionHeader>
-          <SectionContent>
-            <p className="text-muted-foreground leading-relaxed max-w-4xl text-sm md:text-base font-light">
-              {JSON.stringify(course.cecData)}
-            </p>
-          </SectionContent>
-        </Section>
-      </div>
+      {/* {gpaDistro && gpaDistro.length > 0 ? (
+        <EasinessPieChart data={gpaDistro} />
+      ) : null} */}
 
-      <section className="space-y-4">
+      {/* <section className="space-y-4">
         <iframe
           src={`https://myplan.uw.edu/course/#/courses/${course.code}`}
           className="w-full aspect-video overflow-hidden rounded-xl md:block hidden"
         ></iframe>
-
-        {/* DawgPath */}
-        {/* <iframe
-              src={`https://dawgpath.uw.edu/course?id=${course.code}&${
-                course.data[0]!.data.campus
-              }`}
-              className="w-full aspect-video overflow-hidden rounded-xl"
-            ></iframe> */}
-      </section>
+      </section> */}
     </div>
   )
 }
@@ -306,24 +304,6 @@ const CourseDetailPageContentDesktop = ({
         </Section>
       </div>
 
-      {/* CEC Data */}
-      <div className="w-[300px] flex-none">
-        <Section>
-          <SectionHeader>
-            <div className="flex items-center gap-2">
-              <h3 className="text-base text-muted-foreground font-medium">
-                CEC Data
-              </h3>
-            </div>
-          </SectionHeader>
-          <SectionContent>
-            <p className="text-muted-foreground leading-relaxed max-w-4xl text-sm md:text-base font-light">
-              {JSON.stringify(course.cecData)}
-            </p>
-          </SectionContent>
-        </Section>
-      </div>
-
       <div className="flex-1">
         <section className="space-y-4">
           <iframe
@@ -341,6 +321,10 @@ export function CourseDetailPage({
 }: {
   course: MyPlanCourseCodeGroupWithDetail
 }) {
+  const c = useQuery(api.courses.getByCourseCode, { courseCode: course.code })
+
+  console.log(c)
+
   return (
     <Page className="mx-page px-page py-0">
       <PageTopToolbar>
@@ -349,8 +333,9 @@ export function CourseDetailPage({
       {/* <div className="hidden md:block">
         <CourseDetailPageContentDesktop course={course} />
       </div> */}
-      <div className="">
+      <div className="pb-12">
         <CourseDetailPageContentMobile course={course} />
+        {/* <CECEvaluations items={(c as any)?.cecCourse} /> */}
       </div>
     </Page>
   )

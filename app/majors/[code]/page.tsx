@@ -2,18 +2,8 @@ import { unstable_cache } from "next/cache"
 import { notFound } from "next/navigation"
 import { CourseService } from "@/services/course-service"
 import { ProgramService } from "@/services/program-service"
-import { and, asc, desc, eq, sql } from "drizzle-orm"
 
-import { MyPlanCourseCodeGroup } from "@/types/myplan"
-import { getCourseLatestEnrollCount } from "@/lib/course-utils"
-import {
-  CoursesTable,
-  CurrentAcademicTermTable,
-  MyPlanCourseDetailTable,
-  MyPlanQuarterCoursesTable,
-  MyPlanSubjectAreasTable,
-  db,
-} from "@/lib/db/schema"
+import { capitalize } from "@/lib/utils"
 import { ProgramDetailPage } from "@/components/pages/program-detail-page"
 
 const POPULAR_COURSES_LIMIT = 15
@@ -21,6 +11,26 @@ const ALL_COURSES_LIMIT = 200
 
 const SHOW_ENROLL_DATA_FOR_POPULAR_COURSES = false
 const SHOW_ENROLL_DATA_FOR_ALL_COURSES = false
+
+export const generateMetadata = async ({
+  params,
+}: {
+  params: Promise<{ code: string }>
+}) => {
+  const { code: codeParam } = await params
+  const code = decodeURIComponent(codeParam).toUpperCase()
+
+  const program = await ProgramService.getProgramByCode(code)
+
+  if (!program) {
+    return notFound()
+  }
+
+  return {
+    title: `${capitalize(program.title)} Major`,
+    description: `${program.title}`,
+  }
+}
 
 export default async function ProgramPage({
   params,

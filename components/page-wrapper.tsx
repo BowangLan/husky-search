@@ -1,6 +1,3 @@
-// @ts-ignore
-import { unstable_ViewTransition as ViewTransition } from "react"
-
 import { cn } from "@/lib/utils"
 
 import { Skeleton } from "./ui/skeleton"
@@ -91,17 +88,15 @@ export const Page = ({
   pagePadding?: boolean
 }) => {
   return (
-    <ViewTransition enter="page-enter" exit="page-exit">
-      <div
-        className={cn(
-          "bg-gradient-to-br from-background via-background to-muted/20 pb-16",
-          className,
-          pagePadding ? "px-page mx-page" : ""
-        )}
-      >
-        {children}
-      </div>
-    </ViewTransition>
+    <div
+      className={cn(
+        "bg-gradient-to-br from-background via-background to-muted/20 pb-16",
+        className,
+        pagePadding ? "px-page mx-page" : ""
+      )}
+    >
+      {children}
+    </div>
   )
 }
 

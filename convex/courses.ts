@@ -1,5 +1,7 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
+import { FunctionReturnType } from "convex/server";
+import { api } from "./_generated/api";
 
 export const getByCourseCode = query({
   args: {
@@ -16,12 +18,14 @@ export const getByCourseCode = query({
 
     const cecCourse = await ctx.db.query("cecCourses")
       .withIndex("by_course_code", (q) => q.eq("courseCode", args.courseCode))
-      .first();
+      .collect();
 
     return {
       myplanCourse,
-      dawgpathCourse,
+      dp: dawgpathCourse?.detailData,
       cecCourse,
     };
   }
 })
+
+export type CourseDetail = NonNullable<FunctionReturnType<typeof api.courses.getByCourseCode>>

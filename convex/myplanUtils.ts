@@ -43,6 +43,7 @@ export function getSessionsExtractedGroupedByTerm(
           type: offering.activityOfferingType,
           meetingDetailsList: offering.meetingDetailsList,
           instructor: offering.instructor,
+          addCodeRequired: offering.addCodeRequired,
         })
       }
     }
