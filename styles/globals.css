@@ -237,3 +237,11 @@
 .mx-page {
   @apply mx-auto max-w-7xl;
 }
+
+.bg-accent {
+  background-color: var(--accent);
+}
+
+.bg-secondary {
+  background-color: var(--foreground)/5;
+}

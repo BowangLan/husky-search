@@ -22,6 +22,7 @@ import { capitalize, cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -291,10 +292,17 @@ const SessionRow = ({
                           {capacityPct.toFixed(1)}%
                         </div> */}
                 {sessionRaw.enrollStatus === "add code required" && (
-                  <div className="text-xs text-muted-foreground tabular-nums">
-                    <span className="font-semibold text-foreground text-sm">
-                      --
-                    </span>
+                  <div>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className={cn("size-2 rounded-full bg-amber-500")}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        This session requires an add code.
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 )}
                 <div
@@ -324,10 +332,11 @@ const SessionRow = ({
                   isClosed && "bg-foreground/10"
                 )}
                 indicatorClassName={cn(
-                  "bg-gradient-to-r from-green-400 via-green-500 to-green-600",
+                  "bg-gradient-to-r dark:from-green-400 dark:via-green-500 dark:to-green-600 from-green-300 via-green-400 to-green-500",
                   sessionRaw.enrollStatus === "add code required" &&
-                    "from-amber-400 via-amber-500 to-amber-600",
-                  isClosed && "from-red-600 via-red-500 to-red-700"
+                    "dark:from-amber-400 dark:via-amber-500 dark:to-amber-600 from-amber-400 via-amber-400 to-amber-500",
+                  isClosed &&
+                    "dark:from-red-600 dark:via-red-500 dark:to-red-700 from-red-400 via-red-400 to-red-500"
                 )}
               />
             </>
@@ -347,8 +356,6 @@ const SessionRow = ({
       <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
         <div className="absolute inset-0 bg-foreground/[0.02] dark:bg-foreground/[0.03]" />
       </div>
-
-      {/* {!last && <Separator />} */}
     </div>
   )
 }
@@ -356,7 +363,7 @@ const SessionRow = ({
 const SessionChip = ({
   session,
   getSessionEnrollState,
-  selectedSessionIds,
+  selectedSessionIdSet,
   setSelectedSessionIds,
   parentSessionId,
   pinnedSessionIds,
@@ -364,7 +371,7 @@ const SessionChip = ({
 }: {
   session: any
   getSessionEnrollState: (session: any) => string
-  selectedSessionIds: string[]
+  selectedSessionIdSet: Set<string>
   setSelectedSessionIds: (ids: string[]) => void
   parentSessionId?: string
   pinnedSessionIds: string[]
@@ -381,24 +388,22 @@ const SessionChip = ({
       ? "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30"
       : "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/30"
 
-  const dotClasses =
-    enrollState === "closed"
-      ? "bg-rose-500 dark:bg-rose-400"
-      : enrollState === "open"
-      ? "bg-emerald-500 dark:bg-emerald-400"
-      : enrollState === "add code required"
-      ? "bg-amber-500 dark:bg-amber-400"
-      : "bg-slate-400 dark:bg-slate-400"
+  const isSelected = selectedSessionIdSet.has(session.id)
+  const isPinned = pinnedSessionIds.includes(session.id)
 
   return (
     <div
       key={session.id}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md px-2.5 h-7 justify-center text-xs border",
+        "inline-flex items-center gap-1.5 rounded-md px-2.5 h-7 justify-center text-xs border trans",
         "transition-colors duration-150 cursor-pointer",
         chipClasses,
-        pinnedSessionIds.includes(session.id) &&
-          "bg-purple-600 text-white border-purple-600 dark:bg-purple-600 dark:text-white dark:border-purple-600"
+        isPinned &&
+          "bg-purple-600 text-white border-purple-600 dark:bg-purple-600 dark:text-white dark:border-purple-600",
+        selectedSessionIdSet.size > 0 &&
+          !isSelected &&
+          !isPinned &&
+          "opacity-40"
       )}
       onMouseEnter={() =>
         setSelectedSessionIds(
@@ -426,7 +431,7 @@ const SessionChip = ({
   )
 }
 
-const SessionsOverview = ({
+const SessionChips = ({
   data,
   selectedSessionIds,
   setSelectedSessionIds,
@@ -475,6 +480,8 @@ const SessionsOverview = ({
     return "open"
   }
 
+  const selectedSessionIdSet = new Set(selectedSessionIds)
+
   if (!hasDoubleLetterCode) {
     return (
       <div className="flex flex-row items-center flex-wrap gap-2">
@@ -484,7 +491,7 @@ const SessionsOverview = ({
               key={session.id}
               session={session}
               getSessionEnrollState={getSessionEnrollState}
-              selectedSessionIds={selectedSessionIds}
+              selectedSessionIdSet={selectedSessionIdSet}
               setSelectedSessionIds={setSelectedSessionIds}
               pinnedSessionIds={pinnedSessionIds}
               setPinnedSessionIds={setPinnedSessionIds}
@@ -545,7 +552,7 @@ const SessionsOverview = ({
                     key={session.id}
                     session={session}
                     getSessionEnrollState={getSessionEnrollState}
-                    selectedSessionIds={selectedSessionIds}
+                    selectedSessionIdSet={selectedSessionIdSet}
                     setSelectedSessionIds={setSelectedSessionIds}
                     parentSessionId={sessions.parentSessionId}
                     pinnedSessionIds={pinnedSessionIds}
@@ -590,6 +597,7 @@ export const CourseSessionsSection = ({
   const data = useQuery(api.courses.getByCourseCode, {
     courseCode,
   })
+  const [showOpenOnly, setShowOpenOnly] = useState(false)
 
   if (!data) return null
 
@@ -603,7 +611,12 @@ export const CourseSessionsSection = ({
     displayedSessions = displayedSessions.filter((s: any) =>
       selectedSessionIds.includes(s.id)
     )
+  } else if (showOpenOnly) {
+    displayedSessions = displayedSessions.filter(
+      (s: any) => s.stateKey === "active" && s.enrollCount < s.enrollMaximum
+    )
   }
+
   const pinnedSessions = sessions.filter((s: any) =>
     pinnedSessionIds.includes(s.id)
   )
@@ -616,20 +629,42 @@ export const CourseSessionsSection = ({
     >
       <CardContent className="px-0 md:px-0">
         {/* Overall enroll status */}
-        <div
-          className="my-4 mx-4 md:mx-6 md:my-6"
-          onMouseLeave={() => setSelectedSessionIds([])}
-        >
-          <SessionsOverview
-            data={data}
-            selectedSessionIds={selectedSessionIds}
-            setSelectedSessionIds={setSelectedSessionIds}
-            pinnedSessionIds={pinnedSessionIds}
-            setPinnedSessionIds={setPinnedSessionIds}
-          />
+        <div className="my-4 mx-4 md:mx-6 md:my-6">
+          {/* Toolbar */}
+          <div>
+            {/* show open only */}
+            <div className="flex items-center space-x-2 mb-4">
+              <Button
+                variant={"ghost"}
+                className={cn(
+                  "border border-foreground/10 hover:border-foreground/10 active:border-foreground/15",
+                  showOpenOnly
+                    ? "bg-foreground/5 hover:bg-foreground/10"
+                    : "hover:bg-foreground/10 active:bg-foreground/10",
+                  "px-2.5"
+                )}
+                onClick={() => setShowOpenOnly(!showOpenOnly)}
+              >
+                <Checkbox
+                  checked={showOpenOnly}
+                  onCheckedChange={() => setShowOpenOnly(!showOpenOnly)}
+                />
+                Show open sessions only
+              </Button>
+            </div>
+          </div>
+          <div onMouseLeave={() => setSelectedSessionIds([])}>
+            <SessionChips
+              data={data}
+              selectedSessionIds={selectedSessionIds}
+              setSelectedSessionIds={setSelectedSessionIds}
+              pinnedSessionIds={pinnedSessionIds}
+              setPinnedSessionIds={setPinnedSessionIds}
+            />
+          </div>
         </div>
         <div>
-          {pinnedSessions.map((session, idx) => (
+          {pinnedSessions.map((session) => (
             <SessionRow
               key={session.id}
               session={session}

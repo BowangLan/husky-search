@@ -4,7 +4,7 @@ import Link from "next/link"
 
 import { MyPlanCourseCodeGroup } from "@/types/myplan"
 import { parseTermId } from "@/lib/course-utils"
-import { capitalize } from "@/lib/utils"
+import { capitalize, getGenEdLabel } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import {
   Tooltip,
@@ -30,16 +30,23 @@ export const CourseGenEdRequirements = ({
   }
 
   return (
-    // <ViewTransition name={`course-gen-ed-requirements-${course.id}`}>
-    <ViewTransition>
-      <div className="flex flex-wrap gap-2">
-        {genEdReqs.map((req, index) => (
-          <Badge key={index} size={size} variant="blue-outline">
-            {req}
-          </Badge>
-        ))}
-      </div>
-    </ViewTransition>
+    <div className="flex flex-wrap gap-2">
+      {genEdReqs.map((req, index) => (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              key={index}
+              size={size}
+              variant="blue-outline"
+              className="z-20"
+            >
+              {req}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="top">{getGenEdLabel(req)}</TooltipContent>
+        </Tooltip>
+      ))}
+    </div>
   )
 }
 

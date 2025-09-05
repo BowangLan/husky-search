@@ -56,29 +56,37 @@ import { CourseMetadataSection } from "./course-detail/course-metadata-section"
 import { CourseSessionsSection } from "./course-detail/course-sessions-section"
 import { CourseDetailStatsSection } from "./course-detail/course-stats-section"
 
-const BigStat = ({
-  label,
-  value,
-  total,
+const PageTab = ({
+  active,
+  onClick,
+  children,
 }: {
-  label: string
-  value: string | number
-  total?: string | number
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
 }) => {
   return (
-    <Card hoverInteraction={false} className="flex-1">
-      <CardContent>
-        <div className="flex flex-col gap-2">
-          <span className="text-sm text-muted-foreground">{label}</span>
-          <span className="text-2xl font-semibold tracking-tight md:text-3xl">
-            {value}
-            {total && (
-              <span className="text-sm text-muted-foreground"> / {total}</span>
-            )}
-          </span>
-        </div>
-      </CardContent>
-    </Card>
+    <Button
+      variant="ghost"
+      onClick={onClick}
+      className={cn(
+        "relative overflow-hidden group border-b-2 border-transparent bg-transparent rounded-none trans p-0 h-auto",
+        active
+          ? "border-b-foreground hover:border-b-violet-500"
+          : "border-b-transparent"
+      )}
+    >
+      <div
+        className={cn(
+          "rounded-md trans group-hover:bg-muted/50 group-active:bg-muted px-3 h-8 flex items-center mb-2",
+          active
+            ? "bg-transparent group-hover:bg-foreground/10 group-active:bg-foreground/15 text-foreground"
+            : "group-hover:bg-foreground/10 group-active:bg-foreground/15 text-foreground/70 hover:text-foreground active:text-foreground"
+        )}
+      >
+        {children}
+      </div>
+    </Button>
   )
 }
 
@@ -95,30 +103,12 @@ const CourseDetailPageContentMobile = ({
       <CourseDetailStatsSection courseCode={course.code} />
 
       <div className="flex items-center my-6">
-        <Button
-          variant="ghost"
-          onClick={() => setTab("sessions")}
-          className={cn(
-            "relative overflow-hidden transition-all duration-300 border-b-2 rounded-none hover:bg-muted/50 active:bg-muted trans",
-            tab === "sessions"
-              ? "border-b-foreground hover:border-b-violet-500 bg-transparent hover:bg-foreground/10 active:bg-foreground/15"
-              : "border-b-transparent hover:bg-foreground/10 active:bg-foreground/15"
-          )}
-        >
+        <PageTab active={tab === "sessions"} onClick={() => setTab("sessions")}>
           Sessions
-        </Button>
-        <Button
-          variant="ghost"
-          onClick={() => setTab("cec")}
-          className={cn(
-            "relative overflow-hidden transition-all duration-300 border-b-2 rounded-none hover:bg-muted/50 active:bg-muted trans",
-            tab === "cec"
-              ? "border-b-foreground hover:border-b-violet-500 bg-transparent hover:bg-foreground/10 active:bg-foreground/15"
-              : "border-b-transparent hover:bg-foreground/10 active:bg-foreground/15"
-          )}
-        >
+        </PageTab>
+        <PageTab active={tab === "cec"} onClick={() => setTab("cec")}>
           CEC Evaluations
-        </Button>
+        </PageTab>
       </div>
 
       {tab === "sessions" && <CourseSessionsSection courseCode={course.code} />}
@@ -266,52 +256,39 @@ const CourseDetailPageSkeleton = () => {
   return (
     <div className="space-y-4">
       {/* Header skeleton */}
-      <section className="my-4 md:my-8 space-y-3">
+      <section className="my-4 md:my-8 space-y-2 md:space-y-4">
         <div className="flex items-center gap-2">
-          <Skeleton className="h-6 w-28 rounded-md" />
-          <Skeleton className="h-6 w-16 rounded-md" />
+          <Skeleton className="h-[30px] w-[90px]" />
         </div>
         <div className="space-y-2">
-          <Skeleton className="h-10 w-48 rounded-md" />
-          <Skeleton className="h-6 w-64 rounded-md" />
+          <div className="flex items-end gap-2 h-[50px]">
+            <Skeleton className="h-12 w-[240px]" />
+            <Skeleton className="h-[28px] w-[36px]" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-[32px] w-[350px]" />
+          </div>
         </div>
         <div className="flex items-center gap-2">
-          <Skeleton className="h-6 w-20 rounded-md" />
-          <Skeleton className="h-6 w-16 rounded-md" />
-          <Skeleton className="h-6 w-24 rounded-md" />
-        </div>
-        <div className="flex items-center gap-6">
-          <Skeleton className="h-4 w-28 rounded-md" />
-          <Skeleton className="h-4 w-32 rounded-md" />
+          <Skeleton className="h-[30px] w-[40px]" />
+          <Skeleton className="h-[30px] w-[50px]" />
+          <div className="flex-1"></div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-[30px] w-[128px]" />
+            <Skeleton className="h-[30px] w-[148px]" />
+          </div>
         </div>
       </section>
 
       {/* Stats skeleton */}
-      <section className="grid grid-cols-1 gap-4">
-        <Card hoverInteraction={false} className="flex-1">
-          <CardContent className="py-4">
-            <div className="flex flex-col gap-2">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-8 w-32" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card hoverInteraction={false} className="flex-1">
-          <CardContent className="py-4">
-            <div className="flex flex-col gap-2">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-8 w-32" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card hoverInteraction={false} className="flex-1">
-          <CardContent className="py-4">
-            <div className="flex flex-col gap-2">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-8 w-32" />
-            </div>
-          </CardContent>
-        </Card>
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:col-span-7">
+          <Skeleton className="h-[114px]" />
+          <Skeleton className="h-[114px]" />
+          <Skeleton className="h-[114px]" />
+        </div>
+        <Skeleton className="lg:col-span-7 space-y-4 min-w-0 lg:row-start-2 h-[256px]" />
+        <Skeleton className="lg:col-span-5 space-y-4 min-w-0 lg:row-start-1 lg:col-start-8 lg:row-span-2" />
       </section>
 
       {/* Tabs skeleton */}

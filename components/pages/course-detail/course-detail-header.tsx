@@ -34,7 +34,7 @@ export const CourseDetailHeader = ({
         {/* <CourseCreditBadge course={course} /> */}
       </div>
       <div className="space-y-1">
-        <div className="flex items-baseline gap-2">
+        <div className="flex items-baseline gap-2 h-[50px]">
           <h1 className="text-3xl font-medium text-foreground sm:text-4xl lg:text-5xl">
             {course.code.slice(0, -3)}
             <span className="font-semibold text-primary">

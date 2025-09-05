@@ -90,3 +90,16 @@ export const getColor100 = (value: number) => {
   if (value >= 20) return "red"
   return "gray"
 }
+
+const genEdLabels = {
+  "A&H": "Arts & Humanities",
+  "SSc": "Social Sciences",
+  "NSc": "Natural Sciences",
+  "C": "English Composition",
+  "W": "Writing",
+  "DIV": "Diversity",
+  "RSN": "Reasoning",
+}
+export const getGenEdLabel = (label: string) => {
+  return genEdLabels[label as keyof typeof genEdLabels] ?? label
+}
