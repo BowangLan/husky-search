@@ -1,13 +1,20 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import Link from "next/link"
 import { api } from "@/convex/_generated/api"
 import { Id } from "@/convex/_generated/dataModel"
 import { useQuery } from "convex/react"
-import { X } from "lucide-react"
+import { ExternalLinkIcon, X } from "lucide-react"
 
 import { cn, getColor5 } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ExternalLink, ExternalLinkSmall } from "@/components/ui/external-link"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { BigStat } from "@/components/big-stat"
 
 import { type CECRatingRow } from "../../cec-eval-progress-bar"
@@ -102,13 +109,32 @@ const ProfessorEvalBlock = ({
             <Card key={ev._id} hoverInteraction={false}>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-semibold">
-                    {formatTerm(ev.term)} • {ev.professor}
-                  </span>
-                  <span className="text-xs text-muted-foreground font-normal">
-                    {ev.role ? `${ev.role}` : ""}
-                    {ev.sessionCode ? ` · ${ev.sessionCode}` : ""}
-                  </span>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold">
+                        {formatTerm(ev.term)} • {ev.professor}
+                      </span>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Link
+                            href={`https://www.washington.edu/cec/${ev.url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:text-purple-500"
+                          >
+                            <ExternalLinkIcon className="w-4 h-4" />
+                          </Link>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p>View on CEC</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <span className="text-xs text-muted-foreground font-normal">
+                      {ev.role ? `${ev.role}` : ""}
+                      {ev.sessionCode ? ` · ${ev.sessionCode}` : ""}
+                    </span>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -140,9 +166,9 @@ const ProfessorEvalBlock = ({
                       return (
                         <div
                           key={q.Question}
-                          className="flex flex-col rounded-md border p-4 gap-1"
+                          className="flex flex-col rounded-md border p-4 gap-2"
                         >
-                          <div className="text-sm text-muted-foreground">
+                          <div className="text-sm text-muted-foreground leading-none">
                             {q.Question.replace(":", "")}
                           </div>
                           <div
