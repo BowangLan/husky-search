@@ -8,6 +8,7 @@ import {
   useState,
 } from "react"
 import { ProgramDetail } from "@/services/program-service"
+import { useTrackMajorVisit } from "@/store/visit-cache.store"
 
 import { MyPlanCourseCodeGroup } from "@/types/myplan"
 import { generateFilterOptions, groupCoursesByLevel } from "@/lib/course-utils"
@@ -42,6 +43,8 @@ export function ProgramDetailPage({
   courses: MyPlanCourseCodeGroup[]
   popularCourses: MyPlanCourseCodeGroup[]
 }) {
+  useTrackMajorVisit(program)
+
   const [filterState, setFilterState] = useState<CourseFilterState>({
     credits: new Set(),
     genEduReqs: new Set(),

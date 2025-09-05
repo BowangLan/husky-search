@@ -16,8 +16,8 @@ export const ProgramCardGrid = ({
       : programsFromProps
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {programs.map((program) => (
-        <ProgramCardLink key={program.id} program={program} />
+      {programs.map((program, index) => (
+        <ProgramCardLink key={index} program={program} />
       ))}
     </div>
   )

@@ -4,6 +4,7 @@
 import { unstable_ViewTransition as ViewTransition, useState } from "react"
 import Link from "next/link"
 import { api } from "@/convex/_generated/api"
+import { useTrackCourseVisit } from "@/store/visit-cache.store"
 import { useQuery } from "convex/react"
 import {
   ArrowLeft,
@@ -34,7 +35,6 @@ import {
 import { BackButton } from "@/components/back-button"
 import { Section, SectionContent, SectionHeader } from "@/components/section"
 
-import CECEvaluations from "./course-detail/cec-evaluations"
 import {
   CourseGenEdRequirements,
   CourseProgramBadgeLink,
@@ -50,6 +50,7 @@ import {
 } from "../ui/card"
 import { ExternalLink } from "../ui/external-link"
 import { Skeleton } from "../ui/skeleton"
+import CECEvaluations from "./course-detail/cec-evaluations"
 import { CourseDetailHeader } from "./course-detail/course-detail-header"
 import { CourseMetadataSection } from "./course-detail/course-metadata-section"
 import { CourseSessionsSection } from "./course-detail/course-sessions-section"
@@ -326,7 +327,13 @@ const CourseDetailPageSkeleton = () => {
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="px-0">
                 <div className="border-t" />
-                <div className="px-4 py-4 md:px-6 grid gap-3" style={{ gridTemplateColumns: "minmax(96px,108px) minmax(96px,160px) 1.5fr auto minmax(160px,240px)" }}>
+                <div
+                  className="px-4 py-4 md:px-6 grid gap-3"
+                  style={{
+                    gridTemplateColumns:
+                      "minmax(96px,108px) minmax(96px,160px) 1.5fr auto minmax(160px,240px)",
+                  }}
+                >
                   <div className="space-y-2">
                     <Skeleton className="h-4 w-20" />
                     <Skeleton className="h-3 w-10" />
@@ -362,7 +369,7 @@ export function CourseDetailPage({
 }) {
   const c = useQuery(api.courses.getByCourseCode, { courseCode: course.code })
 
-  console.log(c)
+  useTrackCourseVisit(course.code)
 
   return (
     <Page className="mx-page px-page py-0">

@@ -16,6 +16,7 @@ import {
   ProgramCardGrid,
   ProgramCardGridWithSuspense,
 } from "@/components/program-card-grid"
+import { RecentMajorsSection } from "@/components/recent-majors-section"
 import { Section, SectionContent, SectionHeader } from "@/components/section"
 
 export const experimental_ppr = true
@@ -121,6 +122,7 @@ export default async function IndexPage() {
           <CourseCardGridView courses={coursesByCredit} />
         </SectionContent>
       </Section> */}
+      <RecentMajorsSection />
       <Section withPadding>
         <SectionHeader
           title="Top Majors"
