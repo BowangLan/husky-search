@@ -634,23 +634,32 @@ export const CourseSessionsSection = ({
           <div>
             {/* show open only */}
             <div className="flex items-center space-x-2 mb-4">
-              <Button
-                variant={"ghost"}
+              <motion.div
+                layout
+                role="button"
+                transition={{ duration: 0.3, ease: [0.4, 0.0, 0.2, 1] }}
                 className={cn(
-                  "border border-foreground/10 hover:border-foreground/10 active:border-foreground/15",
+                  "flex items-center rounded-md px-2.5 h-8 border trans cursor-pointer",
                   showOpenOnly
-                    ? "bg-foreground/5 hover:bg-foreground/10"
-                    : "hover:bg-foreground/10 active:bg-foreground/10",
-                  "px-2.5"
+                    ? "bg-foreground/10 hover:bg-foreground/15 active:bg-foreground/20 border-foreground/10 hover:border-foreground/15 active:border-foreground/20"
+                    : "hover:bg-foreground/10 active:bg-foreground/10 border-foreground/10 hover:border-foreground/10 active:border-foreground/15"
                 )}
                 onClick={() => setShowOpenOnly(!showOpenOnly)}
               >
-                <Checkbox
-                  checked={showOpenOnly}
-                  onCheckedChange={() => setShowOpenOnly(!showOpenOnly)}
-                />
-                Show open sessions only
-              </Button>
+                <AnimatePresence mode="wait">
+                  {showOpenOnly && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0, width: 0 }}
+                      animate={{ opacity: 1, scale: 1, width: "auto" }}
+                      exit={{ opacity: 0, scale: 0, width: 0 }}
+                      transition={{ duration: 0.3, ease: [0.4, 0.0, 0.2, 1] }}
+                    >
+                      <Check className="size-4 mr-2" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <div className="text-sm">Show open sessions only</div>
+              </motion.div>
             </div>
           </div>
           <div onMouseLeave={() => setSelectedSessionIds([])}>

@@ -32,14 +32,9 @@ export const CourseGenEdRequirements = ({
   return (
     <div className="flex flex-wrap gap-2">
       {genEdReqs.map((req, index) => (
-        <Tooltip>
+        <Tooltip key={index}>
           <TooltipTrigger asChild>
-            <Badge
-              key={index}
-              size={size}
-              variant="blue-outline"
-              className="z-20"
-            >
+            <Badge size={size} variant="blue-outline" className="z-20">
               {req}
             </Badge>
           </TooltipTrigger>

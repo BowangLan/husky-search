@@ -4,7 +4,10 @@
 import { unstable_ViewTransition as ViewTransition, useState } from "react"
 import Link from "next/link"
 import { api } from "@/convex/_generated/api"
-import { useTrackCourseVisit } from "@/store/visit-cache.store"
+import {
+  useTrackCourseVisit,
+  useTrackMajorVisit,
+} from "@/store/visit-cache.store"
 import { useQuery } from "convex/react"
 import {
   ArrowLeft,
@@ -347,6 +350,19 @@ export function CourseDetailPage({
   const c = useQuery(api.courses.getByCourseCode, { courseCode: course.code })
 
   useTrackCourseVisit(course.code)
+  useTrackMajorVisit({
+    id: 0,
+    code: course.subjectAreaCode,
+    title: course.subjectAreaTitle,
+    campus: "",
+    collegeCode: "",
+    collegeTitle: "",
+    departmentCode: "",
+    departmentTitle: "",
+    codeNoSpaces: "",
+    quotedCode: "",
+    courseDuplicate: false,
+  })
 
   return (
     <Page className="mx-page px-page py-0">
