@@ -11,5 +11,8 @@
   "aliases": {
     "utils": "@/lib/utils",
     "components": "@/components"
+  },
+  "registries": {
+    "@clerk": "https://clerk.com/r/{name}.json"
   }
 }

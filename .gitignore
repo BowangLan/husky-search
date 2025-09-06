@@ -40,3 +40,5 @@ temp/
 husky-search/
 
 __pycache__/
+# clerk configuration (can include secrets)
+/.clerk/

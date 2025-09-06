@@ -569,7 +569,7 @@ export const CourseSessionsCalendarView = () => {
                     const leftPct = (ev.col || 0) * widthPct
                     return (
                       <CalendarEventCard
-                        key={`ev-${d}-${i}`}
+                        key={`${ev.session.id}-${i}`}
                         topPct={topPct}
                         heightPct={heightPct}
                         leftPct={leftPct}

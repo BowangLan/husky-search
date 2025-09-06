@@ -1,6 +1,8 @@
+"use client"
+
 import Link from "next/link"
-import { signOut, withAuth } from "@workos-inc/authkit-nextjs"
-import { HelpCircle, LogOut, Settings, User } from "lucide-react"
+import { useClerk, useUser } from "@clerk/nextjs"
+import { LogOut } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -13,25 +15,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-export default async function HeaderUser() {
-  const { user } = await withAuth()
-
-  if (!user) {
-    return (
-      <Link href="/login">
-        <Button variant="outline" size="sm">
-          Sign In
-        </Button>
-      </Link>
-    )
-  }
-
-  const handleSignOut = async () => {
-    "use server"
-    await signOut({
-      returnTo: "/",
-    })
-  }
+export default function HeaderUser() {
+  const { isLoaded, isSignedIn, user } = useUser()
+  const { signOut } = useClerk()
 
   const getUserInitials = (
     firstName?: string | null,
@@ -67,21 +53,45 @@ export default async function HeaderUser() {
     return "User"
   }
 
+  if (!isLoaded) {
+    return (
+      <Button
+        variant="ghost"
+        className="relative h-8 w-8 rounded-full"
+        disabled
+      />
+    )
+  }
+
+  if (!isSignedIn || !user) {
+    return (
+      <Link href="/sign-in">
+        <Button variant="outline" size="sm">
+          Sign In
+        </Button>
+      </Link>
+    )
+  }
+
+  const firstName = user.firstName ?? null
+  const lastName = user.lastName ?? null
+  const email = user.primaryEmailAddress?.emailAddress ?? null
+
+  const handleSignOut = async () => {
+    await signOut({ redirectUrl: "/" })
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
             <AvatarImage
-              src={user.profilePictureUrl || undefined}
-              alt={getUserDisplayName(
-                user.firstName,
-                user.lastName,
-                user.email
-              )}
+              src={user.imageUrl}
+              alt={getUserDisplayName(firstName, lastName, email)}
             />
             <AvatarFallback className="text-xs">
-              {getUserInitials(user.firstName, user.lastName, user.email)}
+              {getUserInitials(firstName, lastName, email)}
             </AvatarFallback>
           </Avatar>
         </Button>
@@ -90,29 +100,16 @@ export default async function HeaderUser() {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">
-              {getUserDisplayName(user.firstName, user.lastName, user.email)}
+              {getUserDisplayName(firstName, lastName, email)}
             </p>
-            {user.email && (
+            {email && (
               <p className="text-xs leading-none text-muted-foreground">
-                {user.email}
+                {email}
               </p>
             )}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {/* <DropdownMenuItem>
-          <User className="mr-2 h-4 w-4" />
-          <span>Profile</span>
-        </DropdownMenuItem> */}
-        {/* <DropdownMenuItem>
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Settings</span>
-        </DropdownMenuItem> */}
-        {/* <DropdownMenuItem>
-          <HelpCircle className="mr-2 h-4 w-4" />
-          <span>Help</span>
-        </DropdownMenuItem> */}
-        {/* <DropdownMenuSepardator /> */}
         <DropdownMenuItem onSelect={handleSignOut}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Sign out</span>
