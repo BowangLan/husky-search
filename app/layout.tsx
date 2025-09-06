@@ -5,11 +5,13 @@ import { Analytics } from "@vercel/analytics/next"
 import { siteConfig } from "@/config/site"
 import { fontSans } from "@/lib/fonts"
 import { cn } from "@/lib/utils"
+import { Toaster } from "@/components/ui/sonner"
 import { GlobalLayoutWrapper } from "@/components/global-layout-wrapper"
 import { SiteHeader } from "@/components/site-header"
 import { TailwindIndicator } from "@/components/tailwind-indicator"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/sonner"
+
+import { Footer } from "./footer"
 
 export const metadata: Metadata = {
   title: {
@@ -48,10 +50,16 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
               <div className="relative flex flex-col min-h-screen">
                 <SiteHeader />
-                <div className="flex-1 min-h-0">{children}</div>
+                <div className="">{children}</div>
+                <Footer />
               </div>
               {process.env.NODE_ENV === "development" && <TailwindIndicator />}
-              <Toaster position="top-center" richColors closeButton duration={1600} />
+              <Toaster
+                position="top-center"
+                richColors
+                closeButton
+                duration={1600}
+              />
             </ThemeProvider>
           </GlobalLayoutWrapper>
           <Analytics />

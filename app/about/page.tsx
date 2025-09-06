@@ -7,7 +7,7 @@ I often found myself frustrated by the tedious process of planning courses in My
 
 Experiencing this consistent inefficiency led me to build this website. My goal was to create a tool that makes searching for UW courses and majors significantly easier and more direct, eliminating the unnecessary steps I encountered myself. This project is my effort to streamline that experience for all UW students.
 
-I'm graduating this year, so this project is also a gift from me to future huskies and the UW community as a whole. I'm planning to keep this project alive and updated for years to come. 
+I'm graduating this year (2025), so this project is also a gift from me to future huskies and the UW community as a whole. I'm planning to keep this project alive and updated for years to come. 
 
 Main data sources for this project:
 
@@ -23,7 +23,7 @@ Feel free to reach out:
 
 - [jeffreybl.dev@gmail.com](mailto:jeffreybl.dev@gmail.com)
 
-I'm always open to feedback and suggestions for improvement. Whether you've found a bug, have a feature request, or just want to share your thoughts, I'd love to hear from you. Your input helps make this tool better for everyone.
+I'm always open to feedback and suggestions for improvement. Whether you've found a bug, have a feature request, or just want to share your thoughts, I'd love to hear from you!
 `
 
 export default function AboutPage() {
