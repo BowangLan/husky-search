@@ -188,6 +188,7 @@ const CalendarEventCard = ({
   const [copied, setCopied] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const closeTimerRef = useRef<number | null>(null)
+  const openTimerRef = useRef<number | null>(null)
   const enrollCount = Number((event.session as any).enrollCount ?? 0)
   const enrollMaximum = Number((event.session as any).enrollMaximum ?? 0)
   const isClosed = enrollCount >= enrollMaximum
@@ -228,7 +229,10 @@ const CalendarEventCard = ({
       window.clearTimeout(closeTimerRef.current)
       closeTimerRef.current = null
     }
-    setIsOpen(true)
+
+    openTimerRef.current = window.setTimeout(() => {
+      setIsOpen(true)
+    }, 500)
   }
 
   const closeSoon = () => {
@@ -242,7 +246,14 @@ const CalendarEventCard = ({
 
     if (closeTimerRef.current) {
       window.clearTimeout(closeTimerRef.current)
+      closeTimerRef.current = null
     }
+
+    if (openTimerRef.current) {
+      window.clearTimeout(openTimerRef.current)
+      openTimerRef.current = null
+    }
+
     closeTimerRef.current = window.setTimeout(() => {
       setIsOpen(false)
     }, 120)
@@ -253,7 +264,7 @@ const CalendarEventCard = ({
       <PopoverTrigger asChild>
         <div
           className={cn(
-            "absolute rounded-md text-[11px] leading-tight shadow-sm border px-1.5 py-1",
+            "absolute rounded-md text-[11px] leading-tight shadow-sm border px-1.5 py-1 trans",
             enrollStateClasses
           )}
           style={{
@@ -285,15 +296,12 @@ const CalendarEventCard = ({
                 : ""}
             </div>
           </div>
-          {/* <div className="truncate">
-        {formatTimeString(event.start)} - {formatTimeString(event.end)}
-      </div> */}
         </div>
       </PopoverTrigger>
       <PopoverContent
         side="bottom"
         align="start"
-        className="py-3 px-4 w-[380px] md:w-[420px]"
+        className="py-3 px-4 w-[380px] md:w-[400px]"
         onOpenAutoFocus={(e) => e.preventDefault()}
         onMouseEnter={openNow}
         onMouseLeave={closeSoon}

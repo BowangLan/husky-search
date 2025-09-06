@@ -11,7 +11,6 @@ import {
   Pin,
   X,
 } from "lucide-react"
-import { AnimatePresence, motion } from "motion/react"
 import { toast } from "sonner"
 
 import { getEnrollOutlineClasses } from "@/lib/session-utils"
@@ -149,16 +148,11 @@ export const SessionChips = () => {
 
   if (!hasDoubleLetterCode) {
     return (
-      <AnimatePresence>
-        <motion.div
-          layout
-          className="flex flex-row items-center flex-wrap gap-2"
-        >
-          {sessions.map((session) => {
-            return <SessionChip key={session.id} session={session} />
-          })}
-        </motion.div>
-      </AnimatePresence>
+      <div className="flex flex-row items-center flex-wrap gap-2">
+        {sessions.map((session) => {
+          return <SessionChip key={session.id} session={session} />
+        })}
+      </div>
     )
   }
 
@@ -201,47 +195,44 @@ export const SessionChips = () => {
     )
 
   return (
-    <AnimatePresence>
-      <div className="flex flex-col gap-2 w-full">
-        {Object.entries(groupedSessions).map(([letter, sessions], idx) => {
-          return (
-            <motion.div
-              layout
-              className="flex flex-row items-center flex-wrap gap-2"
-              key={letter}
-            >
-              {sessions.sessions.map((session) => {
-                return (
-                  <SessionChip
-                    key={session.id}
-                    session={session}
-                    parentSessionId={sessions.parentSessionId}
-                  />
-                )
-              })}
+    <div className="flex flex-col gap-2 w-full">
+      {Object.entries(groupedSessions).map(([letter, sessions], idx) => {
+        return (
+          <div
+            className="flex flex-row items-center flex-wrap gap-2"
+            key={letter}
+          >
+            {sessions.sessions.map((session) => {
+              return (
+                <SessionChip
+                  key={session.id}
+                  session={session}
+                  parentSessionId={sessions.parentSessionId}
+                />
+              )
+            })}
 
-              {/* last */}
-              {idx === Object.entries(groupedSessions).length - 1 &&
-                pinnedSessionIds.length > 0 && (
-                  <>
-                    <div className="flex-1"></div>
+            {/* last */}
+            {idx === Object.entries(groupedSessions).length - 1 &&
+              pinnedSessionIds.length > 0 && (
+                <>
+                  <div className="flex-1"></div>
 
-                    {/* Clear button */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 px-3 hover:bg-foreground/5 dark:hover:bg-foreground/10 text-muted-foreground"
-                      onClick={() => setPinnedSessionIds([])}
-                    >
-                      <X className="w-4 h-4 mr-1" />
-                      Clear
-                    </Button>
-                  </>
-                )}
-            </motion.div>
-          )
-        })}
-      </div>
-    </AnimatePresence>
+                  {/* Clear button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-3 hover:bg-foreground/5 dark:hover:bg-foreground/10 text-muted-foreground"
+                    onClick={() => setPinnedSessionIds([])}
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Clear
+                  </Button>
+                </>
+              )}
+          </div>
+        )
+      })}
+    </div>
   )
 }
