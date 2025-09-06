@@ -8,14 +8,15 @@ import { useQuery } from "convex/react"
 import { ExternalLinkIcon, X } from "lucide-react"
 
 import { cn, getColor5 } from "@/lib/utils"
+import { useIsStudent } from "@/hooks/use-is-student"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ExternalLink, ExternalLinkSmall } from "@/components/ui/external-link"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { BigStat } from "@/components/big-stat"
+import { StudentRequiredCardContent } from "@/components/student-required-card"
 
 import { type CECRatingRow } from "../../cec-eval-progress-bar"
 
@@ -197,6 +198,7 @@ export function CECEvaluations({ courseCode }: { courseCode: string }) {
   const data = useQuery(api.courses.getByCourseCode, {
     courseCode,
   })
+  const userIsStudent = useIsStudent()
   const [selectedProfessor, setSelectedProfessor] = useState<string | null>(
     null
   )
@@ -213,7 +215,19 @@ export function CECEvaluations({ courseCode }: { courseCode: string }) {
     })
   }, [items])
 
-  if (data === undefined) return null
+  if (!userIsStudent) {
+    // not a student
+    return (
+      <Card hoverInteraction={false}>
+        <StudentRequiredCardContent featureName="CEC Evaluations" />
+      </Card>
+    )
+  }
+
+  if (data === undefined) {
+    // loading
+    return null
+  }
 
   const groupedByProfessor = sorted.reduce((acc, item) => {
     const professor = item.professor || "Unknown"

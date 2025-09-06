@@ -2,14 +2,14 @@ import { v } from "convex/values";
 import { query } from "./_generated/server";
 import { FunctionReturnType } from "convex/server";
 import { api } from "./_generated/api";
-import { isStudent } from "./auth";
+import { isStudentHelper } from "./auth";
 
 export const getByCourseCode = query({
   args: {
     courseCode: v.string(),
   },
   handler: async (ctx, args) => {
-    const userIsStudent = await isStudent(ctx);
+    const userIsStudent = await isStudentHelper(ctx);
 
     if (!userIsStudent) {
       const myplanCourse = await ctx.db.query("myplanCourses")

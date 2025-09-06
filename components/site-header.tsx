@@ -1,8 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { api } from "@/convex/_generated/api"
-import { useQuery } from "convex/react"
 import { MessageCircle } from "lucide-react"
 
 import { externalLinks, siteConfig } from "@/config/site"
@@ -16,8 +14,6 @@ import { MainNavMobile } from "./main-nav-mobile"
 import { Button } from "./ui/button"
 
 export function SiteHeader() {
-  // const convexUser = useQuery(api.users.getProfile)
-
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
       <div className="px-page mx-page flex h-16 items-center justify-between">

@@ -1,4 +1,4 @@
-import { MutationCtx, QueryCtx } from "./_generated/server";
+import { MutationCtx, query, QueryCtx } from "./_generated/server";
 
 const ValidEmailDomains = [
   "u.washington.edu",
@@ -6,7 +6,7 @@ const ValidEmailDomains = [
   "cs.washington.edu",
 ]
 
-export const isStudent = async (ctx: MutationCtx | QueryCtx) => {
+export const isStudentHelper = async (ctx: MutationCtx | QueryCtx) => {
   const user = await ctx.auth.getUserIdentity();
 
   if (!user) {
@@ -15,3 +15,10 @@ export const isStudent = async (ctx: MutationCtx | QueryCtx) => {
 
   return ValidEmailDomains.some(domain => user.email?.endsWith(domain));
 }
+
+export const isStudent = query({
+  args: {},
+  handler: async (ctx, args) => {
+    return await isStudentHelper(ctx);
+  }
+})

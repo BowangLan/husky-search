@@ -8,6 +8,7 @@ import {
   useTrackCourseVisit,
   useTrackMajorVisit,
 } from "@/store/visit-cache.store"
+import { useUser } from "@clerk/nextjs"
 import { useQuery } from "convex/react"
 import {
   ArrowLeft,
@@ -81,10 +82,10 @@ const PageTab = ({
     >
       <div
         className={cn(
-          "rounded-md trans group-hover:bg-muted/50 group-active:bg-muted px-3 h-8 flex items-center mb-2",
+          "rounded-md trans px-3 h-8 flex items-center mb-2",
           active
-            ? "bg-transparent group-hover:bg-foreground/10 group-active:bg-foreground/15 text-foreground"
-            : "group-hover:bg-foreground/10 group-active:bg-foreground/15 text-foreground/70 hover:text-foreground active:text-foreground"
+            ? "bg-button-accent-hover-active"
+            : "bg-button-ghost-hover-active"
         )}
       >
         {children}
@@ -101,11 +102,10 @@ const CourseDetailPageContentMobile = ({
   const [tab, setTab] = useState<"sessions" | "cec">("sessions")
   return (
     <div className="space-y-4">
-      {/* Course Header */}
       <CourseDetailHeader course={course} />
       <CourseDetailStatsSection courseCode={course.code} />
 
-      <div className="flex items-center my-6">
+      <div className="flex items-center gap-2 my-6">
         <PageTab active={tab === "sessions"} onClick={() => setTab("sessions")}>
           Sessions
         </PageTab>
@@ -127,130 +127,6 @@ const CourseDetailPageContentMobile = ({
           className="w-full aspect-video overflow-hidden rounded-xl md:block hidden"
         ></iframe>
       </section> */}
-    </div>
-  )
-}
-
-const CourseDetailPageContentDesktop = ({
-  course,
-}: {
-  course: MyPlanCourseCodeGroupWithDetail
-}) => {
-  return (
-    <div className="flex flex-row gap-4">
-      {/* Course Header */}
-      <div className="my-4 md:my-8 space-y-2 md:space-y-4 w-[300px] flex-none">
-        <div className="flex items-center gap-2">
-          {/* <Badge
-              variant="secondary"
-              className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20"
-            >
-              {`${course.subject} ${course.number}`}
-            </Badge> */}
-          <CourseProgramBadgeLink course={course} />
-          {/* <CourseLevelBadge course={course} /> */}
-          {/* <CourseCreditBadge course={course} /> */}
-        </div>
-        <div className="space-y-1">
-          <div className="flex items-baseline gap-2">
-            <ViewTransition>
-              <h1 className="text-3xl font-medium text-foreground sm:text-4xl lg:text-5xl">
-                {course.code.slice(0, -3)}
-                <span className="font-semibold text-primary">
-                  {course.code.slice(-3, -2)}
-                </span>
-                {course.code.slice(-2)}
-              </h1>
-            </ViewTransition>
-            <Tooltip>
-              <TooltipTrigger>
-                <span className="text-muted-foreground text-base md:text-lg lg:text-xl inline-block ml-2 font-mono">
-                  ({course.data[0]!.data.credit})
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p>
-                  This course is worth {course.data[0]!.data.credit} credits.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          <div className="flex items-center gap-2">
-            <ViewTransition>
-              <h2 className="text-base font-normal text-foreground sm:text-xl opacity-60">
-                {course.title}
-              </h2>
-            </ViewTransition>
-          </div>
-        </div>
-        <div className="flex flex-col items-start md:flex-row md:items-center gap-2">
-          <div className="flex items-center gap-2">
-            {/* <CourseLevelBadge course={course} /> */}
-            {/* <CourseCreditBadge course={course} /> */}
-            <CourseGenEdRequirements course={course} />
-          </div>
-          <div className="flex-1"></div>
-        </div>
-
-        <div className="flex items-center gap-6">
-          <ExternalLink
-            href={`https://myplan.uw.edu/course/#/courses/${course.code}`}
-          >
-            View on MyPlan
-          </ExternalLink>
-          <ExternalLink
-            href={`https://dawgpath.uw.edu/course?id=${course.code}&campus=seattle`}
-          >
-            View on DawgPath
-          </ExternalLink>
-        </div>
-
-        <div className="items-center gap-2 hidden">
-          {/* Program */}
-          <Link
-            href={`/majors/${course.subjectAreaCode}`}
-            prefetch
-            scroll={false}
-          >
-            <Badge
-              size="lg"
-              variant="outline"
-              className="bg-gradient-to-r from-purple-500/10 to-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 cursor-pointer hover:opacity-80 trans"
-            >
-              <GraduationCap className="h-5 w-5 mr-2" />
-              {capitalize(course.subjectAreaTitle)}
-            </Badge>
-          </Link>
-        </div>
-
-        <Section>
-          {/* Section header */}
-          <SectionHeader>
-            <div className="flex items-center gap-2">
-              <GraduationCap className="h-4 w-4 text-muted-foreground" />
-              <h3 className="text-base text-muted-foreground font-medium">
-                Prerequisites
-              </h3>
-            </div>
-          </SectionHeader>
-          <SectionContent>
-            <p className="text-muted-foreground leading-relaxed max-w-4xl text-sm md:text-base font-light">
-              {course.data[0]!.data.prereqs
-                ? capitalizeSingle(course.data[0]!.data.prereqs)
-                : "No prerequisites"}
-            </p>
-          </SectionContent>
-        </Section>
-      </div>
-
-      <div className="flex-1">
-        <section className="space-y-4">
-          <iframe
-            src={`https://myplan.uw.edu/course/#/courses/${course.code}`}
-            className="w-full aspect-video overflow-hidden rounded-xl md:block hidden"
-          ></iframe>
-        </section>
-      </div>
     </div>
   )
 }

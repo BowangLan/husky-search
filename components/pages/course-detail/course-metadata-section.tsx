@@ -63,7 +63,6 @@ const formatPrereqs = (prereqs: string[] | string | undefined) => {
 export const CourseMetadataSectionCard = ({
   course,
 }: {
-  // course: MyPlanCourseCodeGroupWithDetail
   course: CourseDetail
 }) => {
   return (

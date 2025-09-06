@@ -1,6 +1,9 @@
 "use client"
 
+import { useEffect } from "react"
 import Link from "next/link"
+import { isEmailFromUW } from "@/constants"
+import { useUserStore } from "@/store/user.store"
 import { useClerk, useUser } from "@clerk/nextjs"
 import { LogOut } from "lucide-react"
 
@@ -53,6 +56,22 @@ export default function HeaderUser() {
     return "User"
   }
 
+  useEffect(() => {
+    if (!isLoaded) {
+      useUserStore.setState({ loading: true })
+    } else {
+      useUserStore.setState({
+        isUserStudent:
+          isSignedIn &&
+          user?.emailAddresses.some((email) =>
+            isEmailFromUW(email.emailAddress)
+          ),
+        loading: false,
+        isSignedIn: isSignedIn,
+      })
+    }
+  }, [isLoaded, isSignedIn, user])
+
   if (!isLoaded) {
     return (
       <Button
@@ -64,6 +83,11 @@ export default function HeaderUser() {
   }
 
   if (!isSignedIn || !user) {
+    useUserStore.setState({
+      isUserStudent: false,
+      loading: false,
+      isSignedIn: false,
+    })
     return (
       <Link href="/sign-in">
         <Button variant="outline" size="sm">
@@ -72,6 +96,14 @@ export default function HeaderUser() {
       </Link>
     )
   }
+
+  useUserStore.setState({
+    isUserStudent:
+      isSignedIn &&
+      user?.emailAddresses.some((email) => isEmailFromUW(email.emailAddress)),
+    loading: false,
+    isSignedIn: isSignedIn,
+  })
 
   const firstName = user.firstName ?? null
   const lastName = user.lastName ?? null

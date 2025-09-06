@@ -179,7 +179,7 @@ export function CourseSearchMobile() {
                   <div className="space-y-1">
                     {courses.map((course, index) => (
                       <CourseSearchCard
-                        key={course.id}
+                        key={course.code}
                         course={course}
                         index={index}
                         onSelect={handleCourseSelect}

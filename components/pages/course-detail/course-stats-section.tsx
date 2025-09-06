@@ -1,5 +1,8 @@
+"use client"
+
 import { api } from "@/convex/_generated/api"
 import { CourseDetail } from "@/convex/courses"
+import { useUser } from "@clerk/nextjs"
 import { useQuery } from "convex/react"
 import { Activity, Gauge, GraduationCap, Scale } from "lucide-react"
 
@@ -10,6 +13,7 @@ import {
   weightedMeanGPA,
 } from "@/lib/gpa-utils"
 import { getColor4, getColor100 } from "@/lib/utils"
+import { useIsStudent } from "@/hooks/use-is-student"
 import {
   Card,
   CardContent,
@@ -19,6 +23,10 @@ import {
 } from "@/components/ui/card"
 import { BigStat } from "@/components/big-stat"
 import { GPADistroChart } from "@/components/gpa-distro-chart"
+import {
+  StudentRequiredCard,
+  StudentRequiredCardContent,
+} from "@/components/student-required-card"
 
 import {
   CourseMetadataSection,
@@ -135,37 +143,42 @@ export const GPADistroChartCard = ({
   courseCode: string
 }) => {
   const gpaDistro = data?.dp?.gpa_distro
-
-  if (!gpaDistro || gpaDistro.length === 0) return null
+  const userIsStudent = useIsStudent()
 
   return (
     <Card hoverInteraction={false}>
       <CardHeader>
         <CardTitle>GPA distribution</CardTitle>
       </CardHeader>
-      <CardContent>
-        <GPADistroChart data={gpaDistro} />
-      </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex flex-col gap-2">
-          <span className="text-muted-foreground">
-            This graph represents the distribution of grades for every student
-            who completed{" "}
-            <span className="text-foreground text-sm">{courseCode}</span> over
-            the past 5 years.
-          </span>
-          <div className="text-muted-foreground leading-none">
-            Number of grades in this sample:{" "}
-            <span className="text-foreground font-semibold">
-              {gpaDistro?.reduce(
-                (acc: number, curr: { count: number }) => acc + curr.count,
-                0
-              ) ?? 0}
-            </span>{" "}
-            (5 years).
-          </div>
-        </div>
-      </CardFooter>
+      {userIsStudent ? (
+        <>
+          <CardContent>
+            <GPADistroChart data={gpaDistro} />
+          </CardContent>
+          <CardFooter className="flex-col items-start gap-2 text-sm">
+            <div className="flex flex-col gap-2">
+              <span className="text-muted-foreground">
+                This graph represents the distribution of grades for every
+                student who completed{" "}
+                <span className="text-foreground text-sm">{courseCode}</span>{" "}
+                over the past 5 years.
+              </span>
+              <div className="text-muted-foreground leading-none">
+                Number of grades in this sample:{" "}
+                <span className="text-foreground font-semibold">
+                  {gpaDistro?.reduce(
+                    (acc: number, curr: { count: number }) => acc + curr.count,
+                    0
+                  ) ?? 0}
+                </span>{" "}
+                (5 years).
+              </div>
+            </div>
+          </CardFooter>
+        </>
+      ) : (
+        <StudentRequiredCardContent featureName="GPA Distribution" />
+      )}
     </Card>
   )
 }
@@ -178,12 +191,26 @@ export const CourseDetailStatsSection = ({
   const data = useQuery(api.courses.getByCourseCode, {
     courseCode,
   })
+  const userIsStudent = useIsStudent()
 
   if (!data) return null
 
+  if (!userIsStudent) {
+    return (
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full">
+        <div className="lg:col-span-7 space-y-4 min-w-0 lg:row-start-1">
+          <CourseMetadataSectionCard course={data} />
+        </div>
+        <aside className="lg:col-span-5 space-y-4 min-w-0 lg:row-start-1 lg:col-start-8">
+          <GPADistroChartCard data={data} courseCode={courseCode} />
+        </aside>
+      </section>
+    )
+  }
+
   return (
     <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:col-span-7">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:col-span-7">
         <EasinessStat data={data} />
         <MeanGPAStat data={data} />
         <WeightedGPAStat data={data} />
