@@ -44,3 +44,26 @@ export const getByCourseCode = query({
 })
 
 export type CourseDetail = NonNullable<FunctionReturnType<typeof api.courses.getByCourseCode>>
+export type CourseCecItem = Omit<NonNullable<CourseDetail["cecCourse"]>[number], 'data'> & {
+  data: {
+    caption: {
+      enrolled: string
+      surveyed: string
+      text: string
+    }
+    h1: string
+    h2: string
+    headers: Array<string>
+    table_data_list_of_dicts: Array<{
+      Excellent: string
+      Fair: string
+      Good: string
+      Median: string
+      Poor: string
+      Question: string
+      "Very Good": string
+      "Very Poor": string
+    }>
+    table_data_list_of_lists: Array<Array<string>>
+  }
+}

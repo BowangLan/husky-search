@@ -4,83 +4,69 @@ import { useMemo, useState } from "react"
 import Link from "next/link"
 import { api } from "@/convex/_generated/api"
 import { Id } from "@/convex/_generated/dataModel"
+import { CourseCecItem } from "@/convex/courses"
 import { useQuery } from "convex/react"
 import { ExternalLinkIcon, X } from "lucide-react"
 
-import { cn, getColor5 } from "@/lib/utils"
+import { cn, formatTerm, getColor5 } from "@/lib/utils"
 import { useIsStudent } from "@/hooks/use-is-student"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { BigStat } from "@/components/big-stat"
+import { CecProfessorEvalRadarChart } from "@/components/cec-professor-eval-radar-chart"
 import { StudentRequiredCardContent } from "@/components/student-required-card"
 
 import { type CECRatingRow } from "../../cec-eval-progress-bar"
-
-export type CECCourseEvaluation = {
-  _id: string
-  courseCode: string
-  professor?: string
-  role?: string
-  term?: string
-  sessionCode?: string
-  letter?: string
-  data?: {
-    caption?: { enrolled?: string; surveyed?: string; text?: string }
-    h1?: string
-    h2?: string
-    headers?: string[]
-    table_data_list_of_dicts?: Array<{
-      Question: string
-      Excellent?: string
-      "Very Good"?: string
-      Good?: string
-      Fair?: string
-      Poor?: string
-      "Very Poor"?: string
-      Median?: string
-    }>
-  }
-}
-
-export type CECEvalItem = {
-  _id: Id<"cecCourses">
-  _creationTime: number
-  courseCode?: string | undefined
-  sessionCode?: string | undefined
-  professor?: string | undefined
-  role?: string | undefined
-  term?: string | undefined
-  data: any
-  url: string
-  letter: string
-}
-
-function formatTerm(term?: string) {
-  if (!term) return ""
-  // Expected like "20252" -> year 2025, quarter code 2 → SP25 mapping by provided examples AU24, WI25, SP25
-  const year = term.slice(0, 4)
-  const q = term.slice(4)
-  const quarterMap: Record<string, string> = {
-    "1": "WI",
-    "2": "SP",
-    "3": "SU",
-    "4": "AU",
-  }
-  const shortYear = year.slice(2)
-  return `${quarterMap[q] || ""}${shortYear}`
-}
 
 const ProfessorEvalBlock = ({
   professor,
   evals,
 }: {
   professor: string
-  evals: CECEvalItem[]
+  evals: CourseCecItem[]
 }) => {
+  const [showIndividualEvals, setShowIndividualEvals] = useState(false)
+
+  const aggregatedQuestions = useMemo(() => {
+    const firstQuestions: CECRatingRow[] =
+      (evals?.[0]?.data?.table_data_list_of_dicts as CECRatingRow[]) || []
+
+    const questionOrder = firstQuestions.map((q) => q.Question)
+    const questionToValues = new Map<string, number[]>()
+
+    questionOrder.forEach((q) => questionToValues.set(q, []))
+
+    for (const ev of evals) {
+      const qs: CECRatingRow[] =
+        (ev.data?.table_data_list_of_dicts as CECRatingRow[]) || []
+      for (const q of qs) {
+        const valueStr = (q.Mean || q.Median || "").toString()
+        const value = parseFloat(valueStr)
+        if (Number.isFinite(value)) {
+          if (!questionToValues.has(q.Question)) {
+            questionToValues.set(q.Question, [])
+          }
+          questionToValues.get(q.Question)!.push(value)
+        }
+      }
+    }
+
+    return questionOrder.map((question) => {
+      const values = questionToValues.get(question) || []
+      const avg =
+        values.length > 0
+          ? values.reduce((a, b) => a + b, 0) / values.length
+          : NaN
+      return { Question: question, Average: avg }
+    })
+  }, [evals])
+
   return (
     <div key={professor} className="grid gap-4 md:gap-6">
       <div className="flex items-center justify-between">
@@ -92,103 +78,129 @@ const ProfessorEvalBlock = ({
             {evals.length} evaluation{evals.length > 1 ? "s" : ""}
           </span>
         </div>
+        <div className="flex items-center gap-2">
+          <Label
+            htmlFor={`toggle-evals-${professor}`}
+            className="text-xs md:text-sm text-muted-foreground"
+          >
+            Show individual evals
+          </Label>
+          <Switch
+            id={`toggle-evals-${professor}`}
+            checked={showIndividualEvals}
+            onCheckedChange={setShowIndividualEvals}
+          />
+        </div>
       </div>
       <div className="grid gap-4">
-        {evals.map((ev) => {
-          const surveyed = ev.data?.caption?.surveyed
-          const enrolled = ev.data?.caption?.enrolled
-          const questions: CECRatingRow[] =
-            (ev.data?.table_data_list_of_dicts as CECRatingRow[]) || []
-          const medians = questions
-            .map((q) => parseFloat((q.Median || "").toString()))
-            .filter((n) => Number.isFinite(n)) as number[]
-          const avgMedian =
-            medians.length > 0
-              ? (medians.reduce((a, b) => a + b, 0) / medians.length).toFixed(1)
-              : "—"
-          return (
-            <Card key={ev._id} hoverInteraction={false}>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between gap-2">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">
-                        {formatTerm(ev.term)} • {ev.professor}
+        {aggregatedQuestions.length > 0 ? (
+          <CecProfessorEvalRadarChart
+            data={aggregatedQuestions.map((q) => ({
+              label: q.Question.replace(":", ""),
+              value: Number.isFinite(q.Average) ? (q.Average as number) : 0,
+            }))}
+            title={`Averages — ${professor}`}
+          />
+        ) : null}
+
+        {showIndividualEvals &&
+          evals.map((ev) => {
+            const surveyed = ev.data?.caption?.surveyed
+            const enrolled = ev.data?.caption?.enrolled
+            const questions: CECRatingRow[] =
+              (ev.data?.table_data_list_of_dicts as CECRatingRow[]) || []
+            const medians = questions
+              .map((q) => parseFloat((q.Median || "").toString()))
+              .filter((n) => Number.isFinite(n)) as number[]
+            const avgMedian =
+              medians.length > 0
+                ? (medians.reduce((a, b) => a + b, 0) / medians.length).toFixed(
+                    1
+                  )
+                : "—"
+            return (
+              <Card key={ev._id} hoverInteraction={false}>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between gap-2">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold">
+                          {formatTerm(ev.term)} • {ev.professor}
+                        </span>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Link
+                              href={`https://www.washington.edu/cec/${ev.url}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:text-purple-500"
+                            >
+                              <ExternalLinkIcon className="w-4 h-4" />
+                            </Link>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            <p>View on CEC</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <span className="text-xs text-muted-foreground font-normal">
+                        {ev.role ? `${ev.role}` : ""}
+                        {ev.sessionCode ? ` · ${ev.sessionCode}` : ""}
                       </span>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Link
-                            href={`https://www.washington.edu/cec/${ev.url}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:text-purple-500"
-                          >
-                            <ExternalLinkIcon className="w-4 h-4" />
-                          </Link>
-                        </TooltipTrigger>
-                        <TooltipContent side="top">
-                          <p>View on CEC</p>
-                        </TooltipContent>
-                      </Tooltip>
                     </div>
-                    <span className="text-xs text-muted-foreground font-normal">
-                      {ev.role ? `${ev.role}` : ""}
-                      {ev.sessionCode ? ` · ${ev.sessionCode}` : ""}
-                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid-cols-3 gap-3 hidden">
+                    <BigStat
+                      compact
+                      label="Median"
+                      value={avgMedian}
+                      color="violet"
+                    />
+                    <BigStat
+                      compact
+                      label="Surveyed"
+                      value={surveyed || "?"}
+                      total={enrolled || "?"}
+                      color="sky"
+                    />
+                    <BigStat
+                      compact
+                      label="Questions"
+                      value={questions.length}
+                      color="emerald"
+                    />
                   </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid-cols-3 gap-3 hidden">
-                  <BigStat
-                    compact
-                    label="Median"
-                    value={avgMedian}
-                    color="violet"
-                  />
-                  <BigStat
-                    compact
-                    label="Surveyed"
-                    value={surveyed || "?"}
-                    total={enrolled || "?"}
-                    color="sky"
-                  />
-                  <BigStat
-                    compact
-                    label="Questions"
-                    value={questions.length}
-                    color="emerald"
-                  />
-                </div>
-                {questions.length > 0 ? (
-                  <div className="grid gap-2 md:grid-cols-3 lg:grid-cols-4">
-                    {questions.map((q) => {
-                      const mean = (q.Median || "").toString().trim()
-                      return (
-                        <div
-                          key={q.Question}
-                          className="flex flex-col rounded-md border p-4 gap-2"
-                        >
-                          <div className="text-sm text-muted-foreground leading-none">
-                            {q.Question.replace(":", "")}
-                          </div>
+                  {questions.length > 0 ? (
+                    <div className="grid gap-2 md:grid-cols-3 lg:grid-cols-4">
+                      {questions.map((q) => {
+                        const mean = (q.Median || "").toString().trim()
+                        return (
                           <div
-                            className="shrink-0 text-base md:text-lg font-semibold leading-4"
-                            style={{
-                              color: getColor5(parseFloat(mean)),
-                            }}
+                            key={q.Question}
+                            className="flex flex-col rounded-md border p-4 gap-2"
                           >
-                            {mean}
+                            <div className="text-sm text-muted-foreground leading-none">
+                              {q.Question.replace(":", "")}
+                            </div>
+                            <div
+                              className="shrink-0 text-base md:text-lg font-semibold leading-4"
+                              style={{
+                                color: getColor5(parseFloat(mean)),
+                              }}
+                            >
+                              {mean}
+                            </div>
                           </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                ) : null}
-              </CardContent>
-            </Card>
-          )
-        })}
+                        )
+                      })}
+                    </div>
+                  ) : null}
+                </CardContent>
+              </Card>
+            )
+          })}
       </div>
     </div>
   )

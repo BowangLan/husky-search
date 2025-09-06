@@ -144,3 +144,18 @@ export const expandDays = (days?: string): string[] => {
   }
   return result
 }
+
+export function formatTerm(term?: string) {
+  if (!term) return ""
+  // Expected like "20252" -> year 2025, quarter code 2 → SP25 mapping by provided examples AU24, WI25, SP25
+  const year = term.slice(0, 4)
+  const q = term.slice(4)
+  const quarterMap: Record<string, string> = {
+    "1": "WI",
+    "2": "SP",
+    "3": "SU",
+    "4": "AU",
+  }
+  const shortYear = year.slice(2)
+  return `${quarterMap[q] || ""}${shortYear}`
+}
