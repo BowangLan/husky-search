@@ -56,22 +56,6 @@ export default function HeaderUser() {
     return "User"
   }
 
-  useEffect(() => {
-    if (!isLoaded) {
-      useUserStore.setState({ loading: true })
-    } else {
-      useUserStore.setState({
-        isUserStudent:
-          isSignedIn &&
-          user?.emailAddresses.some((email) =>
-            isEmailFromUW(email.emailAddress)
-          ),
-        loading: false,
-        isSignedIn: isSignedIn,
-      })
-    }
-  }, [isLoaded, isSignedIn, user])
-
   if (!isLoaded) {
     return (
       <Button
@@ -97,10 +81,20 @@ export default function HeaderUser() {
     )
   }
 
+  // console.log(
+  //   "is uw student",
+  //   {
+  //     isSignedIn,
+  //     user,
+  //   },
+  //   isSignedIn &&
+  //     user.emailAddresses.some((email) => isEmailFromUW(email.emailAddress))
+  // )
+
   useUserStore.setState({
     isUserStudent:
       isSignedIn &&
-      user?.emailAddresses.some((email) => isEmailFromUW(email.emailAddress)),
+      user.emailAddresses.some((email) => isEmailFromUW(email.emailAddress)),
     loading: false,
     isSignedIn: isSignedIn,
   })

@@ -39,18 +39,16 @@ export const EasinessStat = ({ data }: { data: CourseDetail }) => {
   const easiness =
     gpaDistro && gpaDistro.length > 0 ? easinessScore(gpaDistro) : undefined
 
-  if (typeof easiness !== "number") return null
-
   return (
     <BigStat
       label="Easiness"
-      value={easiness}
+      value={easiness ?? "-"}
       total={100}
       // suffix="%"
-      formatValue={(v) => Number(v).toFixed(0)}
+      formatValue={(v) => (typeof v === "number" ? v.toFixed(0) : "-")}
       // icon={<Gauge />}
       helperText="How easy a class tends to be based on GPA distribution (higher is easier)."
-      color={getColor100(easiness)}
+      color={getColor100(easiness ?? 0)}
     />
   )
 }
@@ -59,24 +57,14 @@ export const MeanGPAStat = ({ data }: { data: CourseDetail }) => {
   const gpaDistro = data?.dp?.gpa_distro
 
   const meanGPA =
-    gpaDistro && gpaDistro.length > 0 ? medianGPA(gpaDistro) : undefined
+    gpaDistro && gpaDistro.length > 0 ? medianGPA(gpaDistro) / 10 : undefined
 
-  if (typeof meanGPA !== "number") return null
-
-  const mean = Number((meanGPA / 10).toFixed(1))
-  const meanColor = getColor4(mean)
-  // mean >= 3.7
-  //   ? "emerald"
-  //   : mean >= 3.2
-  //   ? "sky"
-  //   : mean >= 2.7
-  //   ? "amber"
-  //   : "rose"
+  const meanColor = getColor4(meanGPA ?? 0)
 
   return (
     <BigStat
       label="Mean GPA"
-      value={mean.toFixed(1)}
+      value={meanGPA?.toFixed(1) ?? "-"}
       total={4.0}
       // icon={<GraduationCap />}
       helperText="Average GPA across offerings over the last 5 years."
@@ -89,24 +77,16 @@ export const WeightedGPAStat = ({ data }: { data: CourseDetail }) => {
   const gpaDistro = data?.dp?.gpa_distro
 
   const weightedGPA =
-    gpaDistro && gpaDistro.length > 0 ? weightedMeanGPA(gpaDistro) : undefined
+    gpaDistro && gpaDistro.length > 0
+      ? weightedMeanGPA(gpaDistro) / 10
+      : undefined
 
-  if (typeof weightedGPA !== "number") return null
-
-  const weighted = Number((weightedGPA / 10).toFixed(1))
-  const weightedColor = getColor4(weighted)
-  // weighted >= 3.7
-  //   ? "emerald"
-  //   : weighted >= 3.2
-  //   ? "sky"
-  //   : weighted >= 2.7
-  //   ? "amber"
-  //   : "rose"
+  const weightedColor = getColor4(weightedGPA ?? 0)
 
   return (
     <BigStat
       label="Weighted GPA"
-      value={weighted.toFixed(1)}
+      value={weightedGPA?.toFixed(1) ?? "-"}
       total={4.0}
       // icon={<Scale />}
       helperText="GPA weighted by section enrollments to reflect class size."
@@ -153,7 +133,15 @@ export const GPADistroChartCard = ({
       {userIsStudent ? (
         <>
           <CardContent>
-            <GPADistroChart data={gpaDistro} />
+            {gpaDistro && gpaDistro.length > 0 ? (
+              <GPADistroChart data={gpaDistro} />
+            ) : (
+              <div className="flex items-center justify-center min-h-[200px]">
+                <div className="text-muted-foreground">
+                  No GPA distribution data available
+                </div>
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex-col items-start gap-2 text-sm">
             <div className="flex flex-col gap-2">

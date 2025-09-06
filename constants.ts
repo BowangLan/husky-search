@@ -5,6 +5,6 @@ const ValidEmailDomains = [
   "cs.washington.edu",
 ]
 
-export const isEmailFromUW = async (email: string) => {
+export const isEmailFromUW = (email: string) => {
   return ValidEmailDomains.some(domain => email.endsWith(domain));
 }
