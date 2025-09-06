@@ -74,6 +74,15 @@ export const getColor5 = (value: number) => {
   if (value >= 1) return "var(--color-red-500)"
   return "var(--color-gray-500)"
 }
+
+export const getColor5Classes = (value: number) => {
+  if (value >= 4) return "bg-green-500"
+  if (value >= 3) return "bg-yellow-500"
+  if (value >= 2) return "bg-orange-500"
+  if (value >= 1) return "bg-red-500"
+  return "bg-gray-500"
+}
+
 export const getColor4 = (value: number) => {
   if (value >= 3.5) return "green"
   if (value >= 3) return "yellow"

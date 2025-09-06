@@ -6,11 +6,12 @@ import { api } from "@/convex/_generated/api"
 import { Id } from "@/convex/_generated/dataModel"
 import { CourseCecItem } from "@/convex/courses"
 import { useQuery } from "convex/react"
-import { ExternalLinkIcon, X } from "lucide-react"
+import { ExternalLinkIcon, Grid, List, Radar, X } from "lucide-react"
 
-import { cn, formatTerm, getColor5 } from "@/lib/utils"
+import { cn, formatTerm, getColor5, getColor5Classes } from "@/lib/utils"
 import { useIsStudent } from "@/hooks/use-is-student"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { FilterTabItem, FilterTabList } from "@/components/ui/filter-tabs"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import {
@@ -20,6 +21,8 @@ import {
 } from "@/components/ui/tooltip"
 import { BigStat } from "@/components/big-stat"
 import { CecProfessorEvalRadarChart } from "@/components/cec-professor-eval-radar-chart"
+import { CecProfessorEvalRadialChart } from "@/components/cec-professor-eval-radial-chart"
+import { SimpleStat } from "@/components/simple-stat"
 import { StudentRequiredCardContent } from "@/components/student-required-card"
 
 import { type CECRatingRow } from "../../cec-eval-progress-bar"
@@ -32,6 +35,7 @@ const ProfessorEvalBlock = ({
   evals: CourseCecItem[]
 }) => {
   const [showIndividualEvals, setShowIndividualEvals] = useState(false)
+  const [viewType, setViewType] = useState<"radar" | "grid">("radar")
 
   const aggregatedQuestions = useMemo(() => {
     const firstQuestions: CECRatingRow[] =
@@ -68,8 +72,8 @@ const ProfessorEvalBlock = ({
   }, [evals])
 
   return (
-    <div key={professor} className="grid gap-4 md:gap-6">
-      <div className="flex items-center justify-between">
+    <div key={professor} className="flex flex-col gap-4">
+      <div className="flex items-center justify-between flex-none">
         <div className="flex flex-col">
           <span className="text-base md:text-lg font-semibold">
             {professor}
@@ -79,7 +83,7 @@ const ProfessorEvalBlock = ({
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <Label
+          {/* <Label
             htmlFor={`toggle-evals-${professor}`}
             className="text-xs md:text-sm text-muted-foreground"
           >
@@ -89,18 +93,58 @@ const ProfessorEvalBlock = ({
             id={`toggle-evals-${professor}`}
             checked={showIndividualEvals}
             onCheckedChange={setShowIndividualEvals}
-          />
+          /> */}
         </div>
+        <FilterTabList>
+          <FilterTabItem
+            square={true}
+            active={viewType === "radar"}
+            onClick={() => setViewType("radar")}
+          >
+            <Radar className="size-4" />
+          </FilterTabItem>
+          <FilterTabItem
+            square={true}
+            active={viewType === "grid"}
+            onClick={() => setViewType("grid")}
+          >
+            <Grid className="size-4" />
+          </FilterTabItem>
+        </FilterTabList>
       </div>
       <div className="grid gap-4">
         {aggregatedQuestions.length > 0 ? (
-          <CecProfessorEvalRadarChart
-            data={aggregatedQuestions.map((q) => ({
-              label: q.Question.replace(":", ""),
-              value: Number.isFinite(q.Average) ? (q.Average as number) : 0,
-            }))}
-            title={`Averages — ${professor}`}
-          />
+          <>
+            {viewType === "radar" && (
+              <CecProfessorEvalRadarChart
+                data={aggregatedQuestions.map((q) => ({
+                  label: q.Question.replace(":", ""),
+                  value: Number.isFinite(q.Average) ? (q.Average as number) : 0,
+                }))}
+                evals={evals}
+                onViewAllEvals={() => setShowIndividualEvals(true)}
+              />
+            )}
+            {viewType === "grid" && (
+              <div
+                className="grid gap-4"
+                style={{
+                  gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                }}
+              >
+                {aggregatedQuestions.map((q) => (
+                  <SimpleStat
+                    key={q.Question}
+                    label={q.Question.replace(":", "")}
+                    value={q.Average}
+                    total={5}
+                    color={getColor5(q.Average)}
+                    indicatorClassName={`${getColor5Classes(q.Average)}`}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         ) : null}
 
         {showIndividualEvals &&
@@ -151,48 +195,21 @@ const ProfessorEvalBlock = ({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid-cols-3 gap-3 hidden">
-                    <BigStat
-                      compact
-                      label="Median"
-                      value={avgMedian}
-                      color="violet"
-                    />
-                    <BigStat
-                      compact
-                      label="Surveyed"
-                      value={surveyed || "?"}
-                      total={enrolled || "?"}
-                      color="sky"
-                    />
-                    <BigStat
-                      compact
-                      label="Questions"
-                      value={questions.length}
-                      color="emerald"
-                    />
-                  </div>
                   {questions.length > 0 ? (
                     <div className="grid gap-2 md:grid-cols-3 lg:grid-cols-4">
                       {questions.map((q) => {
                         const mean = (q.Median || "").toString().trim()
                         return (
-                          <div
+                          <SimpleStat
                             key={q.Question}
-                            className="flex flex-col rounded-md border p-4 gap-2"
-                          >
-                            <div className="text-sm text-muted-foreground leading-none">
-                              {q.Question.replace(":", "")}
-                            </div>
-                            <div
-                              className="shrink-0 text-base md:text-lg font-semibold leading-4"
-                              style={{
-                                color: getColor5(parseFloat(mean)),
-                              }}
-                            >
-                              {mean}
-                            </div>
-                          </div>
+                            label={q.Question.replace(":", "")}
+                            value={parseFloat(mean)}
+                            total={5}
+                            color={getColor5(parseFloat(mean))}
+                            indicatorClassName={`${getColor5Classes(
+                              parseFloat(mean)
+                            )}`}
+                          />
                         )
                       })}
                     </div>
@@ -328,7 +345,7 @@ export function CECEvaluations({ courseCode }: { courseCode: string }) {
           </p>
         ) : (
           <div
-            className="grid gap-4 md:gap-6"
+            className="grid gap-4 md:gap-6 gap-y-8 sm:grid-cols-2"
             style={{
               display: !selectedProfessor ? "grid" : "none",
             }}

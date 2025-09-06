@@ -60,11 +60,11 @@
   --sidebar-ring: oklch(0.606 0.25 292.717);
 
   /* Chart Colors */
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
 
   --easing-expo-out: cubic-bezier(0.19, 1.0, 0.22, 1.0);
   --easing-quart-out: cubic-bezier(0.165, 0.84, 0.44, 1.0);
@@ -246,11 +246,13 @@
   background-color: var(--foreground)/5;
 }
 
-.bg-button-accent-hover-active, .group > .bg-button-accent-hover-active {
+.bg-button-accent-hover-active,
+.group>.bg-button-accent-hover-active {
   @apply bg-foreground/5 hover:bg-foreground/10 active:bg-foreground/20 dark:bg-foreground/20 dark:hover:bg-foreground/25 dark:active:bg-foreground/30;
 }
 
-.bg-button-ghost-hover-active, .group > .bg-button-ghost-hover-active {
+.bg-button-ghost-hover-active,
+.group>.bg-button-ghost-hover-active {
   @apply bg-transparent hover:bg-foreground/5 active:bg-foreground/10 dark:hover:bg-foreground/10 dark:active:bg-foreground/15;
 }
 

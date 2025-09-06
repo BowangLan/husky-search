@@ -22,6 +22,9 @@ export type CourseSessionsContextValue = {
   setSelectedWeekDaySet: (set: Set<string>) => void
   toggleSelectedWeekDay: (day: string) => void
 
+  viewType: "list" | "calendar"
+  setViewType: (type: "list" | "calendar") => void
+
   selectedSessionIds: string[]
   setSelectedSessionIds: (ids: string[]) => void
   pinnedSessionIds: string[]
@@ -59,6 +62,7 @@ export const CourseSessionsProvider = ({
   const [selectedWeekDaySet, setSelectedWeekDaySet] = useState<Set<string>>(
     new Set()
   )
+  const [viewType, setViewType] = useState<"list" | "calendar">("list")
 
   const data = useQuery(api.courses.getByCourseCode, {
     courseCode,
@@ -150,6 +154,8 @@ export const CourseSessionsProvider = ({
       showOpenOnly,
       setShowOpenOnly,
       getSessionEnrollState,
+      viewType,
+      setViewType,
     }),
     [
       data,
@@ -160,6 +166,7 @@ export const CourseSessionsProvider = ({
       selectedSessionIds,
       pinnedSessionIds,
       showOpenOnly,
+      viewType,
     ]
   )
 

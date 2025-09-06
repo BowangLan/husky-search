@@ -2,7 +2,7 @@ import { Calendar, Check, List, X } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 
 import { cn, weekDays } from "@/lib/utils"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { FilterTabItem, FilterTabList } from "@/components/ui/filter-tabs"
 
 import { SessionChips } from "./course-session-chips"
 import { useCourseSessions } from "./course-sessions-context"
@@ -40,47 +40,24 @@ const ShowOpenOnlyButton = () => {
 }
 
 const ViewTabs = () => {
+  const { viewType, setViewType } = useCourseSessions()
   return (
-    <TabsList className="gap-1 h-10">
-      <TabsTrigger value="list" className="aspect-square px-0">
+    <FilterTabList>
+      <FilterTabItem
+        square={true}
+        active={viewType === "list"}
+        onClick={() => setViewType("list")}
+      >
         <List className="size-4" />
-        {/* List */}
-      </TabsTrigger>
-      <TabsTrigger value="calendar" className="aspect-square px-0">
+      </FilterTabItem>
+      <FilterTabItem
+        square={true}
+        active={viewType === "calendar"}
+        onClick={() => setViewType("calendar")}
+      >
         <Calendar className="size-4" />
-        {/* Calendar */}
-      </TabsTrigger>
-    </TabsList>
-  )
-}
-
-const TabItem = ({
-  children,
-  className,
-  active,
-  onClick,
-  square = false,
-}: {
-  children: React.ReactNode
-  className?: string
-  active?: boolean
-  onClick?: () => void
-  square?: boolean
-}) => {
-  return (
-    <div
-      className={cn(
-        "text-sm h-full flex items-center justify-center cursor-pointer rounded-md trans select-none",
-        active
-          ? "bg-button-accent-hover-active"
-          : "bg-button-ghost-hover-active",
-        square ? "aspect-square" : "px-2.5",
-        className
-      )}
-      onClick={onClick}
-    >
-      {children}
-    </div>
+      </FilterTabItem>
+    </FilterTabList>
   )
 }
 
@@ -103,9 +80,9 @@ const WeekDaySelector = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="p-1 rounded-lg border border-foreground/10 h-10 flex items-center gap-1">
+      <FilterTabList>
         {weekDays.map((day) => (
-          <TabItem
+          <FilterTabItem
             key={day}
             square={true}
             active={selectedWeekDaySet.has(day)}
@@ -120,9 +97,9 @@ const WeekDaySelector = () => {
             }}
           >
             {day}
-          </TabItem>
+          </FilterTabItem>
         ))}
-      </div>
+      </FilterTabList>
     </div>
   )
 }
