@@ -25,7 +25,7 @@ export function RecentMajorsSection() {
             <ProgramCardLink
               key={index}
               program={major}
-              className="w-[270px]"
+              className="w-[256px] flex-none"
             />
           ))}
         </div>

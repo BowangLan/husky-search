@@ -364,6 +364,8 @@ export function CourseDetailPage({
     courseDuplicate: false,
   })
 
+  console.log(c)
+
   return (
     <Page className="mx-page px-page py-0">
       <PageTopToolbar>

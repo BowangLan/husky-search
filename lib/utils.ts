@@ -100,6 +100,47 @@ const genEdLabels = {
   "DIV": "Diversity",
   "RSN": "Reasoning",
 }
+
 export const getGenEdLabel = (label: string) => {
   return genEdLabels[label as keyof typeof genEdLabels] ?? label
+}
+
+export const formatTimeString = (time: number) => {
+  // input: "830"
+  // output: "8:30 AM"
+  const hours = Math.floor(Number(time) / 100)
+  const minutes = Number(time) % 100
+  const ampm = hours >= 12 ? "PM" : "AM"
+  const hours12 = hours % 12 || 12
+  return `${hours12}:${minutes.toString().padStart(2, "0")} ${ampm}`
+}
+
+export const weekDays = ["M", "T", "W", "Th", "F", "Sa", "Su"] as const
+
+export const expandDays = (days?: string): string[] => {
+  if (!days) return []
+  // Handle combinations like "MWF", "TTh", "TuTh", etc.
+  // Normalize tokens: Th or Thu treated as Th; Tu treated as T
+  const normalized = days
+    .replace(/Thu|Th/g, "Th")
+    .replace(/Tu/g, "T")
+    .replace(/Su|Sun/g, "Su")
+    .replace(/Sa|Sat/g, "Sa")
+  const result: string[] = []
+  for (let i = 0; i < normalized.length; i++) {
+    const ch = normalized[i]
+    if (ch === "T" && normalized[i + 1] === "h") {
+      result.push("Th")
+      i += 1
+    } else if (
+      (ch === "S" && normalized[i + 1] === "a") ||
+      (ch === "S" && normalized[i + 1] === "u")
+    ) {
+      // already handled above by replacement, kept for safety
+      continue
+    } else if (ch.match(/[MTWF]/)) {
+      result.push(ch)
+    }
+  }
+  return result
 }

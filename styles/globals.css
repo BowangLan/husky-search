@@ -245,3 +245,21 @@
 .bg-secondary {
   background-color: var(--foreground)/5;
 }
+
+.bg-button-accent-hover-active {
+  @apply bg-foreground/5 hover:bg-foreground/10 active:bg-foreground/20 dark:bg-foreground/20 dark:hover:bg-foreground/25 dark:active:bg-foreground/30;
+}
+
+.bg-button-ghost-hover-active {
+  @apply bg-transparent hover:bg-foreground/5 active:bg-foreground/10 dark:hover:bg-foreground/10 dark:active:bg-foreground/15;
+}
+
+.card-highlight {
+  z-index: 50;
+}
+
+.card-unhighlight {
+  pointer-events: none;
+  opacity: 30%;
+  z-index: 0;
+}
