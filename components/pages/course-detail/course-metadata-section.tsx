@@ -6,6 +6,13 @@ import { capitalizeSingle } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 import { Section, SectionContent, SectionHeader } from "@/components/section"
 
+export const parseDescription = (description: string) => {
+  // Parse HTML tags and extract course codes from linkified spans
+  return description
+    .replace(/<span[^>]*data-text="([^"]*)"[^>]*\/>/g, "$1")
+    .replace(/<[^>]*>/g, "")
+}
+
 export const CourseMetadataSection = ({
   course,
 }: {
@@ -95,10 +102,10 @@ export const CourseMetadataSectionCard = ({
           </SectionHeader>
           <SectionContent className="py-2">
             <p className="leading-relaxed max-w-4xl text-sm md:text-base font-light">
-              {
+              {parseDescription(
                 course.myplanCourse?.detailData?.courseSummaryDetails
                   .courseDescription
-              }
+              )}
             </p>
           </SectionContent>
         </Section>
