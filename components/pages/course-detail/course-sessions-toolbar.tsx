@@ -111,10 +111,10 @@ export const CourseSessionsToolbar = () => {
     <div className="my-4 mx-4 md:mx-6 md:my-6 flex flex-col gap-4 md:gap-6">
       {/* Row */}
       <div className="flex items-center gap-4">
+        <ViewTabs />
         <ShowOpenOnlyButton />
         <div className="flex-1"></div>
         <WeekDaySelector />
-        <ViewTabs />
       </div>
 
       {/* Row */}

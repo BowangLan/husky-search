@@ -243,10 +243,10 @@ export function CourseDetailPage({
   console.log(c)
 
   return (
-    <Page className="mx-page px-page py-0">
-      <PageTopToolbar>
+    <Page className="mx-page px-page">
+      {/* <PageTopToolbar>
         <BackButton url={`/majors/${course.subjectAreaCode}`} />
-      </PageTopToolbar>
+      </PageTopToolbar> */}
       {/* <div className="hidden md:block">
         <CourseDetailPageContentDesktop course={course} />
       </div> */}

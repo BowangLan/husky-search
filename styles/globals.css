@@ -270,3 +270,7 @@
   opacity: 30%;
   z-index: 0;
 }
+
+.my-page-header {
+  @apply my-8 md:my-12;
+}

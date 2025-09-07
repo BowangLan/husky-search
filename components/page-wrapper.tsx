@@ -25,7 +25,10 @@ export const PageWithHeaderLayout = ({
         </div>
       )}
       <section
-        className={cn("px-page mx-page", !topToolbar ? "my-12" : "mt-8 mb-12")}
+        className={cn(
+          "px-page mx-page",
+          !topToolbar ? "my-page-header" : "mt-8 mb-12"
+        )}
       >
         <div className="w-full flex flex-col gap-2">
           {titleTop}

@@ -154,7 +154,7 @@ export function ProgramDetailPage({
           <span>{courses.length} courses available</span>
         </div>
       }
-      topToolbar={<BackButton url={`/majors`} />}
+      // topToolbar={<BackButton url={`/majors`} />}
     >
       <div>
         {courses.length === 0 ? (

@@ -21,7 +21,8 @@ export const CourseDetailHeader = ({
   course: MyPlanCourseCodeGroupWithDetail
 }) => {
   return (
-    <section className="my-4 md:my-8 space-y-2 md:space-y-4">
+    // my should be the same as page-wrapper
+    <section className="my-page-header space-y-2 md:space-y-4">
       <div className="flex items-center gap-2">
         {/* <Badge
               variant="secondary"
