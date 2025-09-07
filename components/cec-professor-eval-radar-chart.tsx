@@ -1,5 +1,7 @@
 "use client"
 
+import React from "react"
+import Link from "next/link"
 import { CourseCecItem } from "@/convex/courses"
 import {
   PolarAngleAxis,
@@ -155,8 +157,25 @@ export function CecProfessorEvalRadarChart({
       </CardContent>
       <CardFooter>
         <div className="flex items-center gap-2 text-muted-foreground text-sm leading-relaxed font-medium justify-center w-full text-center">
-          Averaged over {evals.length} evaluations (
-          {evals.map((ev) => formatTerm(ev.term)).join(", ")}).{" "}
+          <p>
+            Averaged over {evals.length} evaluations (
+            {evals.map((ev, index) => (
+              <React.Fragment key={ev._id || index}>
+                <span key={ev._id || index} className="inline-flex">
+                  <Link
+                    href={`https://www.washington.edu/cec/${ev.url}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-purple-500 font-medium underline inline-flex"
+                  >
+                    {formatTerm(ev.term)}
+                  </Link>
+                </span>
+                {index < evals.length - 1 && ", "}
+              </React.Fragment>
+            ))}
+            ).{" "}
+          </p>
           {/* <span
             className="text-muted-foreground cursor-pointer hover:text-primary underline trans"
             onClick={onViewAllEvals}

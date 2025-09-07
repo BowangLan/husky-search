@@ -256,6 +256,11 @@
   @apply bg-transparent hover:bg-foreground/5 active:bg-foreground/10 dark:hover:bg-foreground/10 dark:active:bg-foreground/15;
 }
 
+.bg-button-primary-hover-active,
+.group>.bg-button-primary-hover-active {
+  /* @apply bg-primary/5 hover:bg-primary/10 active:bg-primary/20 dark:bg-primary/20 dark:hover:bg-primary/25 dark:active:bg-primary/30; */
+}
+
 .card-highlight {
   z-index: 50;
 }

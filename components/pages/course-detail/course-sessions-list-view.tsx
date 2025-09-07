@@ -50,15 +50,6 @@ export const SessionRow = ({
     }
   }
 
-  const enrollCount = Number((session as any).enrollCount ?? 0)
-  const enrollMaximum = Number((session as any).enrollMaximum ?? 0)
-  const isClosed = enrollCount >= enrollMaximum
-  const capacityPct = Math.min(
-    100,
-    (enrollCount / Math.max(1, enrollMaximum)) * 100
-  )
-  const isCopied = copiedId === session.id
-
   const sessionRaw =
     data.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
       (item: any) => item.activityId === session.id
@@ -66,7 +57,6 @@ export const SessionRow = ({
 
   return (
     <div key={session.id} className="group relative">
-      <Separator />
       <div
         className="px-4 py-4 md:px-6 flex w-full flex-col gap-3 md:grid md:items-center md:gap-6"
         style={{
@@ -240,8 +230,11 @@ export const PinnedSessionsList = () => {
   const { pinnedSessions } = useCourseSessions()
   return (
     <div>
-      {pinnedSessions.map((session) => (
-        <SessionRow key={session.id} session={session} pinned />
+      {pinnedSessions.map((session, index) => (
+        <div key={session.id}>
+          <SessionRow key={session.id} session={session} pinned />
+          {index !== pinnedSessions.length - 1 && <Separator />}
+        </div>
       ))}
     </div>
   )
@@ -251,8 +244,11 @@ export const DisplayedSessionsList = () => {
   const { displayedSessions } = useCourseSessions()
   return (
     <div>
-      {displayedSessions.map((session) => (
-        <SessionRow key={session.id} session={session} />
+      {displayedSessions.map((session, index) => (
+        <div key={session.id}>
+          <SessionRow key={session.id} session={session} />
+          {index !== displayedSessions.length - 1 && <Separator />}
+        </div>
       ))}
     </div>
   )

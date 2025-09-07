@@ -101,7 +101,7 @@ const CourseDetailPageContentMobile = ({
 }) => {
   const [tab, setTab] = useState<"sessions" | "cec">("sessions")
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 md:space-y-6">
       <CourseDetailHeader course={course} />
       <CourseDetailStatsSection courseCode={course.code} />
 

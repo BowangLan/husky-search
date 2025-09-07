@@ -108,17 +108,26 @@ export const CourseSessionsToolbar = () => {
   const { setSelectedSessionIds } = useCourseSessions()
 
   return (
-    <div className="my-4 mx-4 md:mx-6 md:my-6">
-      <div>
-        <div className="flex items-center gap-4 mb-4">
-          <ShowOpenOnlyButton />
-          <div className="flex-1"></div>
-          <WeekDaySelector />
-          <ViewTabs />
-        </div>
+    <div className="my-4 mx-4 md:mx-6 md:my-6 flex flex-col gap-4 md:gap-6">
+      {/* Row */}
+      <div className="flex items-center gap-4">
+        <ShowOpenOnlyButton />
+        <div className="flex-1"></div>
+        <WeekDaySelector />
+        <ViewTabs />
       </div>
-      <div className="mt-4" onMouseLeave={() => setSelectedSessionIds([])}>
+
+      {/* Row */}
+      <div onMouseLeave={() => setSelectedSessionIds([])}>
         <SessionChips />
+      </div>
+
+      {/* Row */}
+      <div>
+        <p className="text-xs text-muted-foreground">
+          Data source: MyPlan. Updates range from every few minutes to every few
+          hours.
+        </p>
       </div>
     </div>
   )
