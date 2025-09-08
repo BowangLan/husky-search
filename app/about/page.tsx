@@ -5,7 +5,7 @@ import { Page, PageTitle } from "@/components/page-wrapper"
 const AboutText = `
 ## About Me
 
-Hello, I'm Jeffrey, a fellow husky & alum, and a web enthusiast. Welcome to huskysearch.fyi! 
+Hello, I'm Jeffrey, a fellow husky, alum, and a web enthusiast. Welcome to huskysearch.fyi! 
 
 ## About this Project
 
@@ -17,6 +17,8 @@ As someone who cares deeply about building great web experiences, I wanted to fi
 
 I’m graduating in 2025, and I see this project as a small gift to the Husky community. My goal is to keep it alive and improving for future students—so that course planning can feel less like a chore and more like an opportunity to discover the path that’s right for you.
 
+## Links
+
 Main data sources for this project:
 
 - [UW Course Catalog](https://www.washington.edu/students/crscat/)
@@ -27,7 +29,7 @@ Main data sources for this project:
 Feel free to reach out:
 
 - [jeffreybl.dev@gmail.com](mailto:jeffreybl.dev@gmail.com)
-- [LinkedIn](https://www.linkedin.com/in/jeffrey-lan/)
+- [My LinkedIn](https://www.linkedin.com/in/jeffrey-lan/)
 
 I'm always open to feedback and suggestions for improvement. Whether you've found a bug, have a feature request, or just want to share your thoughts, I'd love to hear from you!
 `
