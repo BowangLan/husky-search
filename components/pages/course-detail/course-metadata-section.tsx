@@ -76,7 +76,7 @@ export const CourseMetadataSectionCard = ({
     <Card hoverInteraction={false}>
       <CardContent>
         <Section className="py-0">
-          <SectionHeader border className="py-2">
+          <SectionHeader border className="py-3">
             <div className="flex items-center gap-2">
               <GraduationCap className="size-4 text-muted-foreground" />
               <h3 className="text-sm text-muted-foreground font-medium">
@@ -84,7 +84,7 @@ export const CourseMetadataSectionCard = ({
               </h3>
             </div>
           </SectionHeader>
-          <SectionContent className="py-2">
+          <SectionContent className="py-3">
             <p className="leading-relaxed max-w-4xl text-sm md:text-base font-light">
               {formatPrereqs(course.myplanCourse?.prereqs)}
             </p>
@@ -92,7 +92,7 @@ export const CourseMetadataSectionCard = ({
         </Section>
 
         <Section className="py-0">
-          <SectionHeader border className="py-2">
+          <SectionHeader border className="py-3">
             <div className="flex items-center gap-2">
               <FileText className="size-3.5 text-muted-foreground" />
               <h3 className="text-sm text-muted-foreground font-medium">
@@ -100,7 +100,7 @@ export const CourseMetadataSectionCard = ({
               </h3>
             </div>
           </SectionHeader>
-          <SectionContent className="py-2">
+          <SectionContent className="py-3">
             <p className="leading-relaxed max-w-4xl text-sm md:text-base font-light">
               {parseDescription(
                 course.myplanCourse?.detailData?.courseSummaryDetails
