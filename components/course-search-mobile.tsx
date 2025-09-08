@@ -135,7 +135,7 @@ export function CourseSearchMobile() {
                 value={query}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
-                className="pl-10 pr-10 text-sm placeholder:text-sm placeholder:leading-[1]"
+                className="pl-10 pr-10 text-sm placeholder:text-sm placeholder:leading-[1] text-base"
               />
               {query && (
                 <Button
