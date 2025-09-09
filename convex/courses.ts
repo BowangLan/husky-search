@@ -1,8 +1,9 @@
 import { v } from "convex/values";
-import { query } from "./_generated/server";
+import { internalAction, query } from "./_generated/server";
 import { FunctionReturnType } from "convex/server";
 import { api } from "./_generated/api";
 import { isStudentHelper } from "./auth";
+import OpenAI from "openai";
 
 export const getByCourseCode = query({
   args: {
@@ -67,3 +68,30 @@ export type CourseCecItem = Omit<NonNullable<CourseDetail["cecCourse"]>[number],
     table_data_list_of_lists: Array<Array<string>>
   }
 }
+
+export const search = internalAction({
+  args: {
+    query: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const openai = new OpenAI();
+    const embedding = await openai.embeddings.create({
+      model: "text-embedding-3-small",
+      input: args.query,
+      encoding_format: "float",
+    });
+
+    const results = await ctx.vectorSearch("myplanCourses", "by_embedding", {
+      vector: embedding.data[0].embedding,
+      limit: 10,
+    });
+
+    const courses = await ctx.runQuery(api.myplan.listFullCoursesWithIds, {
+      ids: results.map((result) => result._id),
+    });
+
+    // return {
+    //   data: courses,
+    // }
+  }
+})

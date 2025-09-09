@@ -34,6 +34,38 @@ export const list = query({
   }
 })
 
+export const listFullCourses = query({
+  args: {
+    cursor: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const data = await ctx.db.query("myplanCourses")
+      .paginate({
+        numItems: args.limit ?? 100,
+        cursor: args.cursor ?? null,
+      })
+
+    return data;
+  }
+})
+
+
+export const listFullCoursesWithIds = query({
+  args: {
+    ids: v.array(v.id("myplanCourses")),
+  },
+  handler: async (ctx, args) => {
+    const courses = await Promise.all(args.ids.map(async (id) => {
+      return await ctx.db.get(id);
+    }));
+
+    const nonNullCourses = courses.filter((course) => course !== null);
+
+    return nonNullCourses;
+  }
+})
+
 export const listCourseCodes = query({
   args: {
     cursor: v.optional(v.string()),
@@ -56,6 +88,32 @@ export const listCourseCodes = query({
     };
   }
 })
+
+
+export const listCourseCodesWithDescription = query({
+  args: {
+    cursor: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const data = await ctx.db.query("myplanCourses")
+      .paginate({
+        numItems: args.limit ?? 100,
+        cursor: args.cursor ?? null,
+      })
+
+    return {
+      page: data.page.map((item) => ({
+        _id: item._id,
+        courseCode: item.courseCode,
+        description: item.description,
+      })),
+      continueCursor: data.continueCursor,
+      isDone: data.isDone,
+    };
+  }
+})
+
 
 
 export const fillCourseCodeToKvStore = mutation({
@@ -342,8 +400,10 @@ export const updateCourses = internalMutation({
       id: v.id("myplanCourses"),
       data: v.object({
         updateIntervalSeconds: v.optional(v.number()),
+        description: v.optional(v.string()),
         detailData: v.optional(v.any()),
         searchData: v.optional(v.any()),
+        embedding: v.optional(v.array(v.float64())),
       })
     }))
   },

@@ -27,6 +27,8 @@ import type * as myplan from "../myplan.js";
 import type * as myplanDataPoints from "../myplanDataPoints.js";
 import type * as myplanScrapers from "../myplanScrapers.js";
 import type * as myplanUtils from "../myplanUtils.js";
+import type * as ops_courseDescription from "../ops/courseDescription.js";
+import type * as ops_courseEmbeddings from "../ops/courseEmbeddings.js";
 import type * as users from "../users.js";
 
 /**
@@ -52,6 +54,8 @@ declare const fullApi: ApiFromModules<{
   myplanDataPoints: typeof myplanDataPoints;
   myplanScrapers: typeof myplanScrapers;
   myplanUtils: typeof myplanUtils;
+  "ops/courseDescription": typeof ops_courseDescription;
+  "ops/courseEmbeddings": typeof ops_courseEmbeddings;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

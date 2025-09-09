@@ -75,6 +75,7 @@ export const myplanCourseFullFields = {
   pastTermData: v.optional(v.array(myplanCourseTermDataObj)),
   detailData: v.optional(v.any()),
   searchData: v.optional(v.any()),
+  embedding: v.optional(v.array(v.float64())),
 }
 
 export const myplanCourseInfoObj = v.object(myplanCourseInfoFields)
@@ -109,7 +110,6 @@ export default defineSchema({
     ...myplanDataPointFields,
   })
     .index("by_course_code_term_id", ["courseCode", "termId"])
-  // .index("by_course_code_timestamp", ["courseCode", "timestamp"]),
   ,
 
   myplanCourses: defineTable({
@@ -125,7 +125,12 @@ export default defineSchema({
     .index("by_detail_data", ["detailData"])
     .index("by_current_term_data", ["currentTermData"])
     .index("by_stats_enroll_percent", ["statsEnrollPercent"])
-    .index("by_stats_enroll_max", ["statsEnrollMax"]),
+    .index("by_stats_enroll_max", ["statsEnrollMax"])
+    .vectorIndex("by_embedding", {
+      vectorField: "embedding",
+      dimensions: 1536,
+    })
+  ,
 
   dawgpathCourses: defineTable({
     ...dawgpathCourseFields,
