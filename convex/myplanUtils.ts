@@ -1,3 +1,4 @@
+import { MyplanDataPoint } from "./myplanDataPoints"
 import { MyplanCourseTermData, MyplanCourseTermSession } from "./schema"
 
 export function getSessionsGroupedByTerm(
@@ -161,7 +162,23 @@ export const processCourseDetail = (courseDetail: any): ProcessedCourseDetail =>
   }
 }
 
-export const mergeTermData = (processedCourseDetail: ProcessedCourseDetail, oldTermsData?: MyplanCourseTermData[]): MyplanCourseTermData[] => {
+export const migrateEnrollData = (termsData: MyplanCourseTermData[], courseCode: string): MyplanDataPoint[] => {
+  return termsData.map((termData) => {
+    return termData.enrollData?.map((enrollData) => {
+      return {
+        termId: termData.termId,
+        enrollCount: enrollData.c,
+        enrollMax: enrollData.m,
+        courseCode,
+        timestamp: enrollData.t,
+      }
+    }) ?? []
+  }).flat()
+}
+
+export const mergeTermData = (processedCourseDetail: ProcessedCourseDetail, oldTermsData?: MyplanCourseTermData[]): [MyplanCourseTermData[], MyplanCourseTermData[]] => {
+  const newTermIdSet = new Set(Object.keys(processedCourseDetail.termEnrollCountMap))
+
   const newTermsData: MyplanCourseTermData[] = Object.entries(processedCourseDetail.termEnrollCountMap).map(([termId, termEnrollCount]) => {
     const oldTermData = oldTermsData?.find((termData) => termData.termId === termId)
 
@@ -169,18 +186,20 @@ export const mergeTermData = (processedCourseDetail: ProcessedCourseDetail, oldT
       termId,
       enrollCount: termEnrollCount.enroll_available_count,
       enrollMax: termEnrollCount.enroll_total_count,
-      enrollData: oldTermData?.enrollData ? [...oldTermData.enrollData, {
-        t: Date.now(),
-        c: termEnrollCount.enroll_available_count,
-        m: termEnrollCount.enroll_total_count,
-      }] : [{
-        t: Date.now(),
-        c: termEnrollCount.enroll_available_count,
-        m: termEnrollCount.enroll_total_count,
-      }],
+      // enrollData: oldTermData?.enrollData ? [...oldTermData.enrollData, {
+      //   t: Date.now(),
+      //   c: termEnrollCount.enroll_available_count,
+      //   m: termEnrollCount.enroll_total_count,
+      // }] : [{
+      //   t: Date.now(),
+      //   c: termEnrollCount.enroll_available_count,
+      //   m: termEnrollCount.enroll_total_count,
+      // }],
       sessions: processedCourseDetail.termSessionMap[termId],
     }
   })
 
-  return newTermsData ?? []
+  const outdatedTermData = oldTermsData?.filter((termData) => !newTermIdSet.has(termData.termId)) ?? []
+
+  return [newTermsData, outdatedTermData]
 }

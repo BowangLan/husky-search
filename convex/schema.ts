@@ -1,6 +1,7 @@
 import { defineSchema, defineTable } from "convex/server";
 import { Infer, v } from "convex/values";
 import { dawgpathCourseFields } from "./dawgpath";
+import { myplanDataPointFields, myplanDataPointObj } from "./myplanDataPoints";
 
 export const cecCourseFields = {
   url: v.string(),
@@ -21,11 +22,11 @@ export const myplanCourseTermDataObj = v.object({
   termId: v.string(),
   enrollCount: v.number(),
   enrollMax: v.number(),
-  enrollData: v.array(v.object({
+  enrollData: v.optional(v.array(v.object({
     t: v.number(), // timestamp
     c: v.number(), // enroll count
     m: v.number(), // enroll max
-  })),
+  }))),
   sessions: v.array(v.object({
     id: v.string(),
     code: v.string(),
@@ -105,15 +106,11 @@ export default defineSchema({
   }).index("by_course_code", ["courseCode"]).index("by_interval_seconds", ["intervalSeconds"]),
 
   myplanDataPoints: defineTable({
-    courseCode: v.string(),
-    courseId: v.string(),
-    timestamp: v.string(),
-    enrollCount: v.number(),
-    enrollMax: v.number(),
-  }).index("by_course_code", ["courseCode"])
-    .index("by_course_code_timestamp", ["courseCode", "timestamp"])
-    .index("by_course_id", ["courseId"])
-    .index("by_timestamp", ["timestamp"]),
+    ...myplanDataPointFields,
+  })
+    .index("by_course_code_term_id", ["courseCode", "termId"])
+  // .index("by_course_code_timestamp", ["courseCode", "timestamp"]),
+  ,
 
   myplanCourses: defineTable({
     ...myplanCourseFullFields,

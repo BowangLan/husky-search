@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { internalAction, internalMutation, internalQuery, mutation, MutationCtx, query, QueryCtx } from "./_generated/server";
 import { MyplanCourse, myplanCourseFullFields, myplanCourseInfoObj, MyplanCourseTermData } from "./schema";
 import { api, internal } from "./_generated/api";
-import { getLatestEnrollCount, mergeTermData, processCourseDetail } from "./myplanUtils";
+import { getLatestEnrollCount, mergeTermData, migrateEnrollData, processCourseDetail } from "./myplanUtils";
 import { Id } from "./_generated/dataModel";
 
 export const list = query({
@@ -34,19 +34,29 @@ export const list = query({
   }
 })
 
-export const getLatestDataPointByCourseCode = query({
+export const listCourseCodes = query({
   args: {
-    courseCode: v.string(),
+    cursor: v.optional(v.string()),
+    limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const c = await ctx.db.query("myplanDataPoints")
-      .withIndex("by_course_code_timestamp", (q) => q.eq("courseCode", args.courseCode))
-      .order("desc")
-      .first();
+    const data = await ctx.db.query("myplanCourses")
+      .paginate({
+        numItems: args.limit ?? 100,
+        cursor: args.cursor ?? null,
+      })
 
-    return c;
+    return {
+      data: data.page.map((item) => ({
+        _id: item._id,
+        courseCode: item.courseCode,
+      })),
+      continueCursor: data.continueCursor,
+      isDone: data.isDone,
+    };
   }
 })
+
 
 export const fillCourseCodeToKvStore = mutation({
   args: {},
@@ -246,7 +256,16 @@ export const upsertCourseDetail = internalMutation({
       .first();
 
     const processedCourseDetail = processCourseDetail(args.detailData)
-    const latestTermsData: MyplanCourseTermData[] = mergeTermData(processedCourseDetail, existingCourse?.currentTermData)
+    const [latestTermsData, outdatedTermsData] = mergeTermData(processedCourseDetail, existingCourse?.currentTermData)
+
+    const dataPoints = migrateEnrollData(existingCourse?.currentTermData ?? [], args.courseCode)
+
+    if (dataPoints.length > 0) {
+      // should migrate enroll data to data points table to reduce data size
+      await ctx.runMutation(internal.myplanDataPoints.insertDataPoints, {
+        dataPoints,
+      });
+    }
 
     if (!existingCourse) {
       await ctx.db.insert("myplanCourses", {
@@ -262,13 +281,14 @@ export const upsertCourseDetail = internalMutation({
         currentTermData: latestTermsData,
         statsEnrollPercent: 0,
         statsEnrollMax: 0,
-        updateIntervalSeconds: 6 * 60 * 60, // 6h
+        updateIntervalSeconds: 24 * 60 * 60, // 24h
       });
     } else {
       await ctx.db.patch(existingCourse._id, {
         ...existingCourse,
         detailData: args.detailData,
         currentTermData: latestTermsData,
+        pastTermData: [...(existingCourse.pastTermData ?? []), ...outdatedTermsData],
       });
     }
   }
@@ -341,36 +361,46 @@ export const updateCourses = internalMutation({
   }
 })
 
-export const updateCourseDetailScrapeIntervals = internalAction({
-  args: {},
+export const resetCourseDetailScrapeIntervals = internalAction({
+  args: {
+    intervalSeconds: v.number(),
+  },
   handler: async (ctx, args) => {
-    // fetch all courses with null update interval
-    const courses = await ctx.runQuery(internal.myplan.getCoursesByUpdateInterval, {
-      updateIntervalSeconds: undefined,
+    // fetch all course codes
+    console.log(`Fetching all course codes`);
+    let courseQuery = await ctx.runQuery(api.myplan.listCourseCodes, {
+      limit: 200,
     });
 
+    let allCourses: any[] = [];
+    allCourses.push(...courseQuery.data);
+
+    while (!courseQuery.isDone) {
+      courseQuery = await ctx.runQuery(api.myplan.listCourseCodes, {
+        limit: 200,
+        cursor: courseQuery.continueCursor,
+      });
+      allCourses.push(...courseQuery.data);
+    }
+
+    console.log(`Found ${allCourses.length} courses`);
+
+    // update all courses with the new update interval
     const batchSize = 100;
-    for (let i = 0; i < courses.length; i += batchSize) {
-      console.log(`Updating batch ${i / batchSize + 1} of ${Math.ceil(courses.length / batchSize)}`);
-      const batch = courses.slice(i, i + batchSize);
+    for (let i = 0; i < allCourses.length; i += batchSize) {
+      console.log(`Updating batch ${i / batchSize + 1} of ${Math.ceil(allCourses.length / batchSize)}`);
+      const batch = allCourses.slice(i, i + batchSize);
       await ctx.runMutation(internal.myplan.updateCourses, {
         courses: batch.map((course) => ({
           id: course._id,
           data: {
-            updateIntervalSeconds: 6 * 60 * 60, // 6h
+            updateIntervalSeconds: args.intervalSeconds,
           }
         })),
       });
     }
 
-    console.log(`Updated ${courses.length} courses to 6h`);
-
-
-    // deal with enrollments over 80%
-    // const coursesOver80 = await ctx.runQuery(api.myplan.getLatestDataPointByCourseCode, {
-    //   courseCode: "CS101",
-    // });
-    // console.log(coursesOver80);
+    console.log(`Updated ${allCourses.length} courses to ${args.intervalSeconds} seconds`);
 
     return {
       success: true,
@@ -410,6 +440,7 @@ export const stats = internalAction({
 
     const over80Over200Set = new Set<Id<"myplanCourses">>();
     const over40Over50Set = new Set<Id<"myplanCourses">>();
+    const updateIntervalCounts = new Map<number | null, number>();
 
     let count = 0;
     let page = 1;
@@ -417,24 +448,32 @@ export const stats = internalAction({
     let zeroEnrollCount: any[] = [];
     // console.log(`Fetching page`);
     let paginatedResults = await ctx.runQuery(api.myplan.list, {
-      select: ["_id", "currentTermData", "courseCode"],
+      select: ["_id", "currentTermData", "courseCode", "updateIntervalSeconds"],
       limit: 500,
     })
 
     count += paginatedResults.page.length;
     page++;
     let coursesWithoutTermData: any[] = paginatedResults.page.filter((course) => !course.currentTermData);
+    for (const course of paginatedResults.page as any[]) {
+      const key = (course as any).updateIntervalSeconds ?? null;
+      updateIntervalCounts.set(key, (updateIntervalCounts.get(key) ?? 0) + 1);
+    }
 
     while (!paginatedResults.isDone) {
       console.log(`Fetching page ${page}`);
       paginatedResults = await ctx.runQuery(api.myplan.list, {
-        select: ["_id", "currentTermData", "courseCode"],
+        select: ["_id", "currentTermData", "courseCode", "updateIntervalSeconds"],
         cursor: paginatedResults.continueCursor,
         limit: 500,
       })
 
       count += paginatedResults.page.length;
       page++;
+      for (const course of paginatedResults.page as any[]) {
+        const key = (course as any).updateIntervalSeconds ?? null;
+        updateIntervalCounts.set(key, (updateIntervalCounts.get(key) ?? 0) + 1);
+      }
 
       for (const course of paginatedResults.page) {
         if (!course.currentTermData) {
@@ -500,6 +539,7 @@ export const stats = internalAction({
       }
     }
 
+    // update courses with 80%+ enroll, 200+ enroll max to 10m
     await ctx.runMutation(internal.myplan.updateCourses, {
       courses: Array.from(over80Over200Set).map((id) => ({
         id,
@@ -511,16 +551,17 @@ export const stats = internalAction({
 
     console.log(`Updated ${over80Over200Set.size} courses (80%+ enroll, 200+ enroll max) to 10m`);
 
+    // update courses with 40%+ enroll, 50+ enroll max to 6h
     await ctx.runMutation(internal.myplan.updateCourses, {
       courses: Array.from(over40Over50Set).map((id) => ({
         id,
         data: {
-          updateIntervalSeconds: 2 * 60 * 60, // 2h
+          updateIntervalSeconds: 6 * 60 * 60, // 6h
         }
       })),
     });
 
-    console.log(`Updated ${over40Over50Set.size} courses (40%+ enroll, 50+ enroll max) to 2h`);
+    console.log(`Updated ${over40Over50Set.size} courses (40%+ enroll, 50+ enroll max) to 6h`);
 
     return {
       count,
@@ -540,6 +581,7 @@ export const stats = internalAction({
         ["20-50", enrollMaxOver20Count],
         ["0-50", enrollMax0To20Count],
       ],
+      updateIntervalSecondsDistribution: Array.from(updateIntervalCounts.entries()),
       over80Over200Set: over80Over200Set.size,
       emptyCurrentTermData: emptyCurrentTermData.length,
       zeroEnrollCount: zeroEnrollCount.length,
