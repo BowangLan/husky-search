@@ -420,12 +420,12 @@ export class CourseService {
           description: course.description,
           enrollData: withEnrollData
             ? {
-                enrollMax: course.enrollMax,
-                enrollCount: course.enrollCount,
-              }
+              enrollMax: course.enrollMax,
+              enrollCount: course.enrollCount,
+            }
             : {
-                enrollMax: course.enrollMax,
-              },
+              enrollMax: course.enrollMax,
+            },
           // genEdReqs: course.genEdReqs,
           data: [],
         }
@@ -594,9 +594,9 @@ export class CourseService {
     const qWithoutNumber = keywords.replaceAll(/\d/g, "").trim()
     const courseCode = extractNumber(keywords)
 
-    console.log(`Query: '${keywords}'`)
-    console.log(`Q without number: '${qWithoutNumber}%'`)
-    console.log(`Course code: '${courseCode}%'`)
+    // console.log(`Query: '${keywords}'`)
+    // console.log(`Q without number: '${qWithoutNumber}%'`)
+    // console.log(`Course code: '${courseCode}%'`)
 
     let query = db
       .select({
@@ -615,12 +615,10 @@ export class CourseService {
       .where(
         and(
           or(
-            sql`regexp_replace(${
-              MyPlanQuarterCoursesTable.code
-            }, '[\s\d]+', '') ilike '${sql.raw(qWithoutNumber)}%'`,
-            sql`regexp_replace(${
-              MyPlanQuarterCoursesTable.code
-            }, '\d+', '') ilike '${sql.raw(qWithoutNumber)}%'`
+            sql`regexp_replace(${MyPlanQuarterCoursesTable.code
+              }, '[\s\d]+', '') ilike '${sql.raw(qWithoutNumber)}%'`,
+            sql`regexp_replace(${MyPlanQuarterCoursesTable.code
+              }, '\d+', '') ilike '${sql.raw(qWithoutNumber)}%'`
           ),
           like(
             sql`right(${MyPlanQuarterCoursesTable.code}, 3)`,

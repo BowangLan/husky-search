@@ -1,9 +1,10 @@
 import { v } from "convex/values";
-import { internalAction, query } from "./_generated/server";
+import { internalAction, mutation, query } from "./_generated/server";
 import { FunctionReturnType } from "convex/server";
 import { api } from "./_generated/api";
 import { isStudentHelper } from "./auth";
 import OpenAI from "openai";
+import { createEmbedding } from "./embedding";
 
 export const getByCourseCode = query({
   args: {
@@ -69,20 +70,15 @@ export type CourseCecItem = Omit<NonNullable<CourseDetail["cecCourse"]>[number],
   }
 }
 
-export const search = internalAction({
+export const vectorSearch = internalAction({
   args: {
     query: v.string(),
   },
   handler: async (ctx, args) => {
-    const openai = new OpenAI();
-    const embedding = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: args.query,
-      encoding_format: "float",
-    });
+    const embedding = (await createEmbedding(args.query))[0];
 
     const results = await ctx.vectorSearch("myplanCourses", "by_embedding", {
-      vector: embedding.data[0].embedding,
+      vector: embedding.embedding,
       limit: 10,
     });
 
@@ -93,5 +89,30 @@ export const search = internalAction({
     // return {
     //   data: courses,
     // }
+  }
+})
+
+export const search = mutation({
+  args: {
+    query: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const results = await ctx.db.query("myplanCourses")
+      .withSearchIndex("by_course_code_search", (q) => q.search("courseCode", args.query))
+      .collect();
+
+    const mappedResults = results.map((result) => ({
+      _id: result._id,
+      courseCode: result.courseCode,
+      title: result.title,
+      description: result.description,
+      credit: result.credit,
+      number: result.courseNumber,
+      prereqs: result.prereqs,
+    }));
+
+    return {
+      data: mappedResults,
+    };
   }
 })

@@ -23,6 +23,7 @@ import type * as courses from "../courses.js";
 import type * as crons from "../crons.js";
 import type * as dawgpath from "../dawgpath.js";
 import type * as dawgpathScrapers from "../dawgpathScrapers.js";
+import type * as embedding from "../embedding.js";
 import type * as myplan from "../myplan.js";
 import type * as myplanDataPoints from "../myplanDataPoints.js";
 import type * as myplanScrapers from "../myplanScrapers.js";
@@ -50,6 +51,7 @@ declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   dawgpath: typeof dawgpath;
   dawgpathScrapers: typeof dawgpathScrapers;
+  embedding: typeof embedding;
   myplan: typeof myplan;
   myplanDataPoints: typeof myplanDataPoints;
   myplanScrapers: typeof myplanScrapers;

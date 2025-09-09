@@ -1,62 +1,23 @@
 "use client"
 
 // @ts-ignore
-import { unstable_ViewTransition as ViewTransition, useState } from "react"
-import Link from "next/link"
+import { useState } from "react"
 import { api } from "@/convex/_generated/api"
 import {
   useTrackCourseVisit,
   useTrackMajorVisit,
 } from "@/store/visit-cache.store"
-import { useUser } from "@clerk/nextjs"
 import { useQuery } from "convex/react"
-import {
-  ArrowLeft,
-  Award,
-  BookOpen,
-  Clock,
-  GraduationCap,
-  Tag,
-  Users,
-} from "lucide-react"
 
-import {
-  MyPlanCourseCodeGroup,
-  MyPlanCourseCodeGroupWithDetail,
-} from "@/types/myplan"
-import {
-  calculateEasiness,
-  capitalize,
-  capitalizeSingle,
-  cn,
-} from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { BackButton } from "@/components/back-button"
-import { Section, SectionContent, SectionHeader } from "@/components/section"
+import { MyPlanCourseCodeGroupWithDetail } from "@/types/myplan"
+import { cn } from "@/lib/utils"
 
-import {
-  CourseGenEdRequirements,
-  CourseProgramBadgeLink,
-} from "../course-modules"
 import { Page, PageTopToolbar } from "../page-wrapper"
 import { Button } from "../ui/button"
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "../ui/card"
-import { ExternalLink } from "../ui/external-link"
+import { Card, CardContent } from "../ui/card"
 import { Skeleton } from "../ui/skeleton"
 import CECEvaluations from "./course-detail/cec-evaluations"
 import { CourseDetailHeader } from "./course-detail/course-detail-header"
-import { CourseMetadataSection } from "./course-detail/course-metadata-section"
 import { CourseSessionsSection } from "./course-detail/course-sessions-section"
 import { CourseDetailStatsSection } from "./course-detail/course-stats-section"
 
@@ -240,6 +201,8 @@ export function CourseDetailPage({
     courseDuplicate: false,
   })
 
+  const isLoading = c === undefined
+
   console.log(c)
 
   return (
@@ -251,10 +214,10 @@ export function CourseDetailPage({
         <CourseDetailPageContentDesktop course={course} />
       </div> */}
       <div className="pb-12">
-        {c ? (
-          <CourseDetailPageContentMobile course={course} />
-        ) : (
+        {isLoading ? (
           <CourseDetailPageSkeleton />
+        ) : (
+          <CourseDetailPageContentMobile course={course} />
         )}
         {/* <CECEvaluations items={(c as any)?.cecCourse} /> */}
       </div>
