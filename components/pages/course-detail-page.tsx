@@ -184,7 +184,10 @@ export function CourseDetailPage({
 }: {
   course: MyPlanCourseCodeGroupWithDetail
 }) {
-  const c = useQuery(api.courses.getByCourseCode, { courseCode: course.code })
+  // const c = useQuery(api.courses.getByCourseCode, { courseCode: course.code })
+  const c = useQuery(api.courses.getByCourseCodeDev, {
+    courseCode: course.code,
+  })
 
   useTrackCourseVisit(course.code)
   useTrackMajorVisit({

@@ -24,6 +24,7 @@ import type * as crons from "../crons.js";
 import type * as dawgpath from "../dawgpath.js";
 import type * as dawgpathScrapers from "../dawgpathScrapers.js";
 import type * as embedding from "../embedding.js";
+import type * as kvStore from "../kvStore.js";
 import type * as myplan from "../myplan.js";
 import type * as myplanDataPoints from "../myplanDataPoints.js";
 import type * as myplanScrapers from "../myplanScrapers.js";
@@ -52,6 +53,7 @@ declare const fullApi: ApiFromModules<{
   dawgpath: typeof dawgpath;
   dawgpathScrapers: typeof dawgpathScrapers;
   embedding: typeof embedding;
+  kvStore: typeof kvStore;
   myplan: typeof myplan;
   myplanDataPoints: typeof myplanDataPoints;
   myplanScrapers: typeof myplanScrapers;

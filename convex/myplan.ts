@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { internalAction, internalMutation, internalQuery, mutation, MutationCtx, query, QueryCtx } from "./_generated/server";
 import { MyplanCourse, myplanCourseFullFields, myplanCourseInfoObj, MyplanCourseTermData } from "./schema";
 import { api, internal } from "./_generated/api";
-import { getLatestEnrollCount, mergeTermData, migrateEnrollData, processCourseDetail } from "./myplanUtils";
+import { getDataPointFromCourseDetail, getLatestEnrollCount, mergeTermData, migrateEnrollData, processCourseDetail } from "./myplanUtils";
 import { Id } from "./_generated/dataModel";
 
 export const list = query({
@@ -316,14 +316,11 @@ export const upsertCourseDetail = internalMutation({
     const processedCourseDetail = processCourseDetail(args.detailData)
     const [latestTermsData, outdatedTermsData] = mergeTermData(processedCourseDetail, existingCourse?.currentTermData)
 
-    const dataPoints = migrateEnrollData(existingCourse?.currentTermData ?? [], args.courseCode)
-
-    if (dataPoints.length > 0) {
-      // should migrate enroll data to data points table to reduce data size
-      await ctx.runMutation(internal.myplanDataPoints.insertDataPoints, {
-        dataPoints,
-      });
-    }
+    const legacyDataPoints = migrateEnrollData(existingCourse?.currentTermData ?? [], args.courseCode)
+    const newDataPoints = getDataPointFromCourseDetail(processedCourseDetail, args.courseCode)
+    await ctx.runMutation(internal.myplanDataPoints.insertDataPoints, {
+      dataPoints: [...legacyDataPoints, ...newDataPoints],
+    });
 
     if (!existingCourse) {
       await ctx.db.insert("myplanCourses", {

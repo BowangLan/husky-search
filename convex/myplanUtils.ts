@@ -203,3 +203,15 @@ export const mergeTermData = (processedCourseDetail: ProcessedCourseDetail, oldT
 
   return [newTermsData, outdatedTermData]
 }
+
+export const getDataPointFromCourseDetail = (courseDetail: ProcessedCourseDetail, courseCode: string): MyplanDataPoint[] => {
+  return Object.entries(courseDetail.termEnrollCountMap).map(([termId, termEnrollCount]) => {
+    return {
+      termId,
+      enrollCount: termEnrollCount.enroll_available_count,
+      enrollMax: termEnrollCount.enroll_total_count,
+      courseCode,
+      timestamp: Date.now(),
+    }
+  }).flat()
+}
