@@ -1,6 +1,8 @@
 "use client"
 
 import Link from "next/link"
+import { api } from "@/convex/_generated/api"
+import { useQuery } from "convex/react"
 import { MessageCircle } from "lucide-react"
 
 import { externalLinks, siteConfig } from "@/config/site"

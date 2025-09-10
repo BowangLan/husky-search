@@ -5,6 +5,7 @@ import { api } from "./_generated/api";
 import { isStudentHelper } from "./auth";
 import OpenAI from "openai";
 import { createEmbedding } from "./embedding";
+import { KV_STORE_KEYS } from "./kvStore";
 
 export const getByCourseCode = query({
   args: {
@@ -154,5 +155,15 @@ export const search = mutation({
     return {
       data: mappedResults,
     };
+  }
+})
+
+export const getAllCourseCodes = query({
+  args: {},
+  handler: async (ctx) => {
+    const kvStoreCourseCodes = await ctx.db.query("kvStore")
+      .withIndex("by_key", (q) => q.eq("key", KV_STORE_KEYS.MYPLAN_COURSE_CODES)).first();
+
+    return (kvStoreCourseCodes?.value || []) as string[];
   }
 })

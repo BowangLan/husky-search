@@ -1,8 +1,12 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
+import { api } from "@/convex/_generated/api"
 import { CourseSearchResultItem } from "@/services/course-service"
+import { useQuery } from "convex/react"
 import { Command, Search, X } from "lucide-react"
+import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -22,11 +26,12 @@ import { CourseSearchLoadingSkeleton } from "@/components/course-search-loading-
 
 export function CourseSearchMobile() {
   const [query, setQuery] = useState("")
-  const [courses, setCourses] = useState<CourseSearchResultItem[]>([])
+  const [courses, setCourses] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const abortControllerRef = useRef<AbortController | null>(null)
+  const allCourseCodes = useQuery(api.courses.getAllCourseCodes, {})
+  const navigate = useRouter()
 
   useEffect(() => {
     if (isOpen) {
@@ -51,6 +56,14 @@ export function CourseSearchMobile() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       setIsOpen(false)
+      return
+    }
+
+    if (e.key === "Enter" && courses.length === 1) {
+      navigate.push(`/courses/${courses[0]}`)
+      setIsOpen(false)
+      setCourses([])
+      inputRef.current?.blur()
     }
   }
 
@@ -62,35 +75,25 @@ export function CourseSearchMobile() {
       setCourses([])
       return
     }
-
-    // Cancel any pending request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-    }
-
-    // Create new abort controller for this request
-    abortControllerRef.current = new AbortController()
-
-    setLoading(true)
-    try {
-      const response = await fetch(
-        `/api/search?q=${encodeURIComponent(value)}`,
-        {
-          signal: abortControllerRef.current.signal,
-        }
-      )
-      const data = await response.json()
-      setCourses(data.courses ?? [])
-    } catch (error) {
-      // Only handle errors that aren't from aborting
-      if (error instanceof Error && error.name !== "AbortError") {
-        console.error("Search error:", error)
-        setCourses([])
-      }
-    } finally {
-      setLoading(false)
-    }
   }
+
+  useEffect(() => {
+    if (query.trim() === "") {
+      setCourses([])
+      setLoading(false)
+      return
+    }
+    if (!allCourseCodes) {
+      setLoading(true)
+      return
+    }
+    setLoading(false)
+    const normalized = query.replace(/\s+/g, "")
+    const filtered = allCourseCodes
+      .filter((code) => code.replace(/\s+/g, "").startsWith(normalized))
+      .slice(0, 50)
+    setCourses(filtered)
+  }, [query, allCourseCodes])
 
   const handleCourseSelect = (courseCode: string) => {
     setQuery(courseCode)
@@ -179,8 +182,13 @@ export function CourseSearchMobile() {
                   <div className="space-y-1">
                     {courses.map((course, index) => (
                       <CourseSearchCard
-                        key={course.code}
-                        course={course}
+                        key={course}
+                        course={
+                          {
+                            code: course,
+                            title: "",
+                          } as unknown as CourseSearchResultItem
+                        }
                         index={index}
                         onSelect={handleCourseSelect}
                       />

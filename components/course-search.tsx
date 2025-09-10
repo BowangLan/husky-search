@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { CourseSearchResultItem } from "@/services/course-service"
+import { useRouter } from "next/navigation"
+import { api } from "@/convex/_generated/api"
+import { useQuery } from "convex/react"
 import { Search, X } from "lucide-react"
 import { motion } from "motion/react"
 
 import { EASE_OUT_CUBIC } from "@/config/animation"
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -16,13 +17,13 @@ const WIDTH_FOCUSED = "400px"
 
 export function CourseSearch() {
   const [query, setQuery] = useState("")
-  const [courses, setCourses] = useState<CourseSearchResultItem[]>([])
+  const [courses, setCourses] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [showResults, setShowResults] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const abortControllerRef = useRef<AbortController | null>(null)
-  const currentRequestIdRef = useRef<number>(0)
+  const allCourseCodes = useQuery(api.courses.getAllCourseCodes, {})
+  const navigate = useRouter()
 
   useEffect(() => {
     if (isFocused) {
@@ -41,62 +42,42 @@ export function CourseSearch() {
     if (e.key === "Escape") {
       setShowResults(false)
     }
+
+    if (e.key === "Enter" && courses.length === 1) {
+      navigate.push(`/courses/${courses[0]}`)
+      setShowResults(false)
+      setCourses([])
+      inputRef.current?.blur()
+    }
   }
 
-  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toUpperCase()
     setQuery(value)
     setShowResults(true)
-
     if (value.trim() === "") {
       setCourses([])
       setShowResults(false)
-      return
-    }
-
-    // Cancel any pending request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-    }
-
-    // Create new abort controller for this request
-    abortControllerRef.current = new AbortController()
-
-    // Generate a unique request ID for this request
-    const requestId = ++currentRequestIdRef.current
-
-    setLoading(true)
-    try {
-      const response = await fetch(
-        `/api/search?q=${encodeURIComponent(value)}`,
-        {
-          signal: abortControllerRef.current.signal,
-        }
-      )
-      const data = await response.json()
-
-      // Only update state if this is still the current request
-      if (requestId === currentRequestIdRef.current) {
-        setCourses(data.courses ?? [])
-        setShowResults(true)
-      }
-    } catch (error) {
-      // Only handle errors that aren't from aborting
-      if (error instanceof Error && error.name !== "AbortError") {
-        console.error("Search error:", error)
-        // Only update state if this is still the current request
-        if (requestId === currentRequestIdRef.current) {
-          setCourses([])
-          setShowResults(false)
-        }
-      }
-    } finally {
-      // Only set loading to false if this is still the current request
-      if (requestId === currentRequestIdRef.current) {
-        setLoading(false)
-      }
     }
   }
+
+  useEffect(() => {
+    if (query.trim() === "") {
+      setCourses([])
+      setLoading(false)
+      return
+    }
+    if (!allCourseCodes) {
+      setLoading(true)
+      return
+    }
+    setLoading(false)
+    const normalized = query.replace(/\s+/g, "")
+    const filtered = allCourseCodes
+      .filter((code) => code.replace(/\s+/g, "").startsWith(normalized))
+      .slice(0, 50)
+    setCourses(filtered)
+  }, [query, allCourseCodes])
 
   return (
     <div className="relative hidden md:block">
@@ -152,20 +133,20 @@ export function CourseSearch() {
               <div className="space-y-1">
                 {courses.map((course) => (
                   <Link
-                    key={course.code}
-                    href={`/courses/${course.code}`}
+                    key={course}
+                    href={`/courses/${course}`}
                     className="w-full flex items-center rounded-lg px-3 py-2 text-left text-sm hover:bg-foreground/10 hover:text-accent-foreground trans cursor-pointer z-20"
                     prefetch
                     onClick={(e) => {
                       e.stopPropagation()
                       setShowResults(false)
-                      setQuery(course.code)
+                      setQuery(course)
                       setCourses([])
                     }}
                   >
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium">{course.code}</span>
+                        <span className="font-medium">{course}</span>
                       </div>
                     </div>
                   </Link>
