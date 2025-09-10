@@ -27,7 +27,7 @@ import {
 export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
   useTrackMajorVisit(program)
 
-  const subjectArea = program?.code
+  const subjectArea = program.code
   const convexCourses = useQuery(api.myplan.listOverviewBySubjectArea, {
     subjectArea: subjectArea ?? "",
     limit: 200,
@@ -41,6 +41,42 @@ export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
       acc[level].push(course)
       return acc
     }, {} as Record<string, ConvexCourseOverview[]>)
+  }, [convexCourses])
+
+  const courseAvailability = useMemo(() => {
+    const courses = convexCourses ?? []
+    let open = 0
+    let closed = 0
+    let notOffered = 0
+
+    for (const course of courses) {
+      const enroll = course.enroll ?? []
+      if (enroll.length === 0) {
+        notOffered++
+        continue
+      }
+
+      const hasOpen = enroll.some((e) => {
+        if (typeof e.openSessionCount === "number" && e.openSessionCount > 0)
+          return true
+        if (e.enrollStatus && e.enrollStatus.toLowerCase() === "open")
+          return true
+        if (e.stateKey && e.stateKey.toLowerCase().includes("open")) return true
+        if (
+          typeof e.enrollCount === "number" &&
+          typeof e.enrollMax === "number" &&
+          e.enrollMax > 0 &&
+          e.enrollCount < e.enrollMax
+        )
+          return true
+        return false
+      })
+
+      if (hasOpen) open++
+      else closed++
+    }
+
+    return { open, closed, notOffered, total: courses.length }
   }, [convexCourses])
 
   const isLoading = convexCourses === undefined
@@ -58,9 +94,36 @@ export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
         </ViewTransition>
       }
       subtitle={
-        <div className="flex items-center gap-2 text-base text-muted-foreground font-light">
-          <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-          <span>{(convexCourses ?? []).length} courses available</span>
+        <div className="flex flex-wrap items-center gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground font-light">
+          <div className="inline-flex items-center gap-1.5">
+            <div className="h-2 w-2 rounded-full bg-green-500" />
+            <span>
+              <span className="tabular-nums text-foreground font-medium">
+                {courseAvailability.open}
+              </span>{" "}
+              open
+            </span>
+          </div>
+
+          <div className="inline-flex items-center gap-1.5">
+            <div className="h-2 w-2 rounded-full bg-red-500" />
+            <span>
+              <span className="tabular-nums text-foreground font-medium">
+                {courseAvailability.closed}
+              </span>{" "}
+              closed
+            </span>
+          </div>
+
+          <div className="inline-flex items-center gap-1.5">
+            <div className="h-2 w-2 rounded-full bg-gray-400" />
+            <span>
+              <span className="tabular-nums text-foreground font-medium">
+                {courseAvailability.notOffered}
+              </span>{" "}
+              not listed
+            </span>
+          </div>
         </div>
       }
       // topToolbar={<BackButton url={`/majors`} />}
