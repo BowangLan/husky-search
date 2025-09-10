@@ -23,7 +23,7 @@ export const CourseDetailHeader = ({
   return (
     // my should be the same as page-wrapper
     <section className="my-page-header space-y-2 md:space-y-4">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 pb-2">
         {/* <Badge
               variant="secondary"
               className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20"
@@ -35,8 +35,8 @@ export const CourseDetailHeader = ({
         {/* <CourseCreditBadge course={course} /> */}
       </div>
       <div className="space-y-1">
-        <div className="flex items-baseline gap-2 h-[50px]">
-          <h1 className="text-3xl font-medium text-foreground sm:text-4xl lg:text-5xl">
+        <div className="flex items-baseline gap-2">
+          <h1 className="text-3xl font-medium text-foreground sm:text-4xl lg:text-5xl leading-6">
             {course.code.slice(0, -3)}
             <span className="font-semibold text-primary">
               {course.code.slice(-3, -2)}

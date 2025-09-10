@@ -101,8 +101,8 @@ const CourseDetailPageSkeleton = () => {
           <Skeleton className="h-[30px] w-[90px]" />
         </div>
         <div className="space-y-2">
-          <div className="flex items-end gap-2 h-[50px]">
-            <Skeleton className="h-12 w-[240px]" />
+          <div className="flex items-end gap-2 mb-2">
+            <Skeleton className="h-[36px] sm:h-[40px] lg:h-[48px] w-[240px]" />
             <Skeleton className="h-[28px] w-[36px]" />
           </div>
           <div className="flex items-center gap-2">
@@ -206,7 +206,7 @@ export function CourseDetailPage({
 
   const isLoading = c === undefined
 
-  console.log(c)
+  // console.log(c)
 
   return (
     <Page className="mx-page px-page">
