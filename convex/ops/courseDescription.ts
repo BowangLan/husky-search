@@ -20,7 +20,8 @@ export const cleanCourseDescriptions = internalAction({
       courses: courseQuery.page.map((course) => ({
         id: course._id,
         data: {
-          description: course.detailData?.courseSummaryDetails?.courseDescription.replace("&quot;", "\"") ?? "",
+          // description: course.detailData?.courseSummaryDetails?.courseDescription.replace("&quot;", "\"") ?? "",
+          genEdReqs: course.detailData?.courseSummaryDetails?.abbrGenEdRequirements ?? [],
         }
       })),
     });
@@ -38,7 +39,8 @@ export const cleanCourseDescriptions = internalAction({
         courses: courseQuery.page.map((course) => ({
           id: course._id,
           data: {
-            description: course.detailData?.courseSummaryDetails?.courseDescription.replace("&quot;", "\"") ?? "",
+            // description: course.detailData?.courseSummaryDetails?.courseDescription.replace("&quot;", "\"") ?? "",
+            genEdReqs: course.detailData?.courseSummaryDetails?.abbrGenEdRequirements ?? [],
           }
         })),
       });

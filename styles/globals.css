@@ -274,3 +274,15 @@
 .my-page-header {
   @apply my-8 md:my-12;
 }
+
+.progress-indicator-green {
+  @apply bg-gradient-to-r dark:from-emerald-400 dark:via-emerald-500 dark:to-emerald-600 from-emerald-300 via-emerald-400 to-emerald-500;
+}
+
+.progress-indicator-red {
+  @apply bg-gradient-to-r dark:from-rose-600 dark:via-rose-500 dark:to-rose-700 from-rose-400 via-rose-400 to-rose-500;
+}
+
+.progress-indicator-yellow {
+  @apply bg-gradient-to-r dark:from-amber-400 dark:via-amber-500 dark:to-amber-600 from-amber-400 via-amber-400 to-amber-500;
+}

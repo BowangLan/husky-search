@@ -115,6 +115,43 @@ export const listCourseCodesWithDescription = query({
 })
 
 
+export const listOverviewBySubjectArea = query({
+  args: {
+    subjectArea: v.string(),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const results = await ctx.db
+      .query("myplanCourses")
+      .withIndex("by_subject_area", (q) => q.eq("subjectArea", args.subjectArea))
+      .collect();
+
+    const sorted = results.toSorted(
+      (a, b) => (b.statsEnrollMax ?? 0) - (a.statsEnrollMax ?? 0)
+    );
+    const limited = sorted.slice(0, args.limit ?? 200);
+
+    return limited.map((c) => ({
+      courseCode: c.courseCode,
+      title: c.title,
+      description: c.description,
+      credit: c.credit,
+      subjectArea: c.subjectArea,
+      courseNumber: c.courseNumber,
+      genEdReqs: c.genEdReqs,
+      enroll: (c.currentTermData ?? []).map((t) => ({
+        termId: t.termId,
+        enrollMax: t.enrollMax,
+        enrollCount: t.enrollCount,
+        stateKey: t.sessions?.[0]?.stateKey,
+        enrollStatus: t.sessions?.[0]?.enrollStatus,
+        openSessionCount: t.sessions?.filter((s) => s.stateKey === "active" && s.enrollCount < s.enrollMaximum).length,
+      })),
+    }));
+  },
+})
+
+
 
 export const fillCourseCodeToKvStore = mutation({
   args: {},
@@ -333,6 +370,7 @@ export const upsertCourseDetail = internalMutation({
         subjectArea: processedCourseDetail.subjectArea,
         courseNumber: processedCourseDetail.courseNumber,
         prereqs: processedCourseDetail.prereqs,
+        genEdReqs: processedCourseDetail.genEdRequirementsAbbr,
         currentTermData: latestTermsData,
         statsEnrollPercent: 0,
         statsEnrollMax: 0,
@@ -398,6 +436,7 @@ export const updateCourses = internalMutation({
       data: v.object({
         updateIntervalSeconds: v.optional(v.number()),
         description: v.optional(v.string()),
+        genEdReqs: v.optional(v.array(v.string())),
         detailData: v.optional(v.any()),
         searchData: v.optional(v.any()),
         embedding: v.optional(v.array(v.float64())),

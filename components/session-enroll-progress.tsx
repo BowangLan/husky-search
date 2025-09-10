@@ -77,11 +77,11 @@ export const SessionEnrollProgress = ({
           height: "6px",
         }}
         indicatorClassName={cn(
-          "bg-gradient-to-r dark:from-emerald-400 dark:via-emerald-500 dark:to-emerald-600 from-emerald-300 via-emerald-400 to-emerald-500",
-          sessionRaw?.enrollStatus === "add code required" &&
-            "dark:from-amber-400 dark:via-amber-500 dark:to-amber-600 from-amber-400 via-amber-400 to-amber-500",
-          isClosed &&
-            "dark:from-rose-600 dark:via-rose-500 dark:to-rose-700 from-rose-400 via-rose-400 to-rose-500"
+          sessionRaw?.enrollStatus === "add code required"
+            ? "progress-indicator-yellow"
+            : isClosed
+            ? "progress-indicator-red"
+            : "progress-indicator-green"
         )}
       />
     </div>

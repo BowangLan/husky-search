@@ -3,29 +3,19 @@
 import {
   // @ts-ignore
   unstable_ViewTransition as ViewTransition,
-  useEffect,
   useMemo,
-  useState,
 } from "react"
+import { api } from "@/convex/_generated/api"
 import { ProgramDetail } from "@/services/program-service"
 import { useTrackMajorVisit } from "@/store/visit-cache.store"
+import { useQuery } from "convex/react"
+import { Loader } from "lucide-react"
 
-import { MyPlanCourseCodeGroup } from "@/types/myplan"
-import { generateFilterOptions, groupCoursesByLevel } from "@/lib/course-utils"
+import { ConvexCourseOverview } from "@/types/convex-courses"
 import { capitalize } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import {
-  CourseCardGridView,
-  CourseCardListView,
-} from "@/components/course-card"
 
-import { BackButton } from "../back-button"
-import { CourseCardHorizontalList } from "../course-card-horizontal-list"
-import {
-  CourseFilterState,
-  CourseFilters,
-  CourseFiltersVertical,
-} from "../course-filters"
+import { ConvexCourseCardHorizontalList } from "../course-card-convex"
 import { PageTitle, PageWithHeaderLayout } from "../page-wrapper"
 import {
   Section,
@@ -34,107 +24,26 @@ import {
   SectionTitle,
 } from "../section"
 
-export function ProgramDetailPage({
-  program,
-  courses,
-  popularCourses,
-}: {
-  program: ProgramDetail
-  courses: MyPlanCourseCodeGroup[]
-  popularCourses: MyPlanCourseCodeGroup[]
-}) {
+export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
   useTrackMajorVisit(program)
 
-  const [filterState, setFilterState] = useState<CourseFilterState>({
-    credits: new Set(),
-    genEduReqs: new Set(),
-    terms: new Set(),
-    levels: new Set(),
+  const subjectArea = program?.code
+  const convexCourses = useQuery(api.myplan.listOverviewBySubjectArea, {
+    subjectArea: subjectArea ?? "",
+    limit: 200,
   })
-  const allFilterOptions = useMemo(
-    () => generateFilterOptions(courses),
-    [courses]
-  )
 
-  const [displayedCourses, setDisplayedCourses] =
-    useState<MyPlanCourseCodeGroup[]>(courses)
+  const groupedCoursesByLevel = useMemo(() => {
+    const courses = convexCourses ?? []
+    return courses.reduce((acc, course) => {
+      const level = (course.courseNumber?.slice(0, 1) ?? "?") + "00"
+      if (!acc[level]) acc[level] = []
+      acc[level].push(course)
+      return acc
+    }, {} as Record<string, ConvexCourseOverview[]>)
+  }, [convexCourses])
 
-  useEffect(() => {
-    setDisplayedCourses(courses)
-    setFilterState({
-      credits: new Set(),
-      genEduReqs: new Set(),
-      terms: new Set(),
-      levels: new Set(),
-    })
-  }, [courses])
-
-  const filterOptions = generateFilterOptions(displayedCourses)
-
-  const handleFilterStateChange = (state: CourseFilterState) => {
-    setFilterState(state)
-    setDisplayedCourses(
-      courses.filter((course) => {
-        // Check credits filter
-        if (state.credits.size > 0) {
-          let hasMatchingCredit = false
-          for (const cData of course.data) {
-            for (const credit of cData.data.allCredits) {
-              if (state.credits.has(credit)) {
-                hasMatchingCredit = true
-                break
-              }
-            }
-            if (hasMatchingCredit) break
-          }
-          if (!hasMatchingCredit) return false
-        }
-
-        // Check genEduReqs filter
-        if (state.genEduReqs.size > 0) {
-          let hasMatchingGenEduReq = false
-          for (const cData of course.data) {
-            for (const genEduReq of cData.data.genEduReqs) {
-              if (state.genEduReqs.has(genEduReq)) {
-                hasMatchingGenEduReq = true
-                break
-              }
-            }
-            if (hasMatchingGenEduReq) break
-          }
-          if (!hasMatchingGenEduReq) return false
-        }
-
-        // Check terms filter (using quarter property)
-        if (state.terms.size > 0) {
-          let hasMatchingTerm = false
-          for (const cData of course.data) {
-            if (state.terms.has(cData.quarter)) {
-              hasMatchingTerm = true
-              break
-            }
-          }
-          if (!hasMatchingTerm) return false
-        }
-
-        // Check levels filter
-        if (state.levels.size > 0) {
-          let hasMatchingLevel = false
-          for (const cData of course.data) {
-            if (state.levels.has(cData.data.level)) {
-              hasMatchingLevel = true
-              break
-            }
-          }
-          if (!hasMatchingLevel) return false
-        }
-
-        return true
-      })
-    )
-  }
-
-  const groupedCoursesByLevel = groupCoursesByLevel(displayedCourses)
+  const isLoading = convexCourses === undefined
 
   return (
     <PageWithHeaderLayout
@@ -151,13 +60,17 @@ export function ProgramDetailPage({
       subtitle={
         <div className="flex items-center gap-2 text-base text-muted-foreground font-light">
           <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-          <span>{courses.length} courses available</span>
+          <span>{(convexCourses ?? []).length} courses available</span>
         </div>
       }
       // topToolbar={<BackButton url={`/majors`} />}
     >
       <div>
-        {courses.length === 0 ? (
+        {isLoading ? (
+          <div className="px-page mx-page flex justify-center items-center">
+            <Loader size={40} className="animate-spin" />
+          </div>
+        ) : (convexCourses?.length ?? 0) === 0 ? (
           <section className="px-page mx-page">
             <div className="text-center py-12">
               <div className="text-muted-foreground text-lg">
@@ -177,40 +90,34 @@ export function ProgramDetailPage({
                 />
               </div> */}
 
-              {/* Top 10 Courses */}
+              {/* Popular Courses */}
               <Section>
                 <SectionHeader>
                   <SectionTitle>Popular Courses</SectionTitle>
                 </SectionHeader>
                 <SectionContent>
-                  {/* <CourseCardGridView courses={popularCourses} /> */}
-                  <CourseCardHorizontalList courses={popularCourses} />
+                  <ConvexCourseCardHorizontalList
+                    courses={(convexCourses ?? []).slice(0, 10)}
+                  />
                 </SectionContent>
               </Section>
 
-              <div>
-                {Object.entries(groupedCoursesByLevel).map(
-                  ([level, courses]) => {
-                    const sortedCourses = courses.sort((a, b) => {
-                      return a.code.localeCompare(b.code)
-                    })
-                    return (
-                      <Section key={level}>
-                        <SectionHeader
-                          title={`${level} Level`}
-                          subtitle={`${sortedCourses.length} courses`}
-                        />
-                        <SectionContent>
-                          <CourseCardGridView
-                            courses={sortedCourses}
-                            animated={false}
-                          />
-                        </SectionContent>
-                      </Section>
-                    )
-                  }
-                )}
-              </div>
+              {Object.entries(groupedCoursesByLevel).map(([level, courses]) => {
+                const sortedCourses = courses.sort((a, b) => {
+                  return a.courseCode.localeCompare(b.courseCode)
+                })
+                return (
+                  <Section key={level}>
+                    <SectionHeader
+                      title={`${level} Level`}
+                      subtitle={`${sortedCourses.length} courses`}
+                    />
+                    <SectionContent>
+                      <ConvexCourseCardHorizontalList courses={sortedCourses} />
+                    </SectionContent>
+                  </Section>
+                )
+              })}
             </div>
             {/* <div className="md:hidden flex">
                 <div className="w-[256px] sticky flex-none top-16 z-10 hidden">

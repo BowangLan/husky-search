@@ -120,6 +120,7 @@ export type ProcessedCourseDetail = {
   title: string
   credit: string
   genEdRequirements: string
+  genEdRequirementsAbbr: string[]
   termEnrollCountMap: Record<string, TermEnrollCount>
   termSessionMap: Record<string, MyplanCourseTermSession[]>
   campus: string
@@ -140,9 +141,10 @@ export const processCourseDetail = (courseDetail: any): ProcessedCourseDetail =>
   const courseNumber = courseDetail['courseSummaryDetails']['courseNumber']
   const title = courseDetail['courseSummaryDetails']['courseTitle']
   const credit = courseDetail['courseSummaryDetails']['credit']
-  const genEdRequirements = courseDetail['courseSummaryDetails']['abbrGenEdRequirements']
+  const genEdRequirements = courseDetail['courseSummaryDetails']['genEdRequirements']
   const campus = courseDetail['courseSummaryDetails']['campusLocations'][0]
   const prereqs = courseDetail['courseSummaryDetails']['requisites'].map(extractCourseCode).filter((code: string | null) => code !== null)
+  const genEdRequirementsAbbr = courseDetail['courseSummaryDetails']['abbrGenEdRequirements']
 
   const termEnrollCountMap = getCourseEnrollCount(courseDetail)
   const termSessionMap = getSessionsExtractedGroupedByTerm(courseDetail)
@@ -156,6 +158,7 @@ export const processCourseDetail = (courseDetail: any): ProcessedCourseDetail =>
     title,
     credit,
     genEdRequirements,
+    genEdRequirementsAbbr,
     termEnrollCountMap,
     termSessionMap,
     campus,

@@ -124,15 +124,29 @@ export function CourseCardLink({
                     % full
                   </span>
                 </div>
-                <Progress
-                  className="h-1.5 bg-neutral-200 dark:bg-neutral-700"
-                  indicatorClassName="bg-green-400 dark:bg-green-500"
-                  value={
+                {(() => {
+                  const isClosed =
+                    (course.enrollData?.enrollCount ?? 0) >=
+                    (course.enrollData?.enrollMax ?? 0)
+                  const value =
                     (course.enrollData.enrollCount /
                       course.enrollData.enrollMax) *
                     100
-                  }
-                />
+                  return (
+                    <Progress
+                      className={cn(
+                        "h-1.5 bg-foreground/5",
+                        isClosed && "bg-foreground/10"
+                      )}
+                      indicatorClassName={cn(
+                        "bg-gradient-to-r dark:from-emerald-400 dark:via-emerald-500 dark:to-emerald-600 from-emerald-300 via-emerald-400 to-emerald-500",
+                        isClosed &&
+                          "dark:from-rose-600 dark:via-rose-500 dark:to-rose-700 from-rose-400 via-rose-400 to-rose-500"
+                      )}
+                      value={value}
+                    />
+                  )
+                })()}
               </div>
             )}
 
