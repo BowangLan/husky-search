@@ -45,6 +45,7 @@ export function getSessionsExtractedGroupedByTerm(
           meetingDetailsList: offering.meetingDetailsList,
           instructor: offering.instructor,
           addCodeRequired: offering.addCodeRequired,
+          enrollStatus: offering.enrollStatus,
         })
       }
     }
