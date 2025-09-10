@@ -123,41 +123,51 @@ export const listOverviewBySubjectArea = query({
 })
 
 
-// export const listOverviewByCredit = query({
-//   args: {
-//     credit: v.string(),
-//     limit: v.optional(v.number()),
-//   },
-//   handler: async (ctx, args) => {
-//     const results = await ctx.db
-//       .query("myplanCourses")
-//       .withIndex("by_all_credits", (q) => q.eq("allCredits", args.credit))
-//       .collect();
+export const listOverviewByCredit = query({
+  args: {
+    credit: v.string(),
+    limit: v.optional(v.number()),
+    cursor: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const results = await ctx.db
+      .query("myplanCourses")
+      .withIndex("by_credit", (q) => q.eq("credit", args.credit))
+      .paginate({
+        numItems: args.limit ?? 200,
+        cursor: args.cursor ?? null,
+      });
 
-//     const sorted = results.toSorted(
-//       (a, b) => (b.statsEnrollMax ?? 0) - (a.statsEnrollMax ?? 0)
-//     );
-//     const limited = sorted.slice(0, args.limit ?? 200);
+    // const sorted = results.page.toSorted(
+    //   (a, b) => (b.statsEnrollMax ?? 0) - (a.statsEnrollMax ?? 0)
+    // );
+    // const limited = sorted.slice(0, args.limit ?? 200);
 
-//     return limited.map((c) => ({
-//       courseCode: c.courseCode,
-//       title: c.title,
-//       description: c.description,
-//       credit: c.credit,
-//       subjectArea: c.subjectArea,
-//       courseNumber: c.courseNumber,
-//       genEdReqs: c.genEdReqs,
-//       enroll: (c.currentTermData ?? []).map((t) => ({
-//         termId: t.termId,
-//         enrollMax: t.enrollMax,
-//         enrollCount: t.enrollCount,
-//         stateKey: t.sessions?.[0]?.stateKey,
-//         enrollStatus: t.sessions?.[0]?.enrollStatus,
-//         openSessionCount: t.sessions?.filter((s) => s.stateKey === "active" && s.enrollCount < s.enrollMaximum).length,
-//       })),
-//     }));
-//   },
-// })
+    const mapped = results.page.map((c) => ({
+      courseCode: c.courseCode,
+      title: c.title,
+      description: c.description,
+      credit: c.credit,
+      subjectArea: c.subjectArea,
+      courseNumber: c.courseNumber,
+      genEdReqs: c.genEdReqs,
+      enroll: (c.currentTermData ?? []).map((t) => ({
+        termId: t.termId,
+        enrollMax: t.enrollMax,
+        enrollCount: t.enrollCount,
+        stateKey: t.sessions?.[0]?.stateKey,
+        enrollStatus: t.sessions?.[0]?.enrollStatus,
+        openSessionCount: t.sessions?.filter((s) => s.stateKey === "active" && s.enrollCount < s.enrollMaximum).length,
+      })),
+    }));
+
+    return {
+      data: mapped,
+      continueCursor: results.continueCursor,
+      isDone: results.isDone,
+    };
+  },
+})
 
 
 export type CourseDetail = NonNullable<FunctionReturnType<typeof api.courses.getByCourseCode>>

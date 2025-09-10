@@ -126,6 +126,7 @@ export default defineSchema({
     .index("by_subject_area", ["subjectArea"])
     .index("by_update_interval_seconds", ["updateIntervalSeconds"])
     .index("by_detail_data", ["detailData"])
+    .index("by_credit", ["credit"])
     .index("by_current_term_data", ["currentTermData"])
     .index("by_stats_enroll_percent", ["statsEnrollPercent"])
     .index("by_stats_enroll_max", ["statsEnrollMax"])
