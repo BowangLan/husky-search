@@ -31,7 +31,8 @@ export const CourseMetadataSection = ({
         </SectionHeader>
         <SectionContent>
           <p className="leading-relaxed max-w-4xl text-sm md:text-base font-light">
-            {course.data[0]!.data.prereqs
+            {!!course.data[0]!.data.prereqs &&
+            course.data[0]!.data.prereqs !== "null"
               ? capitalizeSingle(course.data[0]!.data.prereqs)
               : "No prerequisites"}
           </p>
