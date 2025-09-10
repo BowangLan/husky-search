@@ -28,7 +28,7 @@ export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
   useTrackMajorVisit(program)
 
   const subjectArea = program.code
-  const convexCourses = useQuery(api.myplan.listOverviewBySubjectArea, {
+  const convexCourses = useQuery(api.courses.listOverviewBySubjectArea, {
     subjectArea: subjectArea ?? "",
     limit: 200,
   })

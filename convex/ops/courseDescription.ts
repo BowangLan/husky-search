@@ -21,7 +21,8 @@ export const cleanCourseDescriptions = internalAction({
         id: course._id,
         data: {
           // description: course.detailData?.courseSummaryDetails?.courseDescription.replace("&quot;", "\"") ?? "",
-          genEdReqs: course.detailData?.courseSummaryDetails?.abbrGenEdRequirements ?? [],
+          // genEdReqs: course.detailData?.courseSummaryDetails?.abbrGenEdRequirements ?? [],
+          termsOffered: course.detailData?.courseSummaryDetails?.termsOffered ?? [],
         }
       })),
     });
@@ -40,7 +41,8 @@ export const cleanCourseDescriptions = internalAction({
           id: course._id,
           data: {
             // description: course.detailData?.courseSummaryDetails?.courseDescription.replace("&quot;", "\"") ?? "",
-            genEdReqs: course.detailData?.courseSummaryDetails?.abbrGenEdRequirements ?? [],
+            // genEdReqs: course.detailData?.courseSummaryDetails?.abbrGenEdRequirements ?? [],
+            termsOffered: course.detailData?.courseSummaryDetails?.termsOffered ?? [],
           }
         })),
       });

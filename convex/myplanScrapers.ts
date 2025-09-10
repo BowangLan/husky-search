@@ -334,6 +334,8 @@ export const scrapeAndSaveSearchResultsForAllSubjectAreas = action({
             campus: course.campus,
             subjectArea: course.subject,
             courseNumber: course.code.slice(-3),
+            genEdReqs: [],
+            termsOffered: [],
             prereqs: course.prereqs,
           });
         }
