@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.27",
+    "@clerk/backend": "^2.13.0",
     "@clerk/nextjs": "^6.31.9",
     "@hookform/resolvers": "^5.0.1",
     "@radix-ui/react-accordion": "^1.2.10",
@@ -69,6 +70,7 @@
     "recharts": "2.15.4",
     "sharp": "^0.31.3",
     "sonner": "^2.0.3",
+    "svix": "^1.76.1",
     "tailwind-merge": "^1.13.2",
     "tailwindcss-animate": "^1.0.6",
     "use-stick-to-bottom": "^1.1.1",

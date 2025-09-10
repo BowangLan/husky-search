@@ -87,6 +87,17 @@ export const myplanCourseObj = v.object(myplanCourseFullFields)
 export type MyplanCourseInfo = Infer<typeof myplanCourseInfoObj>
 export type MyplanCourse = Infer<typeof myplanCourseObj>
 
+export const userFields = {
+  clerkId: v.string(),
+  email: v.string(),
+  firstName: v.string(),
+  lastName: v.string(),
+  imageUrl: v.string(),
+}
+
+export const userObj = v.object(userFields)
+export type User = Infer<typeof userObj>
+
 export default defineSchema({
   canvasCourses: defineTable({
     courseId: v.string(),
@@ -154,4 +165,9 @@ export default defineSchema({
     key: v.string(),
     value: v.any(),
   }).index("by_key", ["key"]),
+
+  users: defineTable(userFields)
+    .index("by_clerk_id", ["clerkId"])
+    .index("by_email", ["email"])
+  ,
 });
