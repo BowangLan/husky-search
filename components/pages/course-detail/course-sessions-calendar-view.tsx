@@ -1,7 +1,13 @@
 import { useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import {
+  useIsSessionScheduled,
+  useToggleSchedule,
+} from "@/store/schedule.store"
+import {
   AlertCircle,
+  CalendarMinus,
+  CalendarPlus,
   Check,
   Clock,
   Copy,
@@ -38,9 +44,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { CopySLNButton } from "@/components/copy-sln-button"
 import { SessionEnrollProgress } from "@/components/session-enroll-progress"
 
 import { useCourseSessions } from "./course-sessions-context"
+import { SessionScheduleToggleButton } from "./session-schedule-toggle-button"
 
 type Meeting = {
   building?: string
@@ -348,33 +356,9 @@ const CalendarEventCard = ({
               </div>
             </div>
 
-            <div className="shrink-0">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    className="h-8 px-2 gap-1 font-mono text-xs"
-                    onClick={() =>
-                      handleCopy((event.session as any).registrationCode)
-                    }
-                  >
-                    <span className="mr-1">
-                      {(event.session as any).registrationCode}
-                    </span>
-                    {copied ? (
-                      <Check className="text-green-500 size-4" />
-                    ) : (
-                      <Copy className="opacity-70 size-4" />
-                    )}
-                    <span className="sr-only">Copy SLN</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {copied ? "Copied!" : "Copy SLN"}
-                </TooltipContent>
-              </Tooltip>
+            <div className="shrink-0 flex items-center gap-2">
+              <SessionScheduleToggleButton session={event.session} />
+              <CopySLNButton session={event.session} />
             </div>
           </div>
 

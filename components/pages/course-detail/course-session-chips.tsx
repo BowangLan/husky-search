@@ -1,31 +1,19 @@
 import { useRef, useState } from "react"
-import Link from "next/link"
-import {
-  AlertCircle,
-  Check,
-  Clock,
-  Copy,
-  Info,
-  KeyRound,
-  MapPin,
-  Pin,
-  X,
-} from "lucide-react"
+import { useToggleSchedule } from "@/store/schedule.store"
+import { X } from "lucide-react"
 import { toast } from "sonner"
 
 import { getEnrollOutlineClasses } from "@/lib/session-utils"
 import { capitalize, cn, expandDays } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 
 import {
   CourseSessionsProvider,
   useCourseSessions,
 } from "./course-sessions-context"
+import { useScheduleToggleWithToasts } from "./use-schedule-toggle"
+
+const DELAYED_HOVER_TIMEOUT = 200
 
 const SessionChip = ({
   session,
@@ -35,14 +23,18 @@ const SessionChip = ({
   parentSessionId?: string
 }) => {
   const {
+    data,
     getSessionEnrollState,
     selectedSessionIds,
     setSelectedSessionIds,
     pinnedSessionIds,
     setPinnedSessionIds,
   } = useCourseSessions()
+
   const selectedSessionIdSet = new Set(selectedSessionIds)
   const delayedHoverTimeout = useRef<NodeJS.Timeout | null>(null)
+
+  const { triggerToggle, isScheduled } = useScheduleToggleWithToasts(session)
 
   const enrollState = getSessionEnrollState(session)
   const chipClasses = getEnrollOutlineClasses(enrollState)
@@ -60,8 +52,12 @@ const SessionChip = ({
         setSelectedSessionIds(
           parentSessionId ? [parentSessionId, session.id] : [session.id]
         )
-      }, 500)
+      }, DELAYED_HOVER_TIMEOUT)
     }
+  }
+
+  const handleClick = () => {
+    triggerToggle()
   }
 
   return (
@@ -70,7 +66,9 @@ const SessionChip = ({
         "inline-flex items-center gap-1.5 rounded-md px-2.5 h-7 justify-center text-xs border trans",
         "transition-colors duration-150 cursor-pointer",
         chipClasses,
-        isPinned &&
+        // isPinned &&
+        //   "bg-purple-600 text-white border-purple-600 dark:bg-purple-600 dark:text-white dark:border-purple-600",
+        isScheduled &&
           "bg-purple-600 text-white border-purple-600 dark:bg-purple-600 dark:text-white dark:border-purple-600",
         selectedSessionIdSet.size > 0 &&
           !isSelected &&
@@ -98,11 +96,7 @@ const SessionChip = ({
       onClick={(e) => {
         e.preventDefault()
         e.stopPropagation()
-        setPinnedSessionIds(
-          pinnedSessionIds.includes(session.id)
-            ? pinnedSessionIds.filter((id) => id !== session.id)
-            : [...pinnedSessionIds, session.id]
-        )
+        handleClick()
       }}
     >
       {/* <span className={cn("size-1.5 rounded-full", dotClasses)} /> */}

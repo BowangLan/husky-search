@@ -58,7 +58,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 position="top-center"
                 richColors
                 closeButton
-                duration={1600}
+                duration={3000}
               />
             </ThemeProvider>
           </GlobalLayoutWrapper>

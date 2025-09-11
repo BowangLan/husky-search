@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { api } from "@/convex/_generated/api"
+import { useQuery } from "convex/react"
 import { GraduationCap } from "lucide-react"
 
 import { MyPlanCourseCodeGroupWithDetail } from "@/types/myplan"
@@ -13,6 +15,7 @@ import {
 import {
   CourseGenEdRequirements,
   CourseProgramBadgeLink,
+  getQuarterColor,
 } from "@/components/course-modules"
 
 export const CourseDetailHeader = ({
@@ -20,6 +23,37 @@ export const CourseDetailHeader = ({
 }: {
   course: MyPlanCourseCodeGroupWithDetail
 }) => {
+  const courseCode = course.code
+  const courseData = useQuery(api.courses.getByCourseCode, { courseCode })
+
+  if (!courseData?.myplanCourse) {
+    return null
+  }
+
+  const termsOfferedFromConvex = (courseData.myplanCourse as any)
+    ?.termsOffered as string[] | undefined
+  const termsOfferedFromDetail = course.detail?.courseSummaryDetails
+    .termsOffered as unknown as string[] | undefined
+
+  const normalizedOfferedTerms = Array.from(
+    new Set(
+      (termsOfferedFromConvex ?? termsOfferedFromDetail ?? [])
+        .filter(Boolean)
+        .map((t) => `${t}`.toLowerCase())
+    )
+  )
+
+  const orderedQuarterMeta = [
+    { key: "autumn", label: "Autumn", num: 4 },
+    { key: "winter", label: "Winter", num: 1 },
+    { key: "spring", label: "Spring", num: 2 },
+    { key: "summer", label: "Summer", num: 3 },
+  ] as const
+
+  const offeredQuarterBadges = orderedQuarterMeta.filter((q) =>
+    normalizedOfferedTerms.includes(q.key)
+  )
+
   return (
     // my should be the same as page-wrapper
     <section className="my-page-header space-y-2 md:space-y-4">
@@ -37,26 +71,28 @@ export const CourseDetailHeader = ({
       <div className="space-y-1">
         <div className="flex items-baseline gap-2">
           <h1 className="text-3xl font-medium text-foreground sm:text-4xl lg:text-5xl leading-6">
-            {course.code.slice(0, -3)}
+            {courseCode.slice(0, -3)}
             <span className="font-semibold text-primary">
-              {course.code.slice(-3, -2)}
+              {courseCode.slice(-3, -2)}
             </span>
-            {course.code.slice(-2)}
+            {courseCode.slice(-2)}
           </h1>
           <Tooltip>
             <TooltipTrigger>
               <span className="text-muted-foreground text-base md:text-lg lg:text-xl inline-block ml-2 font-mono">
-                ({course.data[0]!.data.credit})
+                ({courseData.myplanCourse?.credit})
               </span>
             </TooltipTrigger>
             <TooltipContent side="bottom">
-              <p>This course is worth {course.data[0]!.data.credit} credits.</p>
+              <p>
+                This course is worth {courseData.myplanCourse.credit} credits.
+              </p>
             </TooltipContent>
           </Tooltip>
         </div>
         <div className="flex items-center gap-2">
           <h2 className="text-base font-normal text-foreground sm:text-xl lg:text-2xl opacity-60">
-            {course.title}
+            {courseData.myplanCourse.title}
           </h2>
         </div>
       </div>
@@ -65,16 +101,32 @@ export const CourseDetailHeader = ({
           {/* <CourseLevelBadge course={course} /> */}
           {/* <CourseCreditBadge course={course} /> */}
           <CourseGenEdRequirements course={course} />
+
+          {/* Quarter Badges */}
+          {offeredQuarterBadges.length > 0 && (
+            <div className="flex items-center gap-2 ml-1">
+              {offeredQuarterBadges.map((q) => (
+                <Badge
+                  key={q.key}
+                  variant={`${getQuarterColor(q.num)}`}
+                  className="text-xs px-2 h-8"
+                >
+                  {q.label}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex-1"></div>
         <div className="flex items-center gap-6">
           <ExternalLink
-            href={`https://myplan.uw.edu/course/#/courses/${course.code}`}
+            href={`https://myplan.uw.edu/course/#/courses/${courseCode}`}
           >
             View on MyPlan
           </ExternalLink>
           <ExternalLink
-            href={`https://dawgpath.uw.edu/course?id=${course.code}&campus=seattle`}
+            // TODO: make campus dynamic, need to get the map of campus codes to names
+            href={`https://dawgpath.uw.edu/course?id=${courseCode}&campus=seattle`}
           >
             View on DawgPath
           </ExternalLink>
