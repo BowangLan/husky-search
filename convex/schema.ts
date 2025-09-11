@@ -62,7 +62,7 @@ export const myplanCourseInfoFields = {
   subjectArea: v.string(),
   courseNumber: v.string(),
   genEdReqs: v.array(v.string()),
-  termsOffered: v.optional(v.array(v.string())),
+  termsOffered: v.array(v.string()),
   prereqs: v.optional(v.union(
     v.array(v.string()),
     v.string(),

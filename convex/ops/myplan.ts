@@ -3,10 +3,9 @@ import { api, internal } from "../_generated/api";
 import { v } from "convex/values";
 
 
-export const cleanCourseDescriptions = internalAction({
+export const cleanMyPlanCourses = internalAction({
   args: {
     limit: v.number(),
-    cursor: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     let page = 1;
@@ -14,7 +13,7 @@ export const cleanCourseDescriptions = internalAction({
 
     console.log(`Fetching all course codes`);
     let courseQuery = await ctx.runQuery(api.myplan.listFullCourses, {
-      limit: 100,
+      limit: args.limit,
     });
     await ctx.scheduler.runAfter(0, internal.myplan.updateCourses, {
       courses: courseQuery.page.map((course) => ({
