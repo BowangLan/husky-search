@@ -7,7 +7,11 @@ export function Section({
 }: React.ComponentProps<"section"> & { withPadding?: boolean }) {
   return (
     <section
-      className={cn("mb-6", withPadding && "px-page mx-page", className)}
+      className={cn(
+        "mb-1 lg:mb-6",
+        withPadding && "px-page mx-page",
+        className
+      )}
     >
       {children}
     </section>
@@ -28,13 +32,13 @@ export function SectionHeader({
   return (
     <div
       className={cn(
-        "pb-3 flex items-center flex-row gap-2",
+        "pb-1 lg:pb-3 flex items-center flex-row gap-2",
         border && "border-b border-border pb-4",
         className
       )}
     >
       {(!!title || !!subtitle) && (
-        <div className="flex-1 flex flex-col gap-1">
+        <div className="flex-1 flex flex-col lg:gap-1">
           {!!title && <SectionTitle>{title}</SectionTitle>}
           {!!subtitle && <SectionSubtitle>{subtitle}</SectionSubtitle>}
         </div>
@@ -48,7 +52,11 @@ export function SectionContent({
   children,
   className,
 }: React.ComponentProps<"div">) {
-  return <div className={cn("py-4", className)}>{children}</div>
+  return (
+    <div className={cn("py-2 flex flex-col lg:py-4", className)}>
+      {children}
+    </div>
+  )
 }
 
 export function SectionTitle({
@@ -56,7 +64,12 @@ export function SectionTitle({
   className,
 }: React.ComponentProps<"h2">) {
   return (
-    <h2 className={cn("text-xl md:text-2xl font-medium md:font-semibold", className)}>
+    <h2
+      className={cn(
+        "text-xl md:text-2xl font-medium md:font-semibold",
+        className
+      )}
+    >
       {children}
     </h2>
   )

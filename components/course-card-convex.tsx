@@ -163,7 +163,7 @@ export const ConvexCourseCardHorizontalList = ({
   courses: ConvexCourseOverview[]
 }) => {
   return (
-    <div className="flex flex-row gap-4 md:gap-6 w-full items-stretch overflow-x-auto snap-x snap-mandatory py-4 -translate-y-4">
+    <div className="flex flex-row gap-4 md:gap-6 w-full items-stretch overflow-x-auto snap-x snap-mandatory py-2 -translate-y-2 flex-none">
       {courses.map((course) => (
         <ConvexCourseCardLink
           key={course.courseCode}
