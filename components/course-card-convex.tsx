@@ -168,7 +168,7 @@ export const ConvexCourseCardHorizontalList = ({
         <ConvexCourseCardLink
           key={course.courseCode}
           course={course}
-          className="w-72 flex-none h-auto"
+          className="w-60 md:w-64 lg:w-72 flex-none h-auto"
         />
       ))}
     </div>
