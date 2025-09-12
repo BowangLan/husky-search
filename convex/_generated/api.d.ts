@@ -33,6 +33,7 @@ import type * as myplanUtils from "../myplanUtils.js";
 import type * as ops_courseEmbeddings from "../ops/courseEmbeddings.js";
 import type * as ops_myplan from "../ops/myplan.js";
 import type * as users from "../users.js";
+import type * as uwMapScrapers from "../uwMapScrapers.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -63,6 +64,7 @@ declare const fullApi: ApiFromModules<{
   "ops/courseEmbeddings": typeof ops_courseEmbeddings;
   "ops/myplan": typeof ops_myplan;
   users: typeof users;
+  uwMapScrapers: typeof uwMapScrapers;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,
