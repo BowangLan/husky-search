@@ -334,6 +334,7 @@ export const upsertCourseDetail = internalMutation({
         prereqs: processedCourseDetail.prereqs,
         genEdReqs: processedCourseDetail.genEdRequirementsAbbr,
         currentTermData: latestTermsData,
+        termsOffered: processedCourseDetail.termsOffered,
         statsEnrollPercent: 0,
         statsEnrollMax: 0,
         updateIntervalSeconds: 24 * 60 * 60, // 24h
