@@ -9,6 +9,10 @@ import { Section, SectionContent, SectionHeader } from "./section"
 export function RecentMajorsSection() {
   const recentMajors = useStore(visitCacheStore, (s) => s.recentMajors)
 
+  if (recentMajors.length === 0) {
+    return null
+  }
+
   return (
     <Section>
       <div className="px-page mx-page">
