@@ -115,7 +115,7 @@ export const SessionChips = () => {
     pinnedSessionIds,
     setPinnedSessionIds,
   } = useCourseSessions()
-  const termData = data.myplanCourse?.currentTermData?.[0]
+  const termData = data?.myplanCourse?.currentTermData?.[0]
   let sessions = termData?.sessions
 
   if (selectedWeekDaySet.size > 0) {
