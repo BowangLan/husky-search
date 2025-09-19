@@ -11,7 +11,8 @@ import {
   db,
 } from "@/lib/db/schema"
 import { CourseCardGridViewWithSuspense } from "@/components/course-card"
-import { PageWithHeaderLayout } from "@/components/page-wrapper"
+import { HeroSection } from "@/components/hero-section"
+import { Page, PageWithHeaderLayout } from "@/components/page-wrapper"
 import {
   ProgramCardGrid,
   ProgramCardGridWithSuspense,
@@ -112,7 +113,8 @@ export default async function IndexPage() {
   )()
 
   return (
-    <PageWithHeaderLayout>
+    <Page>
+      <HeroSection />
       {/* <Section withPadding>
         <SectionHeader
           title="Courses by Credit"
@@ -141,6 +143,6 @@ export default async function IndexPage() {
           <CourseCardGridViewWithSuspense courses={courses} />
         </SectionContent>
       </Section>
-    </PageWithHeaderLayout>
+    </Page>
   )
 }

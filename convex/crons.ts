@@ -12,14 +12,14 @@ crons.cron(
   }
 );
 
-crons.cron(
-  "scrape latest course details every 1 minute",
-  "*/1 * * * *",
-  internal.myplanScrapers.runCourseDetailCronJob,
-  {
-    intervalSeconds: 60,
-  }
-);
+// crons.cron(
+//   "scrape latest course details every 1 minute",
+//   "*/1 * * * *",
+//   internal.myplanScrapers.runCourseDetailCronJob,
+//   {
+//     intervalSeconds: 60,
+//   }
+// );
 
 crons.cron(
   "scrape latest course details every 10 minutes",
