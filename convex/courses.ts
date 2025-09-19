@@ -251,3 +251,18 @@ export const getAllCourseCodes = query({
     return (kvStoreCourseCodes?.value || []) as string[];
   }
 })
+
+export const getAllSubjectAreas = query({
+  args: {},
+  handler: async (ctx) => {
+    const subjects = await ctx.db.query("myplanSubjects").collect();
+    return subjects.map(subject => subject.code).sort();
+  }
+})
+
+export const getAllSubjects = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("myplanSubjects").collect();
+  }
+})

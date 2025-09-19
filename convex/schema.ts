@@ -87,6 +87,21 @@ export const myplanCourseObj = v.object(myplanCourseFullFields)
 export type MyplanCourseInfo = Infer<typeof myplanCourseInfoObj>
 export type MyplanCourse = Infer<typeof myplanCourseObj>
 
+export const myplanSubjectFields = {
+  code: v.string(),
+  title: v.string(),
+  campus: v.string(),
+  collegeCode: v.string(),
+  collegeTitle: v.string(),
+  departmentCode: v.string(),
+  departmentTitle: v.string(),
+  codeNoSpaces: v.string(),
+  quotedCode: v.string(),
+}
+
+export const myplanSubjectObj = v.object(myplanSubjectFields)
+export type MyplanSubject = Infer<typeof myplanSubjectObj>
+
 export const userFields = {
   clerkId: v.string(),
   email: v.string(),
@@ -145,6 +160,18 @@ export default defineSchema({
       vectorField: "embedding",
       dimensions: 1536,
     })
+  ,
+
+  myplanSubjects: defineTable({
+    ...myplanSubjectFields,
+  })
+    .index("by_code", ["code"])
+    .searchIndex("by_title_search", {
+      searchField: "title",
+    })
+    .index("by_campus", ["campus"])
+    .index("by_college_code", ["collegeCode"])
+    .index("by_department_code", ["departmentCode"])
   ,
 
   dawgpathCourses: defineTable({

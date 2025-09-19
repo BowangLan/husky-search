@@ -9,17 +9,20 @@ import { Search, X } from "lucide-react"
 import { motion } from "motion/react"
 
 import { EASE_OUT_CUBIC } from "@/config/animation"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 export function HeroSearch() {
   const [query, setQuery] = useState("")
   const [courses, setCourses] = useState<string[]>([])
+  const [majors, setMajors] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [showResults, setShowResults] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const allCourseCodes = useQuery(api.courses.getAllCourseCodes, {})
+  const allSubjectAreas = useQuery(api.courses.getAllSubjectAreas, {})
   const navigate = useRouter()
 
   useEffect(() => {
@@ -31,6 +34,7 @@ export function HeroSearch() {
   const handleClear = () => {
     setQuery("")
     setCourses([])
+    setMajors([])
     setShowResults(false)
     inputRef.current?.focus()
   }
@@ -43,17 +47,34 @@ export function HeroSearch() {
     )
   }
 
+  const isExactMajorMatch = (searchQuery: string) => {
+    if (!allSubjectAreas) return false
+    const normalized = searchQuery.replace(/\s+/g, "")
+    return allSubjectAreas.some(
+      (code) => code.replace(/\s+/g, "") === normalized
+    )
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       setShowResults(false)
     }
 
-    // Only navigate on Enter if there's an exact course code match
     if (e.key === "Enter") {
-      if (courses.length === 1) {
+      if (courses.length === 1 && majors.length === 0) {
         navigate.push(`/courses/${courses[0]}`)
         setShowResults(false)
         setCourses([])
+        setMajors([])
+        inputRef.current?.blur()
+      } else if (
+        majors.length === 1 &&
+        majors[0] === query.trim().toUpperCase()
+      ) {
+        navigate.push(`/majors/${majors[0]}`)
+        setShowResults(false)
+        setCourses([])
+        setMajors([])
         inputRef.current?.blur()
       } else if (isExactMatch(query)) {
         const exactMatch = allCourseCodes?.find(
@@ -63,10 +84,21 @@ export function HeroSearch() {
           navigate.push(`/courses/${exactMatch}`)
           setShowResults(false)
           setCourses([])
+          setMajors([])
+          inputRef.current?.blur()
+        }
+      } else if (isExactMajorMatch(query)) {
+        const exactMatch = allSubjectAreas?.find(
+          (code) => code.replace(/\s+/g, "") === query.replace(/\s+/g, "")
+        )
+        if (exactMatch) {
+          navigate.push(`/majors/${exactMatch}`)
+          setShowResults(false)
+          setCourses([])
+          setMajors([])
           inputRef.current?.blur()
         }
       }
-      // For non-exact matches, do nothing (leave for future todo)
     }
   }
 
@@ -76,6 +108,7 @@ export function HeroSearch() {
     setShowResults(true)
     if (value.trim() === "") {
       setCourses([])
+      setMajors([])
       setShowResults(false)
     }
   }
@@ -83,34 +116,38 @@ export function HeroSearch() {
   useEffect(() => {
     if (query.trim() === "") {
       setCourses([])
+      setMajors([])
       setLoading(false)
       return
     }
-    if (!allCourseCodes) {
+    if (!allCourseCodes || !allSubjectAreas) {
       setLoading(true)
       return
     }
     setLoading(false)
     const normalized = query.replace(/\s+/g, "")
-    const filtered = allCourseCodes
+
+    // Filter courses
+    const filteredCourses = allCourseCodes
       .filter((code) => code.replace(/\s+/g, "").startsWith(normalized))
       .slice(0, 50)
-    setCourses(filtered)
-  }, [query, allCourseCodes])
+    setCourses(filteredCourses)
+
+    // Filter majors
+    const filteredMajors = allSubjectAreas
+      .filter((code) => code.replace(/\s+/g, "").startsWith(normalized))
+      .slice(0, 10)
+    setMajors(filteredMajors)
+  }, [query, allCourseCodes, allSubjectAreas])
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
       <div className="relative">
         <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 opacity-50 z-10" />
-        <motion.div
-          initial={{ scale: 0.95 }}
-          animate={{ scale: isFocused ? 1.02 : 1 }}
-          transition={{ duration: 0.2, ease: EASE_OUT_CUBIC }}
-          className="relative"
-        >
+        <div className="relative trans w-full md:w-xl focus-within:w-2xl">
           <Input
             ref={inputRef}
-            placeholder="Search for courses (e.g. CSE 142, MATH 126)..."
+            placeholder="Search for courses or majors (e.g. CSE 142, MATH 126)..."
             value={query}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
@@ -125,7 +162,7 @@ export function HeroSearch() {
               // Delay hiding results to allow clicks
               setTimeout(() => setShowResults(false), 150)
             }}
-            className="pl-12 pr-12 h-14 text-lg border-2 rounded-xl shadow-lg"
+            className="pl-12 pr-12 h-14 text-base border focus-visible:ring-0 rounded-xl shadow-lg"
           />
           {query && (
             <Button
@@ -137,7 +174,7 @@ export function HeroSearch() {
               <X className="h-4 w-4" />
             </Button>
           )}
-        </motion.div>
+        </div>
 
         {showResults && (
           <motion.div
@@ -150,36 +187,75 @@ export function HeroSearch() {
             <div className="max-h-80 overflow-y-auto p-2">
               {loading ? (
                 <div className="p-6 text-center text-muted-foreground">
-                  Searching courses...
+                  Searching...
                 </div>
-              ) : courses.length === 0 ? (
+              ) : courses.length === 0 && majors.length === 0 ? (
                 <div className="p-6 text-center text-muted-foreground">
-                  No courses found for "{query}"
+                  No courses or majors found for "{query}"
                 </div>
               ) : (
                 <div className="space-y-1">
-                  {courses.map((course) => (
-                    <Link
-                      key={course}
-                      href={`/courses/${course}`}
-                      className="w-full flex items-center rounded-lg px-4 py-3 text-left hover:bg-foreground/5 hover:text-accent-foreground transition-colors cursor-pointer"
-                      prefetch
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setShowResults(false)
-                        setQuery(course)
-                        setCourses([])
-                      }}
-                    >
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-base">
-                            {course}
-                          </span>
-                        </div>
+                  {majors.length > 0 && (
+                    <>
+                      <div className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Majors
                       </div>
-                    </Link>
-                  ))}
+                      {majors.map((major) => (
+                        <Link
+                          key={`major-${major}`}
+                          href={`/majors/${major}`}
+                          className="w-full flex items-center rounded-lg px-4 py-3 text-left hover:bg-foreground/5 hover:text-accent-foreground transition-colors cursor-pointer"
+                          prefetch
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setShowResults(false)
+                            setQuery(major)
+                            setCourses([])
+                            setMajors([])
+                          }}
+                        >
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-base">
+                                {major}
+                              </span>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </>
+                  )}
+                  {courses.length > 0 && (
+                    <>
+                      {majors.length > 0 && <div className="border-t mx-4" />}
+                      <div className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Courses
+                      </div>
+                      {courses.map((course) => (
+                        <Link
+                          key={`course-${course}`}
+                          href={`/courses/${course}`}
+                          className="w-full flex items-center rounded-lg px-4 py-3 text-left hover:bg-foreground/5 hover:text-accent-foreground transition-colors cursor-pointer"
+                          prefetch
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setShowResults(false)
+                            setQuery(course)
+                            setCourses([])
+                            setMajors([])
+                          }}
+                        >
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-base">
+                                {course}
+                              </span>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </>
+                  )}
                 </div>
               )}
             </div>

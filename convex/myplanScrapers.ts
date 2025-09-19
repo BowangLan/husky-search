@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { action, internalAction, internalMutation, mutation, query } from "./_generated/server";
 import { api, internal } from "./_generated/api";
-import { MyplanCourseInfo, myplanCourseInfoObj, MyplanCourseTermData } from "./schema";
+import { MyplanCourseInfo, myplanCourseInfoObj, MyplanCourseTermData, myplanSubjectFields } from "./schema";
 import { processCourseDetail } from "./myplanUtils";
 
 // TypeScript interfaces for data types
@@ -77,8 +77,8 @@ function generateRequestId(): string {
 // Base API configuration
 const BASE_URL = "https://course-app-api.planning.sis.uw.edu/api";
 
-const MYPLAN_COOKIE = `_ga_VQZHV3SH3P=GS2.1.s1746589140$o1$g1$t1746589227$j0$l0$h0; _hjSessionUser_3542396=eyJpZCI6ImNhYzQ2MjlmLTM4YzgtNTY3Ni1iYmIzLTI0NjMxYzdkNmU4YyIsImNyZWF0ZWQiOjE3NDcxOTc3MjU4ODUsImV4aXN0aW5nIjp0cnVlfQ==; _fbp=fb.1.1747197726331.115911875945980748; _ga_0V5LFWD2KQ=GS2.1.s1747935853$o1$g1$t1747936345$j19$l0$h0$dR2YvLwKSS1jCphuMmKjS-bP4T4IWuOGjQA; _ga_5NP8JDX6NQ=GS2.1.s1748087044$o3$g0$t1748087046$j58$l0$h0$dG4XvxCAG0rfpOKPrtoRi1AbSSPVA4UkpLA; _ga_MX29D1QWGH=GS2.1.s1748087044$o3$g0$t1748087046$j58$l0$h0$dxC1HkbqNja6xDBYDEseQwSEKt83uCm8LWw; _ga_0VMRR09G41=GS2.1.s1748364465$o1$g0$t1748364470$j0$l0$h0; _ga_S51TRWK3R8=GS2.1.s1750134110$o4$g0$t1750134111$j59$l0$h0; ps_rvm_ZkiN=%7B%22pssid%22%3A%2238Y0jAzv3GjOFtQ7-1750107949183%22%2C%22last-visit%22%3A%221750134111689%22%7D; _ga=GA1.1.107335358.1742470468; _uetvid=c9d07890307d11f0b754537bf5d08d37|kj0mft|1748066424492|2|1|bat.bing.com/p/insights/c/j; _ga_MBEGNXVCWH=GS2.1.s1750704315$o1$g1$t1750704355$j20$l0$h72956306; _ga_YJ09SKYQ9C=GS2.1.s1750704315$o1$g1$t1750704355$j20$l0$h0; _clck=ghtic3%7C2%7Cfx9%7C0%7C2009; _ga_29JYF25HLW=GS2.1.s1751472063$o2$g1$t1751472878$j60$l0$h1135471766; fs_uid=#o-1V47MT-na1#0d1e305f-fceb-4356-a2f3-2a575a93a39d:00a92d97-a482-4617-8a9c-61f71a39812c:1753945821112::1#efac8273#/1775255924; _ga_WGSVEGE14H=GS2.1.s1756241720$o13$g1$t1756241728$j52$l0$h0; _ga_B3VH61T4DT=GS2.1.s1756405592$o55$g1$t1756405664$j49$l0$h0; _ga_BFQJ094C4L=GS2.1.s1757128095$o15$g1$t1757128116$j39$l0$h0; _ga_ZYFDGVCGY3=GS2.1.s1757141980$o2$g0$t1757141980$j60$l0$h0; _gcl_au=1.1.892997884.1757364387; _ga_58P4G5E9Q9=GS2.1.s1757364387$o1$g0$t1757364392$j55$l0$h0; _ga_5RFPSMZQJ7=GS2.1.s1757364387$o1$g0$t1757364393$j54$l0$h0; _ga_K5Q4WV298H=GS2.1.s1757364406$o2$g0$t1757364415$j51$l0$h0; _ga_YHX5G0W6DX=GS2.1.s1757364370$o3$g1$t1757364422$j8$l0$h0; sessionId=321864c99fd464eabf3482363c97e673567a5465676646aac4b90d8127d97528; _ga_TNNYEHDN9L=GS2.1.s1757438349$o75$g1$t1757438369$j40$l0$h0`
-const MYPLAN_CSRF_TOKEN = `1f0bd09142772374e1d96657ca5859a114cbe603ca7680cf0f19594c49cc6b6619e83e1fc1f9b6cf628c095a82e80a35b38f0de98bb2d93c6e887795ecfa36fd0b7de762ef0beca44de272315006cb1a10a7a1b105d884ce04b96b7beb9e3b556d23fef76e6537c6ae323f8c763f3e7c32e0886f408370c2b40bda17b52bbd2a`
+const MYPLAN_COOKIE = `_ga_VQZHV3SH3P=GS2.1.s1746589140$o1$g1$t1746589227$j0$l0$h0; _hjSessionUser_3542396=eyJpZCI6ImNhYzQ2MjlmLTM4YzgtNTY3Ni1iYmIzLTI0NjMxYzdkNmU4YyIsImNyZWF0ZWQiOjE3NDcxOTc3MjU4ODUsImV4aXN0aW5nIjp0cnVlfQ==; _fbp=fb.1.1747197726331.115911875945980748; _ga_0V5LFWD2KQ=GS2.1.s1747935853$o1$g1$t1747936345$j19$l0$h0$dR2YvLwKSS1jCphuMmKjS-bP4T4IWuOGjQA; _ga_5NP8JDX6NQ=GS2.1.s1748087044$o3$g0$t1748087046$j58$l0$h0$dG4XvxCAG0rfpOKPrtoRi1AbSSPVA4UkpLA; _ga_MX29D1QWGH=GS2.1.s1748087044$o3$g0$t1748087046$j58$l0$h0$dxC1HkbqNja6xDBYDEseQwSEKt83uCm8LWw; _ga_0VMRR09G41=GS2.1.s1748364465$o1$g0$t1748364470$j0$l0$h0; _ga_S51TRWK3R8=GS2.1.s1750134110$o4$g0$t1750134111$j59$l0$h0; ps_rvm_ZkiN=%7B%22pssid%22%3A%2238Y0jAzv3GjOFtQ7-1750107949183%22%2C%22last-visit%22%3A%221750134111689%22%7D; _ga=GA1.1.107335358.1742470468; _uetvid=c9d07890307d11f0b754537bf5d08d37|kj0mft|1748066424492|2|1|bat.bing.com/p/insights/c/j; _ga_MBEGNXVCWH=GS2.1.s1750704315$o1$g1$t1750704355$j20$l0$h72956306; _ga_YJ09SKYQ9C=GS2.1.s1750704315$o1$g1$t1750704355$j20$l0$h0; _clck=ghtic3%7C2%7Cfx9%7C0%7C2009; _ga_29JYF25HLW=GS2.1.s1751472063$o2$g1$t1751472878$j60$l0$h1135471766; fs_uid=#o-1V47MT-na1#0d1e305f-fceb-4356-a2f3-2a575a93a39d:00a92d97-a482-4617-8a9c-61f71a39812c:1753945821112::1#efac8273#/1775255924; _ga_B3VH61T4DT=GS2.1.s1756405592$o55$g1$t1756405664$j49$l0$h0; _ga_ZYFDGVCGY3=GS2.1.s1757141980$o2$g0$t1757141980$j60$l0$h0; _gcl_au=1.1.892997884.1757364387; _ga_58P4G5E9Q9=GS2.1.s1757364387$o1$g0$t1757364392$j55$l0$h0; _ga_5RFPSMZQJ7=GS2.1.s1757364387$o1$g0$t1757364393$j54$l0$h0; _ga_K5Q4WV298H=GS2.1.s1757364406$o2$g0$t1757364415$j51$l0$h0; _ga_YHX5G0W6DX=GS2.1.s1757364370$o3$g1$t1757364422$j8$l0$h0; _ga_BFQJ094C4L=GS2.1.s1757590807$o16$g0$t1757590807$j60$l0$h0; _ga_WGSVEGE14H=GS2.1.s1757593238$o14$g1$t1757593261$j37$l0$h0; sessionId=6cc3eba9ff6bdc06bd22fd2009db0259761dd3de0803babcbb441cdce5db5b04; _ga_TNNYEHDN9L=GS2.1.s1758293468$o79$g1$t1758293497$j31$l0$h0`
+const MYPLAN_CSRF_TOKEN = `2b756784d5a33f2cc0a6134cb27c1e09d92480903907ca3d206c910c6670c49c711398a734fdcd0cec2c897adff1fbee6566dfbef8aead45375219135924744e2f6ae08ddbc928b227bd93e91cc1a245c571238903891f2b9f4a747f9ac8f784beaa548fced01d4d9d5179205b2be2445d87c03e204da2460624c20d8967db5e`
 
 function getHeaders() {
   return {
@@ -138,7 +138,7 @@ export const scrapeSearchCourses = action({
 });
 
 // Convex action to get subject areas
-export const scrapeSubjectAreas = action({
+export const scrapeSubjectAreas = internalAction({
   args: {},
   handler: async (ctx): Promise<SubjectArea[]> => {
     const headers = getHeaders();
@@ -292,7 +292,7 @@ export const scrapeAndSaveSearchResultsForAllSubjectAreas = action({
   },
   handler: async (ctx, args) => {
 
-    const subjectAreas = await ctx.runAction(api.myplanScrapers.scrapeSubjectAreas, {});
+    const subjectAreas = await ctx.runAction(internal.myplanScrapers.scrapeSubjectAreas, {});
     const kvStoreCourseCodes = new Set(await ctx.runQuery(internal.myplan.getKVStoreCourseCodes, {}));
 
     const offset = args.offset ?? 0;
@@ -477,6 +477,69 @@ export const runCourseDetailCronJob = internalAction({
         courseCodes: courses.map((course) => course.courseCode),
       });
     }
+  }
+})
+
+export const getAllSubjects = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("myplanSubjects").collect();
+  }
+})
+
+export const insertSubject = internalMutation({
+  args: myplanSubjectFields,
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("myplanSubjects", args);
+  }
+})
+
+export const deleteSubject = internalMutation({
+  args: {
+    subjectId: v.id("myplanSubjects"),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.delete(args.subjectId);
+  }
+})
+
+export const scrapeAndSaveSubjectAreas = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    console.log("Scraping subject areas from MyPlan API");
+
+    const subjectAreas = await ctx.runAction(internal.myplanScrapers.scrapeSubjectAreas, {});
+
+    console.log(`Found ${subjectAreas.length} subject areas`);
+
+    // Clear existing subject areas and insert new ones
+    const existingSubjects = await ctx.runQuery(api.myplanScrapers.getAllSubjects, {});
+    for (const subject of existingSubjects) {
+      await ctx.runMutation(internal.myplanScrapers.deleteSubject, {
+        subjectId: subject._id,
+      });
+    }
+
+    // // Insert new subject areas
+    for (const subjectArea of subjectAreas) {
+      await ctx.runMutation(internal.myplanScrapers.insertSubject, {
+        code: subjectArea.code,
+        title: subjectArea.title,
+        campus: subjectArea.campus,
+        collegeCode: subjectArea.collegeCode,
+        collegeTitle: subjectArea.collegeTitle,
+        departmentCode: subjectArea.departmentCode,
+        departmentTitle: subjectArea.departmentTitle,
+        codeNoSpaces: subjectArea.codeNoSpaces,
+        quotedCode: subjectArea.quotedCode,
+      });
+    }
+
+    console.log(`Saved ${subjectAreas.length} subject areas to database`);
+
+    return {
+      success: true,
+    };
   }
 })
 

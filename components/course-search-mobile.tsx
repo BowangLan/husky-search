@@ -27,10 +27,12 @@ import { CourseSearchLoadingSkeleton } from "@/components/course-search-loading-
 export function CourseSearchMobile() {
   const [query, setQuery] = useState("")
   const [courses, setCourses] = useState<string[]>([])
+  const [majors, setMajors] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const allCourseCodes = useQuery(api.courses.getAllCourseCodes, {})
+  const allSubjectAreas = useQuery(api.courses.getAllSubjectAreas, {})
   const navigate = useRouter()
 
   useEffect(() => {
@@ -43,6 +45,7 @@ export function CourseSearchMobile() {
       // Reset state when dialog closes
       setQuery("")
       setCourses([])
+      setMajors([])
       setLoading(false)
     }
   }, [isOpen])
@@ -50,6 +53,7 @@ export function CourseSearchMobile() {
   const handleClear = () => {
     setQuery("")
     setCourses([])
+    setMajors([])
     inputRef.current?.focus()
   }
 
@@ -59,11 +63,23 @@ export function CourseSearchMobile() {
       return
     }
 
-    if (e.key === "Enter" && courses.length === 1) {
-      navigate.push(`/courses/${courses[0]}`)
-      setIsOpen(false)
-      setCourses([])
-      inputRef.current?.blur()
+    if (e.key === "Enter") {
+      if (courses.length === 1 && majors.length === 0) {
+        navigate.push(`/courses/${courses[0]}`)
+        setIsOpen(false)
+        setCourses([])
+        setMajors([])
+        inputRef.current?.blur()
+      } else if (
+        majors.length === 1 &&
+        majors[0] === query.trim().toUpperCase()
+      ) {
+        navigate.push(`/majors/${majors[0]}`)
+        setIsOpen(false)
+        setCourses([])
+        setMajors([])
+        inputRef.current?.blur()
+      }
     }
   }
 
@@ -73,6 +89,7 @@ export function CourseSearchMobile() {
 
     if (value.trim() === "") {
       setCourses([])
+      setMajors([])
       return
     }
   }
@@ -80,24 +97,42 @@ export function CourseSearchMobile() {
   useEffect(() => {
     if (query.trim() === "") {
       setCourses([])
+      setMajors([])
       setLoading(false)
       return
     }
-    if (!allCourseCodes) {
+    if (!allCourseCodes || !allSubjectAreas) {
       setLoading(true)
       return
     }
     setLoading(false)
     const normalized = query.replace(/\s+/g, "")
-    const filtered = allCourseCodes
+
+    // Filter courses
+    const filteredCourses = allCourseCodes
       .filter((code) => code.replace(/\s+/g, "").startsWith(normalized))
       .slice(0, 50)
-    setCourses(filtered)
-  }, [query, allCourseCodes])
+    setCourses(filteredCourses)
+
+    // Filter majors
+    const filteredMajors = allSubjectAreas
+      .filter((code) => code.replace(/\s+/g, "").startsWith(normalized))
+      .slice(0, 10)
+    setMajors(filteredMajors)
+  }, [query, allCourseCodes, allSubjectAreas])
 
   const handleCourseSelect = (courseCode: string) => {
     setQuery(courseCode)
     setCourses([])
+    setMajors([])
+    setIsOpen(false)
+  }
+
+  const handleMajorSelect = (majorCode: string) => {
+    navigate.push(`/majors/${majorCode}`)
+    setQuery(majorCode)
+    setCourses([])
+    setMajors([])
     setIsOpen(false)
   }
 
@@ -134,11 +169,11 @@ export function CourseSearchMobile() {
               </div>
               <Input
                 ref={inputRef}
-                placeholder="Type course code (e.g., CSE 142)..."
+                placeholder="Type course or major code (e.g., CSE 142)..."
                 value={query}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
-                className="pl-10 pr-10 text-sm placeholder:text-sm placeholder:leading-[1] text-base"
+                className="pl-10 pr-10 placeholder:text-sm placeholder:leading-[1] text-base"
               />
               {query && (
                 <Button
@@ -160,45 +195,74 @@ export function CourseSearchMobile() {
             <div className="px-page space-y-3">
               {loading ? (
                 <CourseSearchLoadingSkeleton />
-              ) : courses.length === 0 && query.trim() !== "" ? (
+              ) : courses.length === 0 &&
+                majors.length === 0 &&
+                query.trim() !== "" ? (
                 <CourseSearchEmptyState
-                  title="No courses found"
-                  description="Try searching with a different course code or check your spelling"
+                  title="No courses or majors found"
+                  description="Try searching with a different course code or major abbreviation"
                   icon="graduation-cap"
                 />
-              ) : courses.length > 0 ? (
+              ) : courses.length > 0 || majors.length > 0 ? (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">
-                        {courses.length} result{courses.length !== 1 ? "s" : ""}{" "}
-                        for "{query}"
+                        {courses.length + majors.length} result
+                        {courses.length + majors.length !== 1 ? "s" : ""} for "
+                        {query}"
                       </span>
                     </div>
-                    {/* <span className="text-xs text-muted-foreground">
-                      ESC to close
-                    </span> */}
                   </div>
-                  <div className="space-y-1">
-                    {courses.map((course, index) => (
-                      <CourseSearchCard
-                        key={course}
-                        course={
-                          {
-                            code: course,
-                            title: "",
-                          } as unknown as CourseSearchResultItem
-                        }
-                        index={index}
-                        onSelect={handleCourseSelect}
-                      />
-                    ))}
+                  <div className="space-y-3">
+                    {majors.length > 0 && (
+                      <div className="space-y-1">
+                        <div className="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Majors
+                        </div>
+                        {majors.map((major, index) => (
+                          <button
+                            key={`major-${major}`}
+                            onClick={() => handleMajorSelect(major)}
+                            className="w-full flex items-center rounded-lg px-3 py-2 text-left text-sm hover:bg-foreground/10 hover:text-accent-foreground trans cursor-pointer border border-transparent hover:border-border"
+                          >
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{major}</span>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {courses.length > 0 && (
+                      <div className="space-y-1">
+                        {majors.length > 0 && (
+                          <div className="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            Courses
+                          </div>
+                        )}
+                        {courses.map((course, index) => (
+                          <CourseSearchCard
+                            key={`course-${course}`}
+                            course={
+                              {
+                                code: course,
+                                title: "",
+                              } as unknown as CourseSearchResultItem
+                            }
+                            index={index}
+                            onSelect={handleCourseSelect}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (
                 <CourseSearchEmptyState
                   title="Start your search"
-                  description="Type a course code like CSE 142, MATH 124, or CHEM 142 to find courses"
+                  description="Type a course code like CSE 142, MATH 124, or a major like CSE, MATH"
                   icon="book-open"
                 />
               )}
