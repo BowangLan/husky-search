@@ -13,10 +13,11 @@ import { MyPlanCourseDetail } from "@/types/myplan"
 import { expandDays } from "@/lib/utils"
 
 export type CourseSessionsContextValue = {
-  data: CourseDetail
+  data: CourseDetail | null
   sessions: any[]
   displayedSessions: any[]
   pinnedSessions: any[]
+  isLoading: boolean
 
   selectedWeekDaySet: Set<string>
   setSelectedWeekDaySet: (set: Set<string>) => void
@@ -68,12 +69,9 @@ export const CourseSessionsProvider = ({
     courseCode,
   })
 
-  if (!data) return null
-
-  const termData = data.myplanCourse?.currentTermData?.[0]
-  const sessions = termData?.sessions
-
-  if (typeof sessions === "undefined") return null
+  const isLoading = data === undefined
+  const termData = data?.myplanCourse?.currentTermData?.[0]
+  const sessions = Array.isArray(termData?.sessions) ? termData!.sessions : []
 
   const displayedSessions = useMemo(() => {
     let list = sessions
@@ -106,7 +104,7 @@ export const CourseSessionsProvider = ({
     const enrollMaximum = Number((session as any).enrollMaximum ?? 0)
 
     const sessionRaw =
-      data.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
+      data?.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
         (item: any) => item.activityId === session.id
       ) as MyPlanCourseDetail["courseOfferingInstitutionList"][0]["courseOfferingTermList"][0]["activityOfferingItemList"][0]
 
@@ -140,10 +138,11 @@ export const CourseSessionsProvider = ({
 
   const value = useMemo<CourseSessionsContextValue>(
     () => ({
-      data,
+      data: (data as CourseDetail) ?? null,
       sessions,
       displayedSessions,
       pinnedSessions,
+      isLoading,
       selectedWeekDaySet,
       setSelectedWeekDaySet,
       selectedSessionIds,
@@ -162,6 +161,7 @@ export const CourseSessionsProvider = ({
       sessions,
       displayedSessions,
       pinnedSessions,
+      isLoading,
       selectedWeekDaySet,
       selectedSessionIds,
       pinnedSessionIds,

@@ -48,7 +48,7 @@ export const SessionRowDesktop = ({
   const toggle = useToggleSchedule()
 
   const sessionRaw =
-    data.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
+    data?.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
       (item: any) => item.activityId === session.id
     ) as MyPlanCourseDetail["courseOfferingInstitutionList"][0]["courseOfferingTermList"][0]["activityOfferingItemList"][0]
 
@@ -67,7 +67,7 @@ export const SessionRowDesktop = ({
             <h3 className="text-sm md:text-base font-medium tracking-tight">
               {session.code}
             </h3>
-            {sessionRaw.addCodeRequired && (
+            {sessionRaw?.addCodeRequired && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <KeyRound className="size-3.5 opacity-70" />
@@ -77,7 +77,7 @@ export const SessionRowDesktop = ({
                 </TooltipContent>
               </Tooltip>
             )}
-            {sessionRaw.sectionComments && (
+            {sessionRaw?.sectionComments && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Info className="size-3.5 opacity-70" />
@@ -176,7 +176,7 @@ export const SessionRowMobile = ({
   const { data } = useCourseSessions()
 
   const sessionRaw =
-    data.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
+    data?.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
       (item: any) => item.activityId === session.id
     ) as MyPlanCourseDetail["courseOfferingInstitutionList"][0]["courseOfferingTermList"][0]["activityOfferingItemList"][0]
 
@@ -192,7 +192,7 @@ export const SessionRowMobile = ({
               <h3 className="text-sm md:text-base font-medium tracking-tight">
                 {session.code}
               </h3>
-              {sessionRaw.addCodeRequired && (
+              {sessionRaw?.addCodeRequired && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <KeyRound className="size-3.5 opacity-70" />
@@ -202,7 +202,7 @@ export const SessionRowMobile = ({
                   </TooltipContent>
                 </Tooltip>
               )}
-              {sessionRaw.sectionComments && (
+              {sessionRaw?.sectionComments && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Info className="size-3.5 opacity-70" />
