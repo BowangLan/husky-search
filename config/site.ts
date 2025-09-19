@@ -28,3 +28,6 @@ export const siteConfig = {
 export const externalLinks = {
   feedback: "https://forms.gle/BDNCjDo3mCEfA5wz7",
 }
+
+export const EASIEST_COURSES_LIMIT = 20;
+export const TOUGHEST_COURSES_LIMIT = 20;

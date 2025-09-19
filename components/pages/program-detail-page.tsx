@@ -9,11 +9,13 @@ import { api } from "@/convex/_generated/api"
 import { ProgramDetail } from "@/services/program-service"
 import { useTrackMajorVisit } from "@/store/visit-cache.store"
 import { useQuery } from "convex/react"
-import { Loader } from "lucide-react"
+import { Loader, TrendingDown, TrendingUp } from "lucide-react"
+import Link from "next/link"
 
 import { ConvexCourseOverview } from "@/types/convex-courses"
 import { capitalize } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 
 import { ConvexCourseCardHorizontalList } from "../course-card-convex"
 import { PageTitle, PageWithHeaderLayout } from "../page-wrapper"
@@ -152,6 +154,39 @@ export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
                   setFilterState={handleFilterStateChange}
                 />
               </div> */}
+
+              {/* Quick Access Navigation */}
+              <Section>
+                <SectionHeader>
+                  <SectionTitle>Course Categories</SectionTitle>
+                </SectionHeader>
+                <SectionContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-start gap-2">
+                      <Link href={`/majors/${program.code}/easiest`}>
+                        <div className="flex items-center gap-2">
+                          <TrendingDown className="h-5 w-5 text-green-600" />
+                          <span className="font-medium">Easiest Courses</span>
+                        </div>
+                        <span className="text-sm text-muted-foreground text-left">
+                          Courses ranked by easiness score based on GPA distribution data
+                        </span>
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-start gap-2">
+                      <Link href={`/majors/${program.code}/toughest`}>
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-5 w-5 text-red-600" />
+                          <span className="font-medium">Toughest Courses</span>
+                        </div>
+                        <span className="text-sm text-muted-foreground text-left">
+                          Most challenging courses ranked by GPA distribution analysis
+                        </span>
+                      </Link>
+                    </Button>
+                  </div>
+                </SectionContent>
+              </Section>
 
               {/* Popular Courses */}
               <Section>

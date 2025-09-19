@@ -181,6 +181,11 @@ export const CourseDetailStatsSection = ({
   })
   const userIsStudent = useIsStudent()
 
+  // dev
+  // const data = useQuery(api.courses.getByCourseCodeDev, {
+  //   courseCode,
+  // })
+
   if (!data) return null
 
   if (!userIsStudent) {

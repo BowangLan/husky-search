@@ -4,6 +4,65 @@ import { MyplanCourse, myplanCourseFullFields, myplanCourseInfoObj, MyplanCourse
 import { api, internal } from "./_generated/api";
 import { getDataPointFromCourseDetail, getLatestEnrollCount, mergeTermData, migrateEnrollData, processCourseDetail } from "./myplanUtils";
 import { Id } from "./_generated/dataModel";
+import { EASIEST_COURSES_LIMIT, TOUGHEST_COURSES_LIMIT } from "@/config/site";
+
+// Helper function to calculate easiness score from GPA distribution
+function easinessScore(gpaDistro: Array<{ gpa: string; count: number }>): number {
+  if (!gpaDistro || gpaDistro.length === 0) return 0;
+
+  function weightedMeanGPA(data: Array<{ gpa: string; count: number }>): number {
+    let totalWeighted = 0;
+    let totalCount = 0;
+    for (const entry of data) {
+      const gpa = parseFloat(entry.gpa);
+      totalWeighted += gpa * entry.count;
+      totalCount += entry.count;
+    }
+    return totalCount === 0 ? 0 : totalWeighted / totalCount;
+  }
+
+  function modeGPA(data: Array<{ gpa: string; count: number }>): number {
+    let maxCount = -1;
+    let mode = 0;
+    for (const entry of data) {
+      if (entry.count > maxCount) {
+        maxCount = entry.count;
+        mode = parseFloat(entry.gpa);
+      }
+    }
+    return mode;
+  }
+
+  function standardDeviationGPA(data: Array<{ gpa: string; count: number }>): number {
+    const mean = weightedMeanGPA(data);
+    let totalCount = 0;
+    let varianceSum = 0;
+    for (const entry of data) {
+      const gpa = parseFloat(entry.gpa);
+      varianceSum += entry.count * Math.pow(gpa - mean, 2);
+      totalCount += entry.count;
+    }
+    return totalCount === 0 ? 0 : Math.sqrt(varianceSum / totalCount);
+  }
+
+  const mean = weightedMeanGPA(gpaDistro);
+  const mode = modeGPA(gpaDistro);
+  const stdDev = standardDeviationGPA(gpaDistro);
+
+  const maxGPA = 40;
+  const minGPA = 0;
+
+  const meanNorm = (mean - minGPA) / (maxGPA - minGPA);
+  const modeNorm = (mode - minGPA) / (maxGPA - minGPA);
+  const stdNorm = Math.min(stdDev / 10, 1);
+
+  const w1 = 0.5;
+  const w2 = 0.3;
+  const w3 = 0.2;
+
+  const score = w1 * meanNorm + w2 * (1 - stdNorm) + w3 * modeNorm;
+  return Math.round(score * 100);
+}
 
 export const list = query({
   args: {
@@ -365,6 +424,81 @@ export const upsertCourseSearch = internalMutation({
     }
   }
 });
+
+export const getEasiestCoursesByMajor = query({
+  args: {
+    subjectArea: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const LIMIT = EASIEST_COURSES_LIMIT;
+
+    // Get all myplan courses for the subject area
+    const myplanCourses = await ctx.db.query("myplanCourses")
+      .withIndex("by_subject_area", (q) => q.eq("subjectArea", args.subjectArea))
+      .collect();
+
+    // Get corresponding dawgpath courses with GPA data
+    const coursesWithEasiness = await Promise.all(
+      myplanCourses.map(async (course) => {
+        const dawgpathCourse = await ctx.db.query("dawgpathCourses")
+          .withIndex("by_course_code", (q) => q.eq("courseCode", course.courseCode))
+          .first();
+
+        const gpaDistro = dawgpathCourse?.detailData?.gpa_distro;
+        const easiness = gpaDistro ? easinessScore(gpaDistro) : null;
+
+        return {
+          ...course,
+          easinessScore: easiness,
+        };
+      })
+    );
+
+    // Filter out courses without easiness data and sort by easiness (higher = easier)
+    const validCourses = coursesWithEasiness
+      .filter(course => course.easinessScore !== null)
+      .sort((a, b) => (b.easinessScore! - a.easinessScore!));
+
+    return validCourses.slice(0, LIMIT);
+  }
+})
+
+export const getToughestCoursesByMajor = query({
+  args: {
+    subjectArea: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const LIMIT = TOUGHEST_COURSES_LIMIT;
+    // Get all myplan courses for the subject area
+    const myplanCourses = await ctx.db.query("myplanCourses")
+      .withIndex("by_subject_area", (q) => q.eq("subjectArea", args.subjectArea))
+      .collect();
+
+    // Get corresponding dawgpath courses with GPA data
+    const coursesWithEasiness = await Promise.all(
+      myplanCourses.map(async (course) => {
+        const dawgpathCourse = await ctx.db.query("dawgpathCourses")
+          .withIndex("by_course_code", (q) => q.eq("courseCode", course.courseCode))
+          .first();
+
+        const gpaDistro = dawgpathCourse?.detailData?.gpa_distro;
+        const easiness = gpaDistro ? easinessScore(gpaDistro) : null;
+
+        return {
+          ...course,
+          easinessScore: easiness,
+        };
+      })
+    );
+
+    // Filter out courses without easiness data and sort by easiness (lower = tougher)
+    const validCourses = coursesWithEasiness
+      .filter(course => course.easinessScore !== null)
+      .sort((a, b) => (a.easinessScore! - b.easinessScore!));
+
+    return validCourses.slice(0, LIMIT);
+  }
+})
 
 export const check = internalQuery({
   args: {},
