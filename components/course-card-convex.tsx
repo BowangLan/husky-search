@@ -33,8 +33,9 @@ const CourseEnrollProgress = ({
         <span className="text-xs text-foreground/60 font-light">
           <span
             className={cn(
-              "font-medium text-foreground text-sm",
-              isNearlyFull && "text-amber-500 dark:text-amber-300"
+              "font-medium text-sm",
+              isNearlyFull && "text-amber-500 dark:text-amber-300",
+              !isClosed && "text-foreground"
             )}
           >
             {Math.max(0, enrollMax - enrollCount)}{" "}
@@ -122,7 +123,7 @@ export function ConvexCourseCardLink({
               {course.title}
             </h3>
 
-            <div className="flex items-center gap-2 flex-wrap mt-2">
+            <div className="flex items-center gap-2 flex-wrap absolute top-4 right-4">
               {!course.genEdReqs?.length && (
                 <Badge size="sm" variant="blue-outline" className="invisible">
                   No gen ed requirements
@@ -168,7 +169,7 @@ export const ConvexCourseCardHorizontalList = ({
         <ConvexCourseCardLink
           key={course.courseCode}
           course={course}
-          className="w-60 md:w-64 lg:w-72 flex-none h-auto"
+          className="w-60 md:w-64 lg:w-64 flex-none h-auto"
         />
       ))}
     </div>
