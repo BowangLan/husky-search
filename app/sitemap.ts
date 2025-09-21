@@ -1,12 +1,13 @@
 import { MetadataRoute } from 'next'
 import { fetchQuery } from 'convex/nextjs'
 import { api } from '@/convex/_generated/api'
+import { DOMAIN } from '@/config/site'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Get all programs for dynamic routes
   const programs = await fetchQuery(api.myplan1.subjectAreas.listShort, {})
 
-  const baseUrl = 'https://huskysearch.fyi'
+  const baseUrl = `https://${DOMAIN}`
 
   // Static routes
   const staticRoutes: MetadataRoute.Sitemap = [

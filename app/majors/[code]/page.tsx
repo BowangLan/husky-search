@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache"
 import { notFound } from "next/navigation"
 import { ProgramService } from "@/services/program-service"
 
+import { DOMAIN } from "@/config/site"
 import { capitalize } from "@/lib/utils"
 import { ProgramDetailPage } from "@/components/pages/program-detail-page"
 
@@ -30,27 +31,27 @@ export const generateMetadata = async ({
     keywords: [
       program.title,
       `${program.title} major`,
-      'University of Washington',
-      'UW',
-      'degree program',
-      'college major',
-      'academic program',
+      "University of Washington",
+      "UW",
+      "degree program",
+      "college major",
+      "academic program",
       program.code,
     ],
     openGraph: {
       title,
       description,
-      type: 'website',
-      siteName: 'Husky Search',
-      url: `https://huskysearch.app/majors/${code}`,
+      type: "website",
+      siteName: "Husky Search",
+      url: `https://${DOMAIN}/majors/${code}`,
     },
     twitter: {
-      card: 'summary_large_image',
+      card: "summary_large_image",
       title,
       description,
     },
     alternates: {
-      canonical: `https://huskysearch.app/majors/${code}`,
+      canonical: `https://${DOMAIN}/majors/${code}`,
     },
     robots: {
       index: true,
@@ -58,9 +59,9 @@ export const generateMetadata = async ({
       googleBot: {
         index: true,
         follow: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
       },
     },
   }

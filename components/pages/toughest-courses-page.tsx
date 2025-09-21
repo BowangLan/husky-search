@@ -10,7 +10,7 @@ import { ProgramDetail } from "@/services/program-service"
 import { useQuery } from "convex/react"
 import { Loader, TrendingUp } from "lucide-react"
 
-import { TOUGHEST_COURSES_LIMIT } from "@/config/site"
+import { DOMAIN, TOUGHEST_COURSES_LIMIT } from "@/config/site"
 import { capitalize } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -31,7 +31,7 @@ const generateStructuredData = (program: ProgramDetail, courses: any[]) => {
     "@type": "ItemList",
     name: `Toughest ${program.title} Courses`,
     description: `A ranked list of the most challenging ${program.title} courses at University of Washington based on GPA distribution data`,
-    url: `https://huskysearch.fyi/majors/${program.code}/toughest`,
+    url: `https://${DOMAIN}/majors/${program.code}/toughest`,
     numberOfItems: courses.length,
     itemListElement: courses.slice(0, 10).map((course, index) => ({
       "@type": "ListItem",

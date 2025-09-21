@@ -1,11 +1,12 @@
 import ReactMarkdown from "react-markdown"
 
+import { DOMAIN } from "@/config/site"
 import { Page, PageTitle } from "@/components/page-wrapper"
 
 const AboutText = `
 ## About Me
 
-Hello, I'm Jeffrey, a fellow husky, alum, and a web enthusiast. Welcome to huskysearch.fyi! 
+Hello, I'm Jeffrey, a fellow husky, alum, and a web enthusiast. Welcome to ${DOMAIN}! 
 
 ## About this Project
 

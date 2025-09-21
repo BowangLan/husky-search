@@ -1,3 +1,4 @@
+import { DOMAIN } from '@/config/site'
 import { MetadataRoute } from 'next'
 
 export default function robots(): MetadataRoute.Robots {
@@ -22,6 +23,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: '/',
       },
     ],
-    sitemap: 'https://huskysearch.fyi/sitemap.xml',
+    sitemap: `https://${DOMAIN}/sitemap.xml`,
   }
 }

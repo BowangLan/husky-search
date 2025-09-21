@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import { fetchQuery } from "convex/nextjs"
 
+import { DOMAIN } from "@/config/site"
 import { CourseDetailPage } from "@/components/pages/course-detail-page"
 
 export async function generateMetadata({
@@ -43,9 +44,7 @@ export async function generateMetadata({
       description,
       type: "website",
       siteName: "Husky Search",
-      url: `https://huskysearch.app/courses/${encodeURIComponent(
-        course.courseCode
-      )}`,
+      url: `https://${DOMAIN}/courses/${encodeURIComponent(course.courseCode)}`,
     },
     twitter: {
       card: "summary_large_image",
@@ -53,7 +52,7 @@ export async function generateMetadata({
       description,
     },
     alternates: {
-      canonical: `https://huskysearch.app/courses/${encodeURIComponent(
+      canonical: `https://${DOMAIN}/courses/${encodeURIComponent(
         course.courseCode
       )}`,
     },

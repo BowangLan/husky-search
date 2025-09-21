@@ -36,3 +36,5 @@ export const STATIC_ASSETS = {
   ALL_COURSE_CODES: "course_codes.json",
   ALL_SUBJECT_AREAS: "subject_areas.json",
 };
+
+export const DOMAIN = "huskysearch.fyi";

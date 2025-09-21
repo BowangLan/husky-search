@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache"
 import { notFound } from "next/navigation"
 import { ProgramService } from "@/services/program-service"
 
+import { DOMAIN } from "@/config/site"
 import { capitalize } from "@/lib/utils"
 import { EasiestCoursesPage } from "@/components/pages/easiest-courses-page"
 
@@ -23,7 +24,7 @@ export const generateMetadata = async ({
     program.title
   )} Courses | University of Washington`
   const description = `Find the easiest ${program.title} courses at UW ranked by GPA distribution data. Academic difficulty analysis for ${code} major students.`
-  const url = `https://huskysearch.fyi/majors/${code}/easiest`
+  const url = `https://${DOMAIN}/majors/${code}/easiest`
 
   return {
     title,

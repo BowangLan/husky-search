@@ -4,6 +4,7 @@ import { CourseService } from "@/services/course-service"
 import { sql } from "drizzle-orm"
 
 import { ProgramInfo } from "@/types/program"
+import { DOMAIN } from "@/config/site"
 import {
   CurrentAcademicTermTable,
   MyPlanQuarterCoursesTable,
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
     title: "Husky Search - University of Washington Course Discovery",
     description:
       "Discover and explore UW courses with detailed information about credits, prerequisites, enrollment data, and course content. Find your perfect courses and majors at the University of Washington.",
-    url: "https://huskysearch.fyi",
+    url: `https://${DOMAIN}`,
     siteName: "Husky Search",
     type: "website",
     images: [
@@ -70,7 +71,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://huskysearch.fyi",
+    canonical: `https://${DOMAIN}`,
   },
 }
 
@@ -170,12 +171,12 @@ export default async function IndexPage() {
     name: "Husky Search",
     description:
       "Discover and explore University of Washington courses with detailed information about credits, prerequisites, and course content.",
-    url: "https://huskysearch.fyi",
+    url: `https://${DOMAIN}`,
     potentialAction: {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: "https://huskysearch.fyi/search?q={search_term_string}",
+        urlTemplate: `https://${DOMAIN}/search?q={search_term_string}`,
       },
       "query-input": "required name=search_term_string",
     },
