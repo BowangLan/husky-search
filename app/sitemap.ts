@@ -6,7 +6,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Get all programs for dynamic routes
   const programs = await fetchQuery(api.myplan1.subjectAreas.listShort, {})
 
-  const baseUrl = 'https://huskysearch.com'
+  const baseUrl = 'https://huskysearch.fyi'
 
   // Static routes
   const staticRoutes: MetadataRoute.Sitemap = [

@@ -21,7 +21,7 @@ export const generateMetadata = async ({
 
   const title = `Toughest ${capitalize(program.title)} Courses | University of Washington`
   const description = `Find the most challenging ${program.title} courses at UW ranked by GPA distribution data. Academic difficulty analysis for ${code} major students.`
-  const url = `https://huskysearch.com/majors/${code}/toughest`
+  const url = `https://huskysearch.fyi/majors/${code}/toughest`
 
   return {
     title,

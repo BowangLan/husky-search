@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     title: "Husky Search - University of Washington Course Discovery",
     description:
       "Discover and explore UW courses with detailed information about credits, prerequisites, enrollment data, and course content. Find your perfect courses and majors at the University of Washington.",
-    url: "https://huskysearch.com",
+    url: "https://huskysearch.fyi",
     siteName: "Husky Search",
     type: "website",
     images: [
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://huskysearch.com",
+    canonical: "https://huskysearch.fyi",
   },
 }
 
@@ -170,12 +170,12 @@ export default async function IndexPage() {
     name: "Husky Search",
     description:
       "Discover and explore University of Washington courses with detailed information about credits, prerequisites, and course content.",
-    url: "https://huskysearch.com",
+    url: "https://huskysearch.fyi",
     potentialAction: {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: "https://huskysearch.com/search?q={search_term_string}",
+        urlTemplate: "https://huskysearch.fyi/search?q={search_term_string}",
       },
       "query-input": "required name=search_term_string",
     },

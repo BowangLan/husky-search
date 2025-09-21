@@ -31,7 +31,7 @@ const generateStructuredData = (program: ProgramDetail, courses: any[]) => {
     "@type": "ItemList",
     name: `Toughest ${program.title} Courses`,
     description: `A ranked list of the most challenging ${program.title} courses at University of Washington based on GPA distribution data`,
-    url: `https://huskysearch.com/majors/${program.code}/toughest`,
+    url: `https://huskysearch.fyi/majors/${program.code}/toughest`,
     numberOfItems: courses.length,
     itemListElement: courses.slice(0, 10).map((course, index) => ({
       "@type": "ListItem",

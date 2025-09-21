@@ -22,6 +22,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: '/',
       },
     ],
-    sitemap: 'https://huskysearch.com/sitemap.xml',
+    sitemap: 'https://huskysearch.fyi/sitemap.xml',
   }
 }
