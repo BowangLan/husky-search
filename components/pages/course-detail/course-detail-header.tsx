@@ -136,7 +136,7 @@ export const CourseDetailHeader = ({
         <div className="flex-1 md:block hidden"></div>
 
         {/* Desktop */}
-        <div className="items-center gap-6 md:block hidden">
+        <div className="items-center flex-row gap-6 md:flex hidden">
           <ExternalLink
             href={`https://myplan.uw.edu/course/#/courses/${courseCode}`}
           >
