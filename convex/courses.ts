@@ -46,6 +46,20 @@ export const getByCourseCode = query({
   }
 })
 
+export const getByCourseCodeBrief = query({
+  args: {
+    courseCode: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const myplanCourse = await ctx.db.query("myplanCourses")
+      .withIndex("by_course_code", (q) => q.eq("courseCode", args.courseCode))
+      .first();
+
+    return myplanCourse;
+  }
+})
+
+
 export const getByCourseCodeDev = query({
   args: {
     courseCode: v.string(),

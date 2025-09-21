@@ -3,7 +3,6 @@ import { api } from "@/convex/_generated/api"
 import { useQuery } from "convex/react"
 import { GraduationCap } from "lucide-react"
 
-import { MyPlanCourseCodeGroupWithDetail } from "@/types/myplan"
 import { capitalize } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { ExternalLink } from "@/components/ui/external-link"
@@ -13,18 +12,23 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import {
-  CourseGenEdRequirements,
-  CourseProgramBadgeLink,
   getQuarterColor,
 } from "@/components/course-modules"
+import { getGenEdLabel } from "@/lib/utils"
 
 export const CourseDetailHeader = ({
-  course,
+  courseCode,
 }: {
-  course: MyPlanCourseCodeGroupWithDetail
+  courseCode: string
 }) => {
-  const courseCode = course.code
   const courseData = useQuery(api.courses.getByCourseCode, { courseCode })
+
+  // Extract subject area code from course code (e.g., "CSE142" -> "CSE")
+  const subjectAreaCode = courseCode?.replace(/\d+$/, '') || ''
+  const subjectArea = useQuery(
+    api.myplan1.subjectAreas.getByCode,
+    subjectAreaCode ? { code: subjectAreaCode } : "skip"
+  )
 
   if (!courseData?.myplanCourse) {
     return null
@@ -32,8 +36,8 @@ export const CourseDetailHeader = ({
 
   const termsOfferedFromConvex = (courseData.myplanCourse as any)
     ?.termsOffered as string[] | undefined
-  const termsOfferedFromDetail = course.detail?.courseSummaryDetails
-    .termsOffered as unknown as string[] | undefined
+  // Note: We no longer have access to course.detail, but the main data source should be sufficient
+  const termsOfferedFromDetail = undefined
 
   const normalizedOfferedTerms = Array.from(
     new Set(
@@ -64,7 +68,18 @@ export const CourseDetailHeader = ({
             >
               {`${course.subject} ${course.number}`}
             </Badge> */}
-        <CourseProgramBadgeLink course={course} />
+        <Link
+          href={`/majors/${subjectAreaCode}`}
+          prefetch
+          scroll={false}
+        >
+          <Badge
+            variant="outline"
+            className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 cursor-pointer hover:opacity-80 trans"
+          >
+            {subjectAreaCode}
+          </Badge>
+        </Link>
         {/* <CourseLevelBadge course={course} /> */}
         {/* <CourseCreditBadge course={course} /> */}
       </div>
@@ -100,7 +115,21 @@ export const CourseDetailHeader = ({
         <div className="flex flex-col md:flex-row md:items-center mt-1 md:mt-0 gap-2">
           {/* <CourseLevelBadge course={course} /> */}
           {/* <CourseCreditBadge course={course} /> */}
-          <CourseGenEdRequirements course={course} />
+          {/* Gen Ed Requirements */}
+          {courseData?.myplanCourse?.genEdReqs && courseData.myplanCourse.genEdReqs.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {courseData.myplanCourse.genEdReqs.map((req: string, index: number) => (
+                <Tooltip key={index}>
+                  <TooltipTrigger asChild>
+                    <Badge variant="blue-outline" className="z-20">
+                      {req}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">{getGenEdLabel(req)}</TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
+          )}
 
           {/* Quarter Badges */}
           {offeredQuarterBadges.length > 0 && (
@@ -170,7 +199,7 @@ export const CourseDetailHeader = ({
       <div className="items-center gap-2 hidden">
         {/* Program */}
         <Link
-          href={`/majors/${course.subjectAreaCode}`}
+          href={`/majors/${subjectAreaCode}`}
           prefetch
           scroll={false}
         >
@@ -180,7 +209,7 @@ export const CourseDetailHeader = ({
             className="bg-gradient-to-r from-purple-500/10 to-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 cursor-pointer hover:opacity-80 trans"
           >
             <GraduationCap className="h-5 w-5 mr-2" />
-            {capitalize(course.subjectAreaTitle)}
+            {capitalize(subjectArea?.title || subjectAreaCode)}
           </Badge>
         </Link>
       </div>

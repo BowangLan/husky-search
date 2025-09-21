@@ -2,6 +2,7 @@
 
 // @ts-ignore
 import { useState } from "react"
+import { notFound } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import {
   useTrackCourseVisit,
@@ -9,7 +10,6 @@ import {
 } from "@/store/visit-cache.store"
 import { useQuery } from "convex/react"
 
-import { MyPlanCourseCodeGroupWithDetail } from "@/types/myplan"
 import { cn } from "@/lib/utils"
 
 import { Page, PageTopToolbar } from "../page-wrapper"
@@ -56,15 +56,15 @@ const PageTab = ({
 }
 
 const CourseDetailPageContentMobile = ({
-  course,
+  courseCode,
 }: {
-  course: MyPlanCourseCodeGroupWithDetail
+  courseCode: string
 }) => {
   const [tab, setTab] = useState<"sessions" | "cec">("sessions")
   return (
     <div className="space-y-4 md:space-y-6">
-      <CourseDetailHeader course={course} />
-      <CourseDetailStatsSection courseCode={course.code} />
+      <CourseDetailHeader courseCode={courseCode} />
+      <CourseDetailStatsSection courseCode={courseCode} />
 
       <div className="flex items-center gap-2 my-6">
         <PageTab active={tab === "sessions"} onClick={() => setTab("sessions")}>
@@ -75,8 +75,8 @@ const CourseDetailPageContentMobile = ({
         </PageTab>
       </div>
 
-      {tab === "sessions" && <CourseSessionsSection courseCode={course.code} />}
-      {tab === "cec" && <CECEvaluations courseCode={course.code} />}
+      {tab === "sessions" && <CourseSessionsSection courseCode={courseCode} />}
+      {tab === "cec" && <CECEvaluations courseCode={courseCode} />}
 
       {/* {gpaDistro && gpaDistro.length > 0 ? (
         <EasinessPieChart data={gpaDistro} />
@@ -179,21 +179,24 @@ const CourseDetailPageSkeleton = () => {
   )
 }
 
-export function CourseDetailPage({
-  course,
-}: {
-  course: MyPlanCourseCodeGroupWithDetail
-}) {
-  const c = useQuery(api.courses.getByCourseCode, { courseCode: course.code })
+export function CourseDetailPage({ courseCode }: { courseCode: string }) {
+  const c = useQuery(api.courses.getByCourseCode, { courseCode })
+
+  // Extract subject area code from course code (e.g., "CSE 142" -> "CSE")
+  const subjectAreaCode = courseCode?.replace(/\d+$/, "").trim() || ""
+  const subjectArea = useQuery(
+    api.myplan1.subjectAreas.getByCode,
+    subjectAreaCode ? { code: subjectAreaCode } : "skip"
+  )
   // const c = useQuery(api.courses.getByCourseCodeDev, {
   //   courseCode: course.code,
   // })
 
-  useTrackCourseVisit(course.code)
+  useTrackCourseVisit(courseCode)
   useTrackMajorVisit({
     id: 0,
-    code: course.subjectAreaCode,
-    title: course.subjectAreaTitle,
+    code: subjectArea?.code || subjectAreaCode,
+    title: subjectArea?.title || subjectAreaCode,
     campus: "",
     collegeCode: "",
     collegeTitle: "",
@@ -208,6 +211,11 @@ export function CourseDetailPage({
 
   // console.log(c)
 
+  if (c?.myplanCourse === null) {
+    // should be detected by generateMetadata
+    return notFound()
+  }
+
   return (
     <Page className="mx-page px-page">
       {/* <PageTopToolbar>
@@ -220,7 +228,7 @@ export function CourseDetailPage({
         {isLoading ? (
           <CourseDetailPageSkeleton />
         ) : (
-          <CourseDetailPageContentMobile course={course} />
+          <CourseDetailPageContentMobile courseCode={courseCode} />
         )}
         {/* <CECEvaluations items={(c as any)?.cecCourse} /> */}
       </div>

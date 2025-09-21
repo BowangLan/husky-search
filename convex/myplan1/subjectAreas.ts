@@ -23,3 +23,12 @@ export const listShort = query({
     }
   }
 })
+
+export const getByCode = query({
+  args: {
+    code: v.string(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.query("myplanSubjects").withIndex("by_code", (q) => q.eq("code", args.code)).first();
+  }
+})
