@@ -5,12 +5,12 @@ import {
   unstable_ViewTransition as ViewTransition,
   useMemo,
 } from "react"
+import Link from "next/link"
 import { api } from "@/convex/_generated/api"
 import { ProgramDetail } from "@/services/program-service"
 import { useTrackMajorVisit } from "@/store/visit-cache.store"
 import { useQuery } from "convex/react"
 import { Loader, TrendingDown, TrendingUp } from "lucide-react"
-import Link from "next/link"
 
 import { ConvexCourseOverview } from "@/types/convex-courses"
 import { capitalize } from "@/lib/utils"
@@ -161,26 +161,40 @@ export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
                   <SectionTitle>Course Categories</SectionTitle>
                 </SectionHeader>
                 <SectionContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-start gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="h-auto p-3 sm:p-4 flex flex-col items-start gap-1.5 sm:gap-2"
+                    >
                       <Link href={`/majors/${program.code}/easiest`}>
                         <div className="flex items-center gap-2">
-                          <TrendingDown className="h-5 w-5 text-green-600" />
-                          <span className="font-medium">Easiest Courses</span>
+                          <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                          <span className="font-medium text-sm sm:text-base">
+                            Easiest Courses
+                          </span>
                         </div>
-                        <span className="text-sm text-muted-foreground text-left">
-                          Courses ranked by easiness score based on GPA distribution data
+                        <span className="text-xs hidden sm:block sm:text-sm text-muted-foreground text-left">
+                          Courses ranked by easiness score based on GPA
+                          distribution data
                         </span>
                       </Link>
                     </Button>
-                    <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-start gap-2">
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="h-auto p-3 sm:p-4 flex flex-col items-start gap-1.5 sm:gap-2"
+                    >
                       <Link href={`/majors/${program.code}/toughest`}>
                         <div className="flex items-center gap-2">
-                          <TrendingUp className="h-5 w-5 text-red-600" />
-                          <span className="font-medium">Toughest Courses</span>
+                          <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+                          <span className="font-medium text-sm sm:text-base">
+                            Toughest Courses
+                          </span>
                         </div>
-                        <span className="text-sm text-muted-foreground text-left">
-                          Most challenging courses ranked by GPA distribution analysis
+                        <span className="text-xs hidden sm:block sm:text-sm text-muted-foreground text-left">
+                          Most challenging courses ranked by GPA distribution
+                          analysis
                         </span>
                       </Link>
                     </Button>

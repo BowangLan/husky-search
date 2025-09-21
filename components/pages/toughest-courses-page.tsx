@@ -89,7 +89,7 @@ export function ToughestCoursesPage({ program }: { program: ProgramDetail }) {
         title={
           <ViewTransition>
             <PageTitle>
-              Toughest {TOUGHEST_COURSES_LIMIT} {capitalize(program.title)}{" "}
+              {TOUGHEST_COURSES_LIMIT} Toughest {capitalize(program.title)}{" "}
               Courses
             </PageTitle>
           </ViewTransition>
