@@ -17,11 +17,11 @@ export function ExternalLink({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "flex-inline flex flex-row items-center text-sm gap-2 trans hover:text-purple-500",
+        "flex-inline flex flex-row items-center text-sm/tight gap-2 trans hover:text-purple-500",
         className
       )}
     >
-      <ExternalLinkIcon className="h-4 w-4" />
+      <ExternalLinkIcon className="h-3.5 w-3.5 md:h-4 md:w-4" />
       <span>{children}</span>
     </a>
   )

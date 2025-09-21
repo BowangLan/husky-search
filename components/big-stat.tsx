@@ -46,6 +46,88 @@ export type BigStatColor =
   | "gray"
   | "blue"
 
+const colorStyles: Record<
+  BigStatColor,
+  {
+    valueGradient: string
+    glowBg: string
+    divider: string
+  }
+> = {
+  primary: {
+    valueGradient:
+      "bg-gradient-to-r from-violet-500 to-violet-400 bg-clip-text text-transparent",
+    glowBg: "bg-violet-500/10",
+    divider: "via-violet-500/20",
+  },
+  emerald: {
+    valueGradient:
+      "bg-gradient-to-r from-emerald-500 to-emerald-400 bg-clip-text text-transparent",
+    glowBg: "bg-emerald-500/10",
+    divider: "via-emerald-500/20",
+  },
+  sky: {
+    valueGradient:
+      "bg-gradient-to-r from-sky-500 to-sky-400 bg-clip-text text-transparent",
+    glowBg: "bg-sky-500/10",
+    divider: "via-sky-500/20",
+  },
+  violet: {
+    valueGradient:
+      "bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent",
+    glowBg: "bg-violet-500/10",
+    divider: "via-violet-500/20",
+  },
+  rose: {
+    valueGradient:
+      "bg-gradient-to-r from-rose-500 to-rose-400 bg-clip-text text-transparent",
+    glowBg: "bg-rose-500/10",
+    divider: "via-rose-500/20",
+  },
+  amber: {
+    valueGradient:
+      "bg-gradient-to-r from-amber-500 to-amber-400 bg-clip-text text-transparent",
+    glowBg: "bg-amber-500/10",
+    divider: "via-amber-500/20",
+  },
+  green: {
+    valueGradient:
+      "bg-gradient-to-r from-green-500 to-green-400 bg-clip-text text-transparent",
+    glowBg: "bg-green-500/10",
+    divider: "via-green-500/20",
+  },
+  red: {
+    valueGradient:
+      "bg-gradient-to-r from-red-500 to-red-400 bg-clip-text text-transparent",
+    glowBg: "bg-red-500/10",
+    divider: "via-red-500/20",
+  },
+  yellow: {
+    valueGradient:
+      "bg-gradient-to-r from-yellow-500 to-yellow-400 bg-clip-text text-transparent",
+    glowBg: "bg-yellow-500/10",
+    divider: "via-yellow-500/20",
+  },
+  orange: {
+    valueGradient:
+      "bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent",
+    glowBg: "bg-orange-500/10",
+    divider: "via-orange-500/20",
+  },
+  gray: {
+    valueGradient:
+      "bg-gradient-to-r from-gray-500 to-gray-400 bg-clip-text text-transparent",
+    glowBg: "bg-gray-500/10",
+    divider: "via-gray-500/20",
+  },
+  blue: {
+    valueGradient:
+      "bg-gradient-to-r from-blue-500 to-blue-400 bg-clip-text text-transparent",
+    glowBg: "bg-blue-500/10",
+    divider: "via-blue-500/20",
+  },
+}
+
 export const BigStat = ({
   label,
   value,
@@ -62,87 +144,6 @@ export const BigStat = ({
   trend,
   color = "primary",
 }: BigStatProps) => {
-  const colorStyles: Record<
-    BigStatColor,
-    {
-      valueGradient: string
-      glowBg: string
-      divider: string
-    }
-  > = {
-    primary: {
-      valueGradient:
-        "bg-gradient-to-r from-violet-500 to-violet-400 bg-clip-text text-transparent",
-      glowBg: "bg-violet-500/10",
-      divider: "via-violet-500/20",
-    },
-    emerald: {
-      valueGradient:
-        "bg-gradient-to-r from-emerald-500 to-emerald-400 bg-clip-text text-transparent",
-      glowBg: "bg-emerald-500/10",
-      divider: "via-emerald-500/20",
-    },
-    sky: {
-      valueGradient:
-        "bg-gradient-to-r from-sky-500 to-sky-400 bg-clip-text text-transparent",
-      glowBg: "bg-sky-500/10",
-      divider: "via-sky-500/20",
-    },
-    violet: {
-      valueGradient:
-        "bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent",
-      glowBg: "bg-violet-500/10",
-      divider: "via-violet-500/20",
-    },
-    rose: {
-      valueGradient:
-        "bg-gradient-to-r from-rose-500 to-rose-400 bg-clip-text text-transparent",
-      glowBg: "bg-rose-500/10",
-      divider: "via-rose-500/20",
-    },
-    amber: {
-      valueGradient:
-        "bg-gradient-to-r from-amber-500 to-amber-400 bg-clip-text text-transparent",
-      glowBg: "bg-amber-500/10",
-      divider: "via-amber-500/20",
-    },
-    green: {
-      valueGradient:
-        "bg-gradient-to-r from-green-500 to-green-400 bg-clip-text text-transparent",
-      glowBg: "bg-green-500/10",
-      divider: "via-green-500/20",
-    },
-    red: {
-      valueGradient:
-        "bg-gradient-to-r from-red-500 to-red-400 bg-clip-text text-transparent",
-      glowBg: "bg-red-500/10",
-      divider: "via-red-500/20",
-    },
-    yellow: {
-      valueGradient:
-        "bg-gradient-to-r from-yellow-500 to-yellow-400 bg-clip-text text-transparent",
-      glowBg: "bg-yellow-500/10",
-      divider: "via-yellow-500/20",
-    },
-    orange: {
-      valueGradient:
-        "bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent",
-      glowBg: "bg-orange-500/10",
-      divider: "via-orange-500/20",
-    },
-    gray: {
-      valueGradient:
-        "bg-gradient-to-r from-gray-500 to-gray-400 bg-clip-text text-transparent",
-      glowBg: "bg-gray-500/10",
-      divider: "via-gray-500/20",
-    },
-    blue: {
-      valueGradient:
-        "bg-gradient-to-r from-blue-500 to-blue-400 bg-clip-text text-transparent",
-      glowBg: "bg-blue-500/10",
-      divider: "via-blue-500/20",
-    },
-  }
   const formattedValue = formatValue ? formatValue(value) : value
   const content = (
     <div className={cn("flex flex-col gap-2", compact && "gap-1")}>
@@ -157,7 +158,7 @@ export const BigStat = ({
         {helperText ? (
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="text-sm text-muted-foreground cursor-help">
+              <span className="text-xs md:text-sm text-muted-foreground cursor-help">
                 {label}
               </span>
             </TooltipTrigger>

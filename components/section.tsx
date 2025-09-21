@@ -8,7 +8,7 @@ export function Section({
   return (
     <section
       className={cn(
-        "mb-1 lg:mb-6",
+        "mb-6 lg:mb-6",
         withPadding && "px-page mx-page",
         className
       )}

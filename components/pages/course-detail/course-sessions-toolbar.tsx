@@ -126,7 +126,10 @@ export const CourseSessionsToolbar = () => {
       </div>
 
       {/* Row */}
-      <div onMouseLeave={() => setSelectedSessionIds([])}>
+      <div
+        onMouseLeave={() => setSelectedSessionIds([])}
+        className="hidden md:block"
+      >
         <SessionChips />
       </div>
 

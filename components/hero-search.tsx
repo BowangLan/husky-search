@@ -142,9 +142,9 @@ export function HeroSearch() {
 
   return (
     <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
-      <div className="relative">
+      <div className="relative w-full md:w-auto">
         <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 opacity-50 z-10" />
-        <div className="relative trans w-full md:w-xl focus-within:w-2xl">
+        <div className="relative trans w-full md:w-xl md:focus-within:w-2xl">
           <Input
             ref={inputRef}
             placeholder="Search for courses or majors (e.g. CSE 142, MATH 126)..."

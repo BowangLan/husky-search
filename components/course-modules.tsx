@@ -30,18 +30,35 @@ export const CourseGenEdRequirements = ({
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {genEdReqs.map((req, index) => (
-        <Tooltip key={index}>
-          <TooltipTrigger asChild>
-            <Badge size={size} variant="blue-outline" className="z-20">
-              {req}
-            </Badge>
-          </TooltipTrigger>
-          <TooltipContent side="top">{getGenEdLabel(req)}</TooltipContent>
-        </Tooltip>
-      ))}
-    </div>
+    <>
+      {/* Desktop */}
+      <div className="flex-wrap gap-2 hidden md:flex">
+        {genEdReqs.map((req, index) => (
+          <Tooltip key={index}>
+            <TooltipTrigger asChild>
+              <Badge size={size} variant="blue-outline" className="z-20">
+                {req}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent side="top">{getGenEdLabel(req)}</TooltipContent>
+          </Tooltip>
+        ))}
+      </div>
+
+      {/* Mobile */}
+      <div className="flex flex-wrap gap-2 md:hidden">
+        {genEdReqs.map((req, index) => (
+          <Tooltip key={index}>
+            <TooltipTrigger asChild>
+              <Badge size={"sm"} variant="blue-outline" className="z-20">
+                {req}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent side="top">{getGenEdLabel(req)}</TooltipContent>
+          </Tooltip>
+        ))}
+      </div>
+    </>
   )
 }
 

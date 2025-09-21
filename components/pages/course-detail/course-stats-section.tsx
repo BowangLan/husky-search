@@ -63,7 +63,7 @@ export const MeanGPAStat = ({ data }: { data: CourseDetail }) => {
 
   return (
     <BigStat
-      label="Mean GPA"
+      label="Med. GPA"
       value={meanGPA?.toFixed(1) ?? "-"}
       total={4.0}
       // icon={<GraduationCap />}
@@ -85,7 +85,7 @@ export const WeightedGPAStat = ({ data }: { data: CourseDetail }) => {
 
   return (
     <BigStat
-      label="Weighted GPA"
+      label="Wtd. GPA"
       value={weightedGPA?.toFixed(1) ?? "-"}
       total={4.0}
       // icon={<Scale />}
@@ -205,7 +205,7 @@ export const CourseDetailStatsSection = ({
 
   return (
     <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:col-span-7">
+      <div className="grid grid-cols-3 gap-4 lg:col-span-7">
         <EasinessStat data={data} />
         <MeanGPAStat data={data} />
         <WeightedGPAStat data={data} />

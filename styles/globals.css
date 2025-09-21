@@ -248,7 +248,7 @@
 
 .bg-button-accent-hover-active,
 .group>.bg-button-accent-hover-active {
-  @apply bg-foreground/5 hover:bg-foreground/10 active:bg-foreground/20 dark:bg-foreground/20 dark:hover:bg-foreground/25 dark:active:bg-foreground/30;
+  @apply bg-foreground/5 hover:bg-foreground/10 active:bg-foreground/20 dark:bg-foreground/15 dark:hover:bg-foreground/25 dark:active:bg-foreground/30;
 }
 
 .bg-button-ghost-hover-active,

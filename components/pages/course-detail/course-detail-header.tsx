@@ -97,28 +97,46 @@ export const CourseDetailHeader = ({
         </div>
       </div>
       <div className="flex flex-col items-start md:flex-row md:items-center gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col md:flex-row md:items-center mt-1 md:mt-0 gap-2">
           {/* <CourseLevelBadge course={course} /> */}
           {/* <CourseCreditBadge course={course} /> */}
           <CourseGenEdRequirements course={course} />
 
           {/* Quarter Badges */}
           {offeredQuarterBadges.length > 0 && (
-            <div className="flex items-center gap-2 ml-1">
-              {offeredQuarterBadges.map((q) => (
-                <Badge
-                  key={q.key}
-                  variant={`${getQuarterColor(q.num)}`}
-                  className="text-xs px-2 h-8"
-                >
-                  {q.label}
-                </Badge>
-              ))}
-            </div>
+            <>
+              {/* Desktop */}
+              <div className="items-center gap-2 ml-1 hidden md:flex">
+                {offeredQuarterBadges.map((q) => (
+                  <Badge
+                    key={q.key}
+                    variant={`${getQuarterColor(q.num)}`}
+                    className="text-xs px-2 h-8"
+                  >
+                    {q.label}
+                  </Badge>
+                ))}
+              </div>
+              {/* Mobile */}
+              <div className="items-center gap-2 flex md:hidden">
+                {offeredQuarterBadges.map((q) => (
+                  <Badge
+                    key={q.key}
+                    variant={`${getQuarterColor(q.num)}`}
+                    className="text-xs px-1.5 h-6"
+                  >
+                    {q.label}
+                  </Badge>
+                ))}
+              </div>
+            </>
           )}
         </div>
-        <div className="flex-1"></div>
-        <div className="flex items-center gap-6">
+
+        <div className="flex-1 md:block hidden"></div>
+
+        {/* Desktop */}
+        <div className="items-center gap-6 md:block hidden">
           <ExternalLink
             href={`https://myplan.uw.edu/course/#/courses/${courseCode}`}
           >
@@ -129,6 +147,23 @@ export const CourseDetailHeader = ({
             href={`https://dawgpath.uw.edu/course?id=${courseCode}&campus=seattle`}
           >
             View on DawgPath
+          </ExternalLink>
+        </div>
+
+        {/* Mobile */}
+        <div className="gap-2 md:hidden flex w-full flex-row items-center justify-around">
+          <ExternalLink
+            href={`https://myplan.uw.edu/course/#/courses/${courseCode}`}
+            className="flex-1 text-center justify-center bg-button-accent-hover-active rounded-md py-2"
+          >
+            MyPlan
+          </ExternalLink>
+          <ExternalLink
+            // TODO: make campus dynamic, need to get the map of campus codes to names
+            href={`https://dawgpath.uw.edu/course?id=${courseCode}&campus=seattle`}
+            className="flex-1 text-center justify-center bg-button-accent-hover-active rounded-md py-2"
+          >
+            DawgPath
           </ExternalLink>
         </div>
       </div>
