@@ -6,6 +6,7 @@ import { useUser } from "@clerk/nextjs"
 import { useQuery } from "convex/react"
 import { Activity, Gauge, GraduationCap, Scale } from "lucide-react"
 
+import { COMPONENTS, useHasComponentAccess } from "@/config/permissions"
 import {
   easinessScore,
   medianGPA,
@@ -13,7 +14,6 @@ import {
   weightedMeanGPA,
 } from "@/lib/gpa-utils"
 import { getColor4, getColor100 } from "@/lib/utils"
-import { useIsStudent } from "@/hooks/use-is-student"
 import {
   Card,
   CardContent,
@@ -123,14 +123,14 @@ export const GPADistroChartCard = ({
   courseCode: string
 }) => {
   const gpaDistro = data?.dp?.gpa_distro
-  const userIsStudent = useIsStudent()
+  const hasGPAPermission = useHasComponentAccess(COMPONENTS.GPA_DISTRIBUTION)
 
   return (
     <Card hoverInteraction={false}>
       <CardHeader>
         <CardTitle>GPA distribution</CardTitle>
       </CardHeader>
-      {userIsStudent ? (
+      {hasGPAPermission ? (
         <>
           <CardContent>
             {gpaDistro && gpaDistro.length > 0 ? (
@@ -179,7 +179,9 @@ export const CourseDetailStatsSection = ({
   const data = useQuery(api.courses.getByCourseCode, {
     courseCode,
   })
-  const userIsStudent = useIsStudent()
+  const hasStatsPermission = useHasComponentAccess(
+    COMPONENTS.COURSE_DETAIL_STATS
+  )
 
   // dev
   // const data = useQuery(api.courses.getByCourseCodeDev, {
@@ -188,7 +190,7 @@ export const CourseDetailStatsSection = ({
 
   if (!data) return null
 
-  if (!userIsStudent) {
+  if (!hasStatsPermission) {
     return (
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full">
         <div className="lg:col-span-7 space-y-4 min-w-0 lg:row-start-1">

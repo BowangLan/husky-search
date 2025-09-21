@@ -9,7 +9,7 @@ import { useQuery } from "convex/react"
 import { ExternalLinkIcon, Grid, List, Radar, X } from "lucide-react"
 
 import { cn, formatTerm, getColor5, getColor5Classes } from "@/lib/utils"
-import { useIsStudent } from "@/hooks/use-is-student"
+import { useHasComponentAccess, COMPONENTS } from "@/config/permissions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FilterTabItem, FilterTabList } from "@/components/ui/filter-tabs"
 import { Label } from "@/components/ui/label"
@@ -251,7 +251,7 @@ export function CECEvaluations({ courseCode }: { courseCode: string }) {
   const data = useQuery(api.courses.getByCourseCode, {
     courseCode,
   })
-  const userIsStudent = useIsStudent()
+  const hasCECPermission = useHasComponentAccess(COMPONENTS.CEC_EVALUATIONS)
   const [selectedProfessor, setSelectedProfessor] = useState<string | null>(
     null
   )
@@ -268,7 +268,7 @@ export function CECEvaluations({ courseCode }: { courseCode: string }) {
     })
   }, [items])
 
-  if (!userIsStudent) {
+  if (!hasCECPermission) {
     // not a student
     return (
       <Card hoverInteraction={false}>
