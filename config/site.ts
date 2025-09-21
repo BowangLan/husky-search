@@ -3,7 +3,7 @@ export type SiteConfig = typeof siteConfig
 export const siteConfig = {
   name: "Husky Search",
   description:
-    "Discover and explore UW courses with detailed information about credits, prerequisites, and course content.",
+    "Discover and explore University of Washington courses with detailed information about credits, prerequisites, enrollment data, and course content. Find your perfect UW courses and academic programs.",
   mainNav: [
     {
       title: "Courses",

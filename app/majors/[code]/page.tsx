@@ -21,9 +21,48 @@ export const generateMetadata = async ({
     return notFound()
   }
 
+  const title = `${capitalize(program.title)} Major - University of Washington`
+  const description = `Explore the ${program.title} major at UW. Find courses, requirements, and program details for ${program.title} students at the University of Washington.`
+
   return {
-    title: `${capitalize(program.title)} Major`,
-    description: `${program.title}`,
+    title,
+    description,
+    keywords: [
+      program.title,
+      `${program.title} major`,
+      'University of Washington',
+      'UW',
+      'degree program',
+      'college major',
+      'academic program',
+      program.code,
+    ],
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      siteName: 'Husky Search',
+      url: `https://huskysearch.app/majors/${code}`,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+    alternates: {
+      canonical: `https://huskysearch.app/majors/${code}`,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
   }
 }
 

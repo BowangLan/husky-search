@@ -12,7 +12,7 @@ import { useQuery } from "convex/react"
 
 import { cn } from "@/lib/utils"
 
-import { Page, PageTopToolbar } from "../page-wrapper"
+import { Page } from "../page-wrapper"
 import { Button } from "../ui/button"
 import { Card, CardContent } from "../ui/card"
 import { Skeleton } from "../ui/skeleton"

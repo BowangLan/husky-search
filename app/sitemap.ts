@@ -1,9 +1,10 @@
 import { MetadataRoute } from 'next'
-import { ProgramService } from '@/services/program-service'
+import { fetchQuery } from 'convex/nextjs'
+import { api } from '@/convex/_generated/api'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Get all programs for dynamic routes
-  const programs = await ProgramService.getAllPrograms()
+  const programs = await fetchQuery(api.myplan1.subjectAreas.listShort, {})
 
   const baseUrl = 'https://huskysearch.com'
 
@@ -32,7 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Dynamic major routes
   const majorRoutes: MetadataRoute.Sitemap = []
 
-  programs.forEach((program) => {
+  programs.data.forEach((program) => {
     // Main major page
     majorRoutes.push({
       url: `${baseUrl}/majors/${program.code}`,
