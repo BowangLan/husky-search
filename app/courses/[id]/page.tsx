@@ -1,3 +1,4 @@
+import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import { fetchQuery } from "convex/nextjs"
@@ -8,7 +9,7 @@ export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>
-}) => {
+}): Promise<Metadata> {
   const { id: courseCode } = await params
   const course = await fetchQuery(api.courses.getByCourseCodeBrief, {
     courseCode: decodeURIComponent(courseCode).toUpperCase(),
@@ -19,7 +20,9 @@ export async function generateMetadata({
   }
 
   const title = `${course.courseCode} - ${course.title} | University of Washington`
-  const description = course.description || `Learn about ${course.courseCode} (${course.title}) at the University of Washington. View course details, prerequisites, schedules, and student evaluations.`
+  const description =
+    course.description ||
+    `Learn about ${course.courseCode} (${course.title}) at the University of Washington. View course details, prerequisites, schedules, and student evaluations.`
 
   return {
     title,
@@ -27,28 +30,32 @@ export async function generateMetadata({
     keywords: [
       course.courseCode,
       course.title,
-      'University of Washington',
-      'UW course',
-      'course details',
-      'course schedule',
-      'prerequisites',
-      'university course',
-      course.courseCode.replace(/\s+/g, ''),
+      "University of Washington",
+      "UW course",
+      "course details",
+      "course schedule",
+      "prerequisites",
+      "university course",
+      course.courseCode.replace(/\s+/g, ""),
     ],
     openGraph: {
       title,
       description,
-      type: 'website',
-      siteName: 'Husky Search',
-      url: `https://huskysearch.app/courses/${encodeURIComponent(course.courseCode)}`,
+      type: "website",
+      siteName: "Husky Search",
+      url: `https://huskysearch.app/courses/${encodeURIComponent(
+        course.courseCode
+      )}`,
     },
     twitter: {
-      card: 'summary_large_image',
+      card: "summary_large_image",
       title,
       description,
     },
     alternates: {
-      canonical: `https://huskysearch.app/courses/${encodeURIComponent(course.courseCode)}`,
+      canonical: `https://huskysearch.app/courses/${encodeURIComponent(
+        course.courseCode
+      )}`,
     },
     robots: {
       index: true,
@@ -56,9 +63,9 @@ export async function generateMetadata({
       googleBot: {
         index: true,
         follow: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
       },
     },
   }
