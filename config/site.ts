@@ -31,3 +31,8 @@ export const externalLinks = {
 
 export const EASIEST_COURSES_LIMIT = 20;
 export const TOUGHEST_COURSES_LIMIT = 20;
+
+export const STATIC_ASSETS = {
+  ALL_COURSE_CODES: "course_codes.json",
+  ALL_SUBJECT_AREAS: "subject_areas.json",
+};

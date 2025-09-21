@@ -2,13 +2,12 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { api } from "@/convex/_generated/api"
 import { CourseSearchResultItem } from "@/services/course-service"
-import { useQuery } from "convex/react"
 import { Command, Search, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
+import { useStaticCourseCodes, useStaticSubjectAreas, SubjectArea } from "@/hooks/use-static-course-data"
 import { Button } from "@/components/ui/button"
 import {
   Drawer,
@@ -27,12 +26,12 @@ import { CourseSearchLoadingSkeleton } from "@/components/course-search-loading-
 export function CourseSearchMobile() {
   const [query, setQuery] = useState("")
   const [courses, setCourses] = useState<string[]>([])
-  const [majors, setMajors] = useState<string[]>([])
+  const [majors, setMajors] = useState<SubjectArea[]>([])
   const [loading, setLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const allCourseCodes = useQuery(api.courses.getAllCourseCodes, {})
-  const allSubjectAreas = useQuery(api.courses.getAllSubjectAreas, {})
+  const { data: allCourseCodes } = useStaticCourseCodes()
+  const { data: allSubjectAreas } = useStaticSubjectAreas()
   const navigate = useRouter()
 
   useEffect(() => {
@@ -72,9 +71,9 @@ export function CourseSearchMobile() {
         inputRef.current?.blur()
       } else if (
         majors.length === 1 &&
-        majors[0] === query.trim().toUpperCase()
+        majors[0].code === query.trim().toUpperCase()
       ) {
-        navigate.push(`/majors/${majors[0]}`)
+        navigate.push(`/majors/${majors[0].code}`)
         setIsOpen(false)
         setCourses([])
         setMajors([])
@@ -116,7 +115,7 @@ export function CourseSearchMobile() {
 
     // Filter majors
     const filteredMajors = allSubjectAreas
-      .filter((code) => code.replace(/\s+/g, "").startsWith(normalized))
+      .filter((area) => area.code.replace(/\s+/g, "").startsWith(normalized))
       .slice(0, 10)
     setMajors(filteredMajors)
   }, [query, allCourseCodes, allSubjectAreas])
@@ -128,9 +127,9 @@ export function CourseSearchMobile() {
     setIsOpen(false)
   }
 
-  const handleMajorSelect = (majorCode: string) => {
-    navigate.push(`/majors/${majorCode}`)
-    setQuery(majorCode)
+  const handleMajorSelect = (major: SubjectArea) => {
+    navigate.push(`/majors/${major.code}`)
+    setQuery(major.code)
     setCourses([])
     setMajors([])
     setIsOpen(false)
@@ -222,13 +221,14 @@ export function CourseSearchMobile() {
                         </div>
                         {majors.map((major, index) => (
                           <button
-                            key={`major-${major}`}
+                            key={`major-${major.code}`}
                             onClick={() => handleMajorSelect(major)}
                             className="w-full flex items-center rounded-lg px-3 py-2 text-left text-sm hover:bg-foreground/10 hover:text-accent-foreground trans cursor-pointer border border-transparent hover:border-border"
                           >
                             <div className="flex flex-col">
                               <div className="flex items-center gap-2">
-                                <span className="font-medium">{major}</span>
+                                <span className="font-medium">{major.code}</span>
+                                <span className="text-xs text-muted-foreground">{major.title}</span>
                               </div>
                             </div>
                           </button>

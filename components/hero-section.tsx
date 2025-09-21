@@ -2,7 +2,7 @@ import { HeroSearch } from "./hero-search"
 
 export function HeroSection() {
   return (
-    <section className="relative isolate overflow-hidden">
+    <section className="relative">
       {/* Background layers */}
       {/* <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-transparent via-muted/30 to-background" />
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_60%_at_50%_0%,hsl(var(--primary)/0.18),transparent)]" />

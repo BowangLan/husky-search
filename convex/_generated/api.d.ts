@@ -27,6 +27,8 @@ import type * as embedding from "../embedding.js";
 import type * as http from "../http.js";
 import type * as kvStore from "../kvStore.js";
 import type * as myplan from "../myplan.js";
+import type * as myplan1_courses from "../myplan1/courses.js";
+import type * as myplan1_subjectAreas from "../myplan1/subjectAreas.js";
 import type * as myplanDataPoints from "../myplanDataPoints.js";
 import type * as myplanScrapers from "../myplanScrapers.js";
 import type * as myplanUtils from "../myplanUtils.js";
@@ -58,6 +60,8 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   kvStore: typeof kvStore;
   myplan: typeof myplan;
+  "myplan1/courses": typeof myplan1_courses;
+  "myplan1/subjectAreas": typeof myplan1_subjectAreas;
   myplanDataPoints: typeof myplanDataPoints;
   myplanScrapers: typeof myplanScrapers;
   myplanUtils: typeof myplanUtils;

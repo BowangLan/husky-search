@@ -6,11 +6,11 @@ from typing import Any, Dict, List, Optional
 
 
 from convex import ConvexClient
-import env
+from python.env import get_env
 
 
 def get_convex_client() -> ConvexClient:
-    convex_url = env.get_env("CONVEX_URL")
+    convex_url = get_env("CONVEX_URL")
 
     if not convex_url:
         raise RuntimeError("CONVEX_URL is not set")

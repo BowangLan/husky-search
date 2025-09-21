@@ -174,10 +174,32 @@ export const listCourseCodesWithDescription = query({
 })
 
 
+export const listEmptyDetailCourses = query({
+  args: {
+    limit: v.optional(v.number()),
+    cursor: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const courses = await ctx.db
+      .query("myplanCourses")
+      .withIndex("by_detail_data", (q) => q.eq("detailData", undefined))
+      .paginate({
+        numItems: args.limit ?? 100,
+        cursor: args.cursor ?? null,
+      });
+
+    return {
+      page: courses.page,
+      continueCursor: courses.continueCursor,
+      isDone: courses.isDone,
+    };
+  }
+})
+
 export const fillCourseCodeToKvStore = mutation({
   args: {},
   handler: async (ctx, args) => {
-    // should work when there are 10000+ courses
+    // should NOT work when there are 10000+ courses
     const allCourses = await ctx.db.query("myplanCourses").collect();
     const courseCodes = allCourses.map((course) => course.courseCode);
 
@@ -296,18 +318,6 @@ export const getKVStoreCourseCodes = internalQuery({
   handler: async (ctx, args) => {
     const kvStoreCourseCodes = await ctx.db.query("kvStore").withIndex("by_key", (q) => q.eq("key", "myplan_course_codes")).first();
     return (kvStoreCourseCodes?.value || []) as string[];
-  }
-})
-
-export const courseExistsKVStore = internalQuery({
-  args: {
-    courseCode: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const kvStoreCourseCodes = await ctx.db.query("kvStore").withIndex("by_key", (q) => q.eq("key", "myplan_course_codes")).first();
-    const kvStoreCourseCodeSet = new Set(kvStoreCourseCodes?.value || []);
-
-    return kvStoreCourseCodeSet.has(args.courseCode);
   }
 })
 

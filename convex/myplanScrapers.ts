@@ -2,7 +2,6 @@ import { v } from "convex/values";
 import { action, internalAction, internalMutation, mutation, query } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import { MyplanCourseInfo, myplanCourseInfoObj, MyplanCourseTermData, myplanSubjectFields } from "./schema";
-import { processCourseDetail } from "./myplanUtils";
 
 // TypeScript interfaces for data types
 export interface Course {
@@ -268,6 +267,32 @@ export const scrapeAndSaveCourseDetailBatch = internalAction({
         });
       }));
     }
+  }
+})
+
+export const scrapeAndSaveCourseDetailFromEmptyDetailCourses = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    const courses = await ctx.runQuery(api.myplan.listEmptyDetailCourses, {
+      limit: 100,
+    });
+
+    if (courses.page.length === 0) {
+      console.log(`No courses to scrape`);
+      return;
+    }
+
+    const batchSize = 10;
+    for (let i = 0; i < courses.page.length; i += batchSize) {
+      console.log(`Processing batch ${i / batchSize + 1} of ${Math.ceil(courses.page.length / batchSize)} (codes = ${courses.page.slice(i, i + batchSize).map((course) => course.courseCode).join(", ")})`);
+      const batch = courses.page.slice(i, i + batchSize);
+      await ctx.runAction(internal.myplanScrapers.scrapeAndSaveCourseDetailBatch, {
+        courseCodes: batch.map((course) => course.courseCode),
+      });
+    }
+
+    // schedule next batch in 1 minute
+    await ctx.scheduler.runAfter(60 * 1000, internal.myplanScrapers.scrapeAndSaveCourseDetailFromEmptyDetailCourses, {});
   }
 })
 

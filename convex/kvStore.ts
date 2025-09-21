@@ -1,4 +1,4 @@
-import { internalQuery, mutation } from "./_generated/server";
+import { mutation } from "./_generated/server";
 
 export const KV_STORE_KEYS = {
   MYPLAN_COURSE_CODES: "myplan_course_codes",
@@ -12,3 +12,4 @@ export const getKVStoreCourseCodes = mutation({
     return (kvStoreCourseCodes?.value || []) as string[];
   }
 })
+

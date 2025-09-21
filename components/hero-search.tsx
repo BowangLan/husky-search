@@ -3,26 +3,29 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { api } from "@/convex/_generated/api"
-import { useQuery } from "convex/react"
 import { Search, X } from "lucide-react"
 import { motion } from "motion/react"
 
 import { EASE_OUT_CUBIC } from "@/config/animation"
 import { useIsMobile } from "@/hooks/use-mobile"
+import {
+  SubjectArea,
+  useStaticCourseCodes,
+  useStaticSubjectAreas,
+} from "@/hooks/use-static-course-data"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 export function HeroSearch() {
   const [query, setQuery] = useState("")
   const [courses, setCourses] = useState<string[]>([])
-  const [majors, setMajors] = useState<string[]>([])
+  const [majors, setMajors] = useState<SubjectArea[]>([])
   const [loading, setLoading] = useState(false)
   const [showResults, setShowResults] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const allCourseCodes = useQuery(api.courses.getAllCourseCodes, {})
-  const allSubjectAreas = useQuery(api.courses.getAllSubjectAreas, {})
+  const { data: allCourseCodes } = useStaticCourseCodes()
+  const { data: allSubjectAreas } = useStaticSubjectAreas()
   const navigate = useRouter()
 
   useEffect(() => {
@@ -51,7 +54,7 @@ export function HeroSearch() {
     if (!allSubjectAreas) return false
     const normalized = searchQuery.replace(/\s+/g, "")
     return allSubjectAreas.some(
-      (code) => code.replace(/\s+/g, "") === normalized
+      (area) => area.code.replace(/\s+/g, "") === normalized
     )
   }
 
@@ -69,9 +72,9 @@ export function HeroSearch() {
         inputRef.current?.blur()
       } else if (
         majors.length === 1 &&
-        majors[0] === query.trim().toUpperCase()
+        majors[0].code === query.trim().toUpperCase()
       ) {
-        navigate.push(`/majors/${majors[0]}`)
+        navigate.push(`/majors/${majors[0].code}`)
         setShowResults(false)
         setCourses([])
         setMajors([])
@@ -89,10 +92,10 @@ export function HeroSearch() {
         }
       } else if (isExactMajorMatch(query)) {
         const exactMatch = allSubjectAreas?.find(
-          (code) => code.replace(/\s+/g, "") === query.replace(/\s+/g, "")
+          (area) => area.code.replace(/\s+/g, "") === query.replace(/\s+/g, "")
         )
         if (exactMatch) {
-          navigate.push(`/majors/${exactMatch}`)
+          navigate.push(`/majors/${exactMatch.code}`)
           setShowResults(false)
           setCourses([])
           setMajors([])
@@ -135,7 +138,7 @@ export function HeroSearch() {
 
     // Filter majors
     const filteredMajors = allSubjectAreas
-      .filter((code) => code.replace(/\s+/g, "").startsWith(normalized))
+      .filter((area) => area.code.replace(/\s+/g, "").startsWith(normalized))
       .slice(0, 10)
     setMajors(filteredMajors)
   }, [query, allCourseCodes, allSubjectAreas])
@@ -182,9 +185,15 @@ export function HeroSearch() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-full z-50 w-full rounded-xl border bg-background shadow-xl mt-2"
+            className="absolute isolate top-full w-full rounded-xl border bg-background shadow-xl mt-2"
+            style={{ zIndex: 999 }}
           >
-            <div className="max-h-80 overflow-y-auto p-2">
+            <div
+              className="overflow-y-auto p-2"
+              style={{
+                maxHeight: "400px",
+              }}
+            >
               {loading ? (
                 <div className="p-6 text-center text-muted-foreground">
                   Searching...
@@ -202,14 +211,14 @@ export function HeroSearch() {
                       </div>
                       {majors.map((major) => (
                         <Link
-                          key={`major-${major}`}
-                          href={`/majors/${major}`}
+                          key={`major-${major.code}`}
+                          href={`/majors/${major.code}`}
                           className="w-full flex items-center rounded-lg px-4 py-3 text-left hover:bg-foreground/5 hover:text-accent-foreground transition-colors cursor-pointer"
                           prefetch
                           onClick={(e) => {
                             e.stopPropagation()
                             setShowResults(false)
-                            setQuery(major)
+                            setQuery(major.code)
                             setCourses([])
                             setMajors([])
                           }}
@@ -217,7 +226,10 @@ export function HeroSearch() {
                           <div className="flex flex-col">
                             <div className="flex items-center gap-2">
                               <span className="font-medium text-base">
-                                {major}
+                                {major.code}
+                              </span>
+                              <span className="text-sm text-muted-foreground">
+                                {major.title}
                               </span>
                             </div>
                           </div>

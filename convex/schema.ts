@@ -68,6 +68,8 @@ export const myplanCourseInfoFields = {
     v.string(),
   )),
   currentTermData: v.optional(v.array(myplanCourseTermDataObj)),
+  uwCourseCode: v.optional(v.string()),
+  url: v.optional(v.string()),
 }
 
 export const myplanCourseFullFields = {
@@ -149,6 +151,7 @@ export default defineSchema({
       searchField: "courseCode",
     })
     .index("by_course_id", ["courseId"])
+    .index("by_url", ["url"])
     .index("by_subject_area", ["subjectArea"])
     .index("by_update_interval_seconds", ["updateIntervalSeconds"])
     .index("by_detail_data", ["detailData"])

@@ -3,12 +3,11 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { api } from "@/convex/_generated/api"
-import { useQuery } from "convex/react"
 import { Search, X } from "lucide-react"
 import { motion } from "motion/react"
 
 import { EASE_OUT_CUBIC } from "@/config/animation"
+import { useStaticCourseCodes, useStaticSubjectAreas, SubjectArea } from "@/hooks/use-static-course-data"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -18,13 +17,13 @@ const WIDTH_FOCUSED = "400px"
 export function CourseSearch() {
   const [query, setQuery] = useState("")
   const [courses, setCourses] = useState<string[]>([])
-  const [majors, setMajors] = useState<string[]>([])
+  const [majors, setMajors] = useState<SubjectArea[]>([])
   const [loading, setLoading] = useState(false)
   const [showResults, setShowResults] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const allCourseCodes = useQuery(api.courses.getAllCourseCodes, {})
-  const allSubjectAreas = useQuery(api.courses.getAllSubjectAreas, {})
+  const { data: allCourseCodes } = useStaticCourseCodes()
+  const { data: allSubjectAreas } = useStaticSubjectAreas()
   const navigate = useRouter()
 
   useEffect(() => {
@@ -68,9 +67,9 @@ export function CourseSearch() {
         inputRef.current?.blur()
       } else if (
         majors.length === 1 &&
-        majors[0] === query.trim().toUpperCase()
+        majors[0].code === query.trim().toUpperCase()
       ) {
-        navigate.push(`/majors/${majors[0]}`)
+        navigate.push(`/majors/${majors[0].code}`)
         setShowResults(false)
         setCourses([])
         setMajors([])
@@ -112,7 +111,7 @@ export function CourseSearch() {
 
     // Filter majors
     const filteredMajors = allSubjectAreas
-      .filter((code) => code.replace(/\s+/g, "").startsWith(normalized))
+      .filter((area) => area.code.replace(/\s+/g, "").startsWith(normalized))
       .slice(0, 10)
     setMajors(filteredMajors)
   }, [query, allCourseCodes, allSubjectAreas])
@@ -176,21 +175,22 @@ export function CourseSearch() {
                     </div>
                     {majors.map((major) => (
                       <Link
-                        key={`major-${major}`}
-                        href={`/majors/${major}`}
+                        key={`major-${major.code}`}
+                        href={`/majors/${major.code}`}
                         className="w-full flex items-center rounded-lg px-3 py-2 text-left text-sm hover:bg-foreground/10 hover:text-accent-foreground trans cursor-pointer z-20"
                         prefetch
                         onClick={(e) => {
                           e.stopPropagation()
                           setShowResults(false)
-                          setQuery(major)
+                          setQuery(major.code)
                           setCourses([])
                           setMajors([])
                         }}
                       >
                         <div className="flex flex-col">
                           <div className="flex items-center gap-2">
-                            <span className="font-medium">{major}</span>
+                            <span className="font-medium">{major.code}</span>
+                            <span className="text-xs text-muted-foreground">{major.title}</span>
                           </div>
                         </div>
                       </Link>
