@@ -123,7 +123,7 @@ export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
               <span className="tabular-nums text-foreground font-medium">
                 {courseAvailability.notOffered}
               </span>{" "}
-              not listed
+              not currently offered
             </span>
           </div>
         </div>

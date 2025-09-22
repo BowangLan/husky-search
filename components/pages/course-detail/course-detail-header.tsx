@@ -3,7 +3,7 @@ import { api } from "@/convex/_generated/api"
 import { useQuery } from "convex/react"
 import { GraduationCap } from "lucide-react"
 
-import { capitalize } from "@/lib/utils"
+import { capitalize, getGenEdLabel } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { ExternalLink } from "@/components/ui/external-link"
 import {
@@ -11,20 +11,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import {
-  getQuarterColor,
-} from "@/components/course-modules"
-import { getGenEdLabel } from "@/lib/utils"
+import { getQuarterColor } from "@/components/course-modules"
 
-export const CourseDetailHeader = ({
-  courseCode,
-}: {
-  courseCode: string
-}) => {
+export const CourseDetailHeader = ({ courseCode }: { courseCode: string }) => {
   const courseData = useQuery(api.courses.getByCourseCode, { courseCode })
 
   // Extract subject area code from course code (e.g., "CSE142" -> "CSE")
-  const subjectAreaCode = courseCode?.replace(/\d+$/, '') || ''
+  const subjectAreaCode = courseCode?.replace(/\d+$/, "") || ""
   const subjectArea = useQuery(
     api.myplan1.subjectAreas.getByCode,
     subjectAreaCode ? { code: subjectAreaCode } : "skip"
@@ -60,7 +53,7 @@ export const CourseDetailHeader = ({
 
   return (
     // my should be the same as page-wrapper
-    <section className="my-page-header space-y-2 md:space-y-4">
+    <section className="my-page-header space-y-4 md:space-y-6">
       <div className="flex items-center gap-2 pb-2">
         {/* <Badge
               variant="secondary"
@@ -68,11 +61,7 @@ export const CourseDetailHeader = ({
             >
               {`${course.subject} ${course.number}`}
             </Badge> */}
-        <Link
-          href={`/majors/${subjectAreaCode}`}
-          prefetch
-          scroll={false}
-        >
+        <Link href={`/majors/${subjectAreaCode}`} prefetch scroll={false}>
           <Badge
             variant="outline"
             className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 cursor-pointer hover:opacity-80 trans"
@@ -80,8 +69,6 @@ export const CourseDetailHeader = ({
             {subjectAreaCode}
           </Badge>
         </Link>
-        {/* <CourseLevelBadge course={course} /> */}
-        {/* <CourseCreditBadge course={course} /> */}
       </div>
       <div className="space-y-1">
         <div className="flex items-baseline gap-2">
@@ -106,7 +93,7 @@ export const CourseDetailHeader = ({
           </Tooltip>
         </div>
         <div className="flex items-center gap-2">
-          <h2 className="text-base font-normal text-foreground sm:text-xl lg:text-2xl opacity-60">
+          <h2 className="text-base font-light text-foreground sm:text-xl lg:text-2xl opacity-60">
             {courseData.myplanCourse.title}
           </h2>
         </div>
@@ -116,20 +103,25 @@ export const CourseDetailHeader = ({
           {/* <CourseLevelBadge course={course} /> */}
           {/* <CourseCreditBadge course={course} /> */}
           {/* Gen Ed Requirements */}
-          {courseData?.myplanCourse?.genEdReqs && courseData.myplanCourse.genEdReqs.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {courseData.myplanCourse.genEdReqs.map((req: string, index: number) => (
-                <Tooltip key={index}>
-                  <TooltipTrigger asChild>
-                    <Badge variant="blue-outline" className="z-20">
-                      {req}
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent side="top">{getGenEdLabel(req)}</TooltipContent>
-                </Tooltip>
-              ))}
-            </div>
-          )}
+          {courseData?.myplanCourse?.genEdReqs &&
+            courseData.myplanCourse.genEdReqs.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {courseData.myplanCourse.genEdReqs.map(
+                  (req: string, index: number) => (
+                    <Tooltip key={index}>
+                      <TooltipTrigger asChild>
+                        <Badge variant="blue-outline" className="z-20">
+                          {req}
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        {getGenEdLabel(req)}
+                      </TooltipContent>
+                    </Tooltip>
+                  )
+                )}
+              </div>
+            )}
 
           {/* Quarter Badges */}
           {offeredQuarterBadges.length > 0 && (
@@ -180,17 +172,17 @@ export const CourseDetailHeader = ({
         </div>
 
         {/* Mobile */}
-        <div className="gap-2 md:hidden flex w-full flex-row items-center justify-around">
+        <div className="gap-2 md:hidden flex w-full flex-row items-center justify-around mt-4">
           <ExternalLink
             href={`https://myplan.uw.edu/course/#/courses/${courseCode}`}
-            className="flex-1 text-center justify-center bg-button-accent-hover-active rounded-md py-2"
+            className="flex-1 text-center justify-center bg-button-accent-hover-active rounded-md py-2.5 hover:text-foreground"
           >
             MyPlan
           </ExternalLink>
           <ExternalLink
             // TODO: make campus dynamic, need to get the map of campus codes to names
             href={`https://dawgpath.uw.edu/course?id=${courseCode}&campus=seattle`}
-            className="flex-1 text-center justify-center bg-button-accent-hover-active rounded-md py-2"
+            className="flex-1 text-center justify-center bg-button-accent-hover-active rounded-md py-2.5 hover:text-foreground"
           >
             DawgPath
           </ExternalLink>
@@ -198,11 +190,7 @@ export const CourseDetailHeader = ({
       </div>
       <div className="items-center gap-2 hidden">
         {/* Program */}
-        <Link
-          href={`/majors/${subjectAreaCode}`}
-          prefetch
-          scroll={false}
-        >
+        <Link href={`/majors/${subjectAreaCode}`} prefetch scroll={false}>
           <Badge
             size="lg"
             variant="outline"
