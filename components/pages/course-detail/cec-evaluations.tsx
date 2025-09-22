@@ -31,10 +31,12 @@ const ProfessorEvalBlock = ({
   professor,
   evals,
   showIndividualEvals,
+  isCurrentInstructor,
 }: {
   professor: string
   evals: CourseCecItem[]
   showIndividualEvals?: boolean
+  isCurrentInstructor?: boolean
 }) => {
   // const [showIndividualEvals, setShowIndividualEvals] = useState(false)
   const [viewType, setViewType] = useState<"radar" | "grid">("radar")
@@ -78,9 +80,21 @@ const ProfessorEvalBlock = ({
       <CardHeader>
         <div className="flex items-center justify-between flex-none">
           <div className="flex flex-col">
-            <span className="text-base md:text-lg font-semibold">
-              {professor}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-base md:text-lg font-semibold">
+                {professor}
+              </span>
+              {isCurrentInstructor && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Currently teaching
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
 
             {/* <span className="text-xs md:text-sm text-muted-foreground">
                 {evals.length} evaluation{evals.length > 1 ? "s" : ""}
@@ -257,6 +271,12 @@ export function CECEvaluations({ courseCode }: { courseCode: string }) {
   )
 
   const items = data?.cecCourse
+  const currentInstructors = useMemo(() => {
+    const termData = data?.myplanCourse?.currentTermData?.[0]
+    const sessions = Array.isArray(termData?.sessions) ? termData!.sessions : []
+    return new Set(sessions.map((session: any) => session.instructor).filter(Boolean))
+  }, [data?.myplanCourse])
+
   const sorted = useMemo(() => {
     if (!items) return []
     return [...items].sort((a, b) => {
@@ -301,14 +321,17 @@ export function CECEvaluations({ courseCode }: { courseCode: string }) {
             {/* chips of professors */}
             <div className="flex flex-wrap gap-2">
               {Object.entries(groupedByProfessor).map(([professor, evals]) => {
+                const isCurrentInstructor = currentInstructors.has(professor)
                 return (
                   <div
                     key={professor}
                     className={cn(
-                      "flex items-center gap-2 px-2.5 h-9 rounded-lg border border-border cursor-pointer trans",
+                      "flex items-center gap-2 px-2.5 h-9 rounded-lg border cursor-pointer trans",
                       selectedProfessor === professor
-                        ? "text-white bg-primary"
-                        : "bg-button-ghost-hover-active"
+                        ? "text-white bg-primary border-primary"
+                        : isCurrentInstructor
+                        ? "bg-button-ghost-hover-active border-green-500/30"
+                        : "bg-button-ghost-hover-active border-border"
                     )}
                     role="button"
                     onClick={(e) => {
@@ -317,7 +340,19 @@ export function CECEvaluations({ courseCode }: { courseCode: string }) {
                       toggleProfessor(professor)
                     }}
                   >
-                    <span className="text-sm font-medium">{professor}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{professor}</span>
+                      {isCurrentInstructor && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0 cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Currently teaching
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
                     <div
                       className={cn(
                         "flex items-center justify-center size-5 bg-foreground/5 text-xs font-medium rounded-full text-muted-foreground",
@@ -366,6 +401,7 @@ export function CECEvaluations({ courseCode }: { courseCode: string }) {
             professor={selectedProfessor}
             evals={groupedByProfessor[selectedProfessor]}
             showIndividualEvals={true}
+            isCurrentInstructor={currentInstructors.has(selectedProfessor)}
           />
         </div>
       )}
@@ -387,6 +423,7 @@ export function CECEvaluations({ courseCode }: { courseCode: string }) {
                 key={professor}
                 professor={professor}
                 evals={evals}
+                isCurrentInstructor={currentInstructors.has(professor)}
               />
             )
           })}

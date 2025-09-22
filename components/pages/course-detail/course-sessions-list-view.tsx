@@ -34,6 +34,7 @@ import { ScheduleSheet } from "@/components/schedule/schedule-sheet"
 import { SessionEnrollProgress } from "@/components/session-enroll-progress"
 
 import { useCourseSessions } from "./course-sessions-context"
+import { InstructorHoverCard } from "./instructor-hover-card"
 import { SessionScheduleToggleButton } from "./session-schedule-toggle-button"
 
 export const SessionRowDesktop = ({
@@ -96,9 +97,42 @@ export const SessionRowDesktop = ({
         </div>
 
         <div className="text-sm overflow-hidden min-w-0">
-          <div className="text-muted-foreground truncate whitespace-nowrap">
-            {session.instructor}
-          </div>
+          <InstructorHoverCard
+            instructor={session.instructor}
+            cecData={data?.cecCourse || []}
+          >
+            <div
+              className={cn(
+                `truncate whitespace-nowrap transition-colors flex items-center gap-1.5`,
+                data?.cecCourse?.some(
+                  (item) => item.professor === session.instructor
+                )
+                  ? "text-foreground cursor-default hover:text-foreground"
+                  : "text-muted-foreground"
+              )}
+              style={{
+                opacity: data?.cecCourse?.some(
+                  (item) => item.professor === session.instructor
+                )
+                  ? 1
+                  : 0.7,
+              }}
+            >
+              {session.instructor}
+              {data?.cecCourse?.some(
+                (item) => item.professor === session.instructor
+              ) && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    CEC data available
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+          </InstructorHoverCard>
         </div>
 
         <div className="text-sm">
@@ -230,9 +264,41 @@ export const SessionRowMobile = ({
         </div>
 
         {!!session.instructor && (
-          <div className="text-muted-foreground truncate whitespace-nowrap">
-            {session.instructor}
-          </div>
+          <InstructorHoverCard
+            instructor={session.instructor}
+            cecData={data?.cecCourse || []}
+          >
+            <div
+              className={`truncate whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                data?.cecCourse?.some(
+                  (item) => item.professor === session.instructor
+                )
+                  ? "text-muted-foreground cursor-default hover:text-foreground"
+                  : "text-muted-foreground"
+              }`}
+              style={{
+                opacity: data?.cecCourse?.some(
+                  (item) => item.professor === session.instructor
+                )
+                  ? 1
+                  : 0.7,
+              }}
+            >
+              {session.instructor}
+              {data?.cecCourse?.some(
+                (item) => item.professor === session.instructor
+              ) && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    CEC data available
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+          </InstructorHoverCard>
         )}
 
         <div className="text-sm">

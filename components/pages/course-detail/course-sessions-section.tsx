@@ -21,7 +21,7 @@ export const CourseSessionsSectionInner = () => {
         </CardContent>
       </Card>
       <Card
-        className="overflow-hidden py-0 md:py-0 min-h-screen"
+        className="py-0 md:py-0 min-h-screen overflow-visible"
         hoverInteraction={false}
       >
         <CardContent className="px-0 md:px-0">
