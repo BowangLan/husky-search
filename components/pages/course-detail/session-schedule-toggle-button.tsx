@@ -21,9 +21,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
+import { isScheduleFeatureEnabled } from "@/config/features"
+
 import { useScheduleToggleWithToasts } from "./use-schedule-toggle"
 
 export const SessionScheduleToggleButton = ({ session }: { session: any }) => {
+  if (!isScheduleFeatureEnabled()) return null
   const { isScheduled, canAdd, triggerToggle } =
     useScheduleToggleWithToasts(session)
   const isDisabled = !isScheduled && !canAdd.ok

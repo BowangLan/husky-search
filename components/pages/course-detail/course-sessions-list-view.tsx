@@ -1,28 +1,11 @@
 import { useState } from "react"
 import Link from "next/link"
-import {
-  useIsSessionScheduled,
-  useToggleSchedule,
-} from "@/store/schedule.store"
-import {
-  AlertCircle,
-  CalendarMinus,
-  CalendarPlus,
-  Check,
-  Clock,
-  Copy,
-  Info,
-  KeyRound,
-  MapPin,
-  Pin,
-} from "lucide-react"
+import { Clock, Info, KeyRound, MapPin, Pin } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
-import { toast } from "sonner"
 
 import { MyPlanCourseDetail } from "@/types/myplan"
 import { capitalize, cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import {
   Tooltip,
@@ -30,7 +13,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { CopySLNButton } from "@/components/copy-sln-button"
-import { ScheduleSheet } from "@/components/schedule/schedule-sheet"
 import { SessionEnrollProgress } from "@/components/session-enroll-progress"
 
 import { useCourseSessions } from "./course-sessions-context"
@@ -45,8 +27,6 @@ export const SessionRowDesktop = ({
   pinned?: boolean
 }) => {
   const { data } = useCourseSessions()
-  const isScheduled = useIsSessionScheduled(session?.id)
-  const toggle = useToggleSchedule()
 
   const sessionRaw =
     data?.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(

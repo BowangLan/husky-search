@@ -1,10 +1,6 @@
 import { useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import {
-  useIsSessionScheduled,
-  useToggleSchedule,
-} from "@/store/schedule.store"
-import {
   AlertCircle,
   CalendarMinus,
   CalendarPlus,
@@ -31,13 +27,11 @@ import {
   formatTimeString,
   weekDays,
 } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import {
   Tooltip,

@@ -1,10 +1,9 @@
 import { useRef, useState } from "react"
-import { useToggleSchedule } from "@/store/schedule.store"
 import { X } from "lucide-react"
-import { toast } from "sonner"
 
+import { isScheduleFeatureEnabled } from "@/config/features"
 import { getEnrollOutlineClasses } from "@/lib/session-utils"
-import { capitalize, cn, expandDays } from "@/lib/utils"
+import { cn, expandDays } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 import {
@@ -22,6 +21,7 @@ const SessionChip = ({
   session: any
   parentSessionId?: string
 }) => {
+  const scheduleEnabled = isScheduleFeatureEnabled()
   const {
     data,
     getSessionEnrollState,
@@ -57,6 +57,7 @@ const SessionChip = ({
   }
 
   const handleClick = () => {
+    if (!scheduleEnabled) return
     triggerToggle()
   }
 

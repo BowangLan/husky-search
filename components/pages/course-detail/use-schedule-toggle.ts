@@ -8,11 +8,13 @@ import {
 } from "@/store/schedule.store"
 import { toast } from "sonner"
 
+import { isScheduleFeatureEnabled } from "@/config/features"
 import { useCourseSessions } from "./course-sessions-context"
 
 export function useScheduleToggleWithToasts(session: any) {
+  const scheduleEnabled = isScheduleFeatureEnabled()
   const { data } = useCourseSessions()
-  const isScheduled = useIsSessionScheduled(session?.id)
+  const scheduled = useIsSessionScheduled(session?.id)
   const courseCode = (data as any)?.myplanCourse?.courseCode as
     | string
     | undefined
@@ -21,10 +23,13 @@ export function useScheduleToggleWithToasts(session: any) {
     | string
     | number
     | undefined
-  const canAdd = useCanAddToSchedule(session, { courseCode })
+  const canAddResult = useCanAddToSchedule(session, { courseCode })
   const toggle = useToggleSchedule()
+  const isScheduled = scheduleEnabled ? scheduled : false
+  const canAdd = scheduleEnabled ? canAddResult : { ok: false as const }
 
   const triggerToggle = () => {
+    if (!scheduleEnabled) return
     const willAdd = !isScheduled && canAdd.ok
     if (willAdd) {
       // If this is a double-letter session, try to add its parent single-letter first.
@@ -97,5 +102,3 @@ export function useScheduleToggleWithToasts(session: any) {
 
   return { isScheduled, canAdd, triggerToggle }
 }
-
-

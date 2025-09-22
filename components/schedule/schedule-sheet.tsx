@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { FilterTabItem, FilterTabList } from "@/components/ui/filter-tabs"
 import { CopySLNButton } from "@/components/copy-sln-button"
+import { isScheduleFeatureEnabled } from "@/config/features"
 
 export function ScheduleSheet({
   open,
@@ -28,6 +29,7 @@ export function ScheduleSheet({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  if (!isScheduleFeatureEnabled()) return null
   const sessions = useScheduledSessions()
   const remove = useRemoveFromSchedule()
   const clear = useClearSchedule()

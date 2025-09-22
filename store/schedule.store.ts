@@ -1,9 +1,10 @@
 "use client"
 
-import { useMemo } from "react"
+import { useCallback, useMemo } from "react"
 import { createStore, useStore } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 import { expandDays } from "@/lib/utils"
+import { isScheduleFeatureEnabled } from "@/config/features"
 
 export type ScheduleViolationReason =
   | "single-letter-exists"
@@ -192,7 +193,8 @@ export const scheduleStore = createStore<ScheduleState>()(
       add: (
         session: any,
         options?: { courseCode?: string; courseTitle?: string; courseCredit?: string | number }
-      ) =>
+      ) => {
+        if (!isScheduleFeatureEnabled()) return
         set((state) => {
           const normalized = normalizeSession(session, options?.courseCode, {
             courseTitle: options?.courseTitle,
@@ -204,14 +206,17 @@ export const scheduleStore = createStore<ScheduleState>()(
               [normalized.id]: normalized,
             },
           }
-        }),
-      remove: (sessionId: string) =>
+        })
+      },
+      remove: (sessionId: string) => {
+        if (!isScheduleFeatureEnabled()) return
         set((state) => {
           if (!state.sessionsById[sessionId]) return {}
           const next = { ...state.sessionsById }
           delete next[sessionId]
           return { sessionsById: next }
-        }),
+        })
+      },
       toggle: (
         session: any,
         options?: {
@@ -221,6 +226,7 @@ export const scheduleStore = createStore<ScheduleState>()(
           courseCredit?: string | number
         }
       ) => {
+        if (!isScheduleFeatureEnabled()) return
         const id = String(session?.id ?? session?.activityId ?? session?.registrationCode)
         if (get().has(id)) get().remove(id)
         else {
@@ -229,7 +235,10 @@ export const scheduleStore = createStore<ScheduleState>()(
           else options?.onViolation?.(check.reason)
         }
       },
-      clear: () => set({ sessionsById: {} }),
+      clear: () => {
+        if (!isScheduleFeatureEnabled()) return
+        set({ sessionsById: {} })
+      },
       has: (sessionId?: string) => {
         if (!sessionId) return false
         return !!get().sessionsById[String(sessionId)]
@@ -255,55 +264,79 @@ export function useSchedule() {
 }
 
 export function useIsSessionScheduled(sessionId?: string | null) {
+  const enabled = isScheduleFeatureEnabled()
   const sessionsById = useStore(scheduleStore, (s) => s.sessionsById)
   const hydrated = useStore(scheduleStore, (s) => s.hydrated)
   return useMemo(() => {
+    if (!enabled) return false
     if (!sessionId) return false
     if (!hydrated) return false
     return !!sessionsById[String(sessionId)]
-  }, [sessionsById, hydrated, sessionId])
+  }, [enabled, sessionsById, hydrated, sessionId])
 }
 
 export function useScheduledSessions(): ScheduleSession[] {
+  const enabled = isScheduleFeatureEnabled()
   const sessionsById = useStore(scheduleStore, (s) => s.sessionsById)
   const hydrated = useStore(scheduleStore, (s) => s.hydrated)
-  return useMemo(() => (hydrated ? Object.values(sessionsById) : []), [sessionsById, hydrated])
+  return useMemo(
+    () => (enabled && hydrated ? Object.values(sessionsById) : []),
+    [enabled, sessionsById, hydrated]
+  )
 }
 
 export function useScheduleCount(): number {
+  const enabled = isScheduleFeatureEnabled()
   const sessionsById = useStore(scheduleStore, (s) => s.sessionsById)
   const hydrated = useStore(scheduleStore, (s) => s.hydrated)
-  return hydrated ? Object.keys(sessionsById).length : 0
+  return enabled && hydrated ? Object.keys(sessionsById).length : 0
 }
 
 export function useToggleSchedule(): ScheduleState["toggle"] {
   const toggle = useStore(scheduleStore, (s) => s.toggle)
-  return toggle
+  const enabled = isScheduleFeatureEnabled()
+  return useCallback<ScheduleState["toggle"]>(
+    (session, options) => {
+      if (!enabled) return
+      toggle(session, options)
+    },
+    [enabled, toggle]
+  )
 }
 
 export function useRemoveFromSchedule(): (sessionId: string) => void {
   const remove = useStore(scheduleStore, (s) => s.remove)
-  return remove
+  const enabled = isScheduleFeatureEnabled()
+  return useCallback(
+    (sessionId: string) => {
+      if (!enabled) return
+      remove(sessionId)
+    },
+    [enabled, remove]
+  )
 }
 
 export function useClearSchedule(): () => void {
   const clear = useStore(scheduleStore, (s) => s.clear)
-  return clear
+  const enabled = isScheduleFeatureEnabled()
+  return useCallback(() => {
+    if (!enabled) return
+    clear()
+  }, [enabled, clear])
 }
 
 export function useCanAddToSchedule(
   session?: any,
   options?: { courseCode?: string }
 ): { ok: boolean; reason?: ScheduleViolationReason } {
+  const enabled = isScheduleFeatureEnabled()
   const hydrated = useStore(scheduleStore, (s) => s.hydrated)
   const canAddFn = useStore(scheduleStore, (s) => s.canAdd)
   // Subscribe to sessions to recompute when schedule changes
   const sessionsById = useStore(scheduleStore, (s) => s.sessionsById)
   return useMemo(() => {
-    if (!hydrated || !session) return { ok: false }
+    if (!enabled || !hydrated || !session) return { ok: false }
     const res = canAddFn(session, { courseCode: options?.courseCode })
     return res.ok ? { ok: true } : { ok: false, reason: res.reason }
-  }, [hydrated, canAddFn, sessionsById, session, options?.courseCode])
+  }, [enabled, hydrated, canAddFn, sessionsById, session, options?.courseCode])
 }
-
-
