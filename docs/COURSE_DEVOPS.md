@@ -458,6 +458,92 @@ for code, count in top_subjects:
     print(f"{code} ({title}): {count} courses")
 ```
 
+### Compute Subject Area Seat Count Rankings
+
+**Purpose**: Calculate and update seat count rankings for subject areas to enable efficient top majors queries without hitting Convex memory limits.
+
+**Script**: `scripts/compute_subject_ranks.py`
+
+**Commands**:
+
+```bash
+# Compute and update subject area rankings
+uv run python -m scripts.compute_subject_ranks
+```
+
+**Features**:
+
+- Fetches all courses from Convex using efficient pagination
+- Calculates total seat counts for each subject area based on enrollment data
+- Ranks subject areas by total seat count (rank 1 = highest seat count)
+- Updates the `seatCountRank` field in `myplanSubjects` table using batch operations
+- Uses the existing `python/convex_client.py` infrastructure
+
+**How It Works**:
+
+1. **Data Collection**: Fetches all courses using `myplan:listFullCourses` with pagination
+2. **Aggregation**: Calculates total enrollment capacity for each subject area
+3. **Ranking**: Sorts subjects by total seat count and assigns ranks
+4. **Database Update**: Uses `myplan1/subjectAreas:updateByCodeBatch` to update rankings
+
+**Example Output**:
+
+```
+Fetching courses from Convex...
+Fetched page 1 with 200 items
+Fetched page 2 with 200 items
+...
+Total courses fetched: 15,432
+
+Calculating subject area seat counts...
+Rank 1: CSE - 12,450 seats
+Rank 2: MATH - 8,930 seats
+Rank 3: ENGL - 7,240 seats
+...
+
+Updating subject rankings in Convex...
+Successfully updated rankings for 156 subjects
+
+Subject area ranking computation completed successfully!
+```
+
+**Use Cases**:
+
+- Enable efficient "Top Majors" queries on the homepage
+- Work around Convex memory limitations for large dataset aggregations
+- Maintain pre-computed rankings for performance optimization
+- Support analytics and reporting on subject popularity
+
+**Integration with Homepage**:
+
+The script enables the `getTopMajors` Convex query to efficiently retrieve top subjects:
+
+```typescript
+// Before: Complex aggregation causing memory issues
+// After: Simple query using pre-computed rankings
+const subjects = await ctx.db.query("myplanSubjects")
+  .withIndex("by_seat_count_rank", (q) => q.gte("seatCountRank", 1))
+  .order("asc")
+  .take(args.limit);
+```
+
+**Scheduling Recommendations**:
+
+```bash
+# Run after major course data updates
+uv run python -m scripts.compute_subject_ranks
+
+# Schedule as periodic maintenance (e.g., weekly cron job)
+0 2 * * 0 cd /path/to/husky-search && uv run python -m scripts.compute_subject_ranks
+```
+
+**Error Handling**:
+
+- Graceful handling of Convex connection failures
+- Batch processing for large datasets
+- Progress tracking with detailed logging
+- Safe mutation operations with proper error recovery
+
 ### Count Courses with Empty Detail Data
 
 **Purpose**: Count how many courses in your database have empty `detailData` fields, which indicates courses that need detail scraping.
