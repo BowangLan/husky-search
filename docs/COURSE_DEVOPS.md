@@ -10,12 +10,14 @@ These scripts help with database maintenance, monitoring, and data export operat
 
 - Export All Course Codes as Static Assets
 - Export All Subject Areas as Static Assets
+- Compute Subject Area Seat Count Rankings
 
 **Commands**:
 
 ```bash
 uv run python -m scripts.courses.export_convex_course_codes -o public/course_codes.json
 uv run python -m scripts.courses.export_convex_subject_areas -o public/subject_areas.json --compressed
+uv run python -m scripts.compute_subject_ranks
 ```
 
 ## Export Operations

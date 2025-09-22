@@ -3,7 +3,7 @@
 import { visitCacheStore } from "@/store/visit-cache.store"
 import { useStore } from "zustand"
 
-import { ProgramCardLink } from "./program-card"
+import { ProgramCardHorizontalListWithSuspense } from "./program-card-horizontal-list"
 import { Section, SectionContent, SectionHeader } from "./section"
 
 export function RecentMajorsSection() {
@@ -22,17 +22,7 @@ export function RecentMajorsSection() {
         />
       </div>
       <SectionContent className="px-page mx-page">
-        {/* <ProgramCardGrid programs={recentMajors} /> */}
-        <div className="flex flex-row gap-4 md:gap-6 overflow-x-auto scrollbar-hide pb-2">
-          {recentMajors.map((major, index) => (
-            // <div key={index}>{major.code}</div>
-            <ProgramCardLink
-              key={index}
-              program={major}
-              className="w-[256px] flex-none"
-            />
-          ))}
-        </div>
+        <ProgramCardHorizontalListWithSuspense programs={recentMajors} />
       </SectionContent>
     </Section>
   )

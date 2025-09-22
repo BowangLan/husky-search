@@ -65,7 +65,7 @@ def fetch_all_courses_paginated(
         if not isinstance(page, dict):
             raise RuntimeError("Unexpected response shape from myplan:listFullCourses")
 
-        data = page.get("data", [])
+        data = page.get("page", [])
         is_done = page.get("isDone", True)
         cursor = page.get("continueCursor")
 

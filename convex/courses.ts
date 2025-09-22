@@ -280,3 +280,4 @@ export const getAllSubjects = query({
     return await ctx.db.query("myplanSubjects").collect();
   }
 })
+

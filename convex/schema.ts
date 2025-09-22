@@ -100,6 +100,7 @@ export const myplanSubjectFields = {
   departmentTitle: v.string(),
   codeNoSpaces: v.string(),
   quotedCode: v.string(),
+  seatCountRank: v.optional(v.number()),
 }
 
 export const myplanSubjectObj = v.object(myplanSubjectFields)
@@ -176,6 +177,7 @@ export default defineSchema({
     .index("by_campus", ["campus"])
     .index("by_college_code", ["collegeCode"])
     .index("by_department_code", ["departmentCode"])
+    .index("by_seat_count_rank", ["seatCountRank"])
   ,
 
   dawgpathCourses: defineTable({

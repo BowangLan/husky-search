@@ -38,7 +38,7 @@ export function ProgramCardLink({
       </div> */}
 
       <CardContent>
-        <div className="h-12 md:h-20 flex flex-col justify-center items-center gap-1">
+        <div className="h-16 md:h-20 flex flex-col justify-center items-center gap-1">
           <ViewTransition>
             <h3 className="font-medium text-center text-base md:text-lg lg:text-xl text-foreground group-hover:text-foreground/90 transition-colors duration-200 line-clamp-2">
               {/* {program.name} */}
@@ -53,7 +53,7 @@ export function ProgramCardLink({
             </div>
           )} */}
 
-          <div className="text-xs text-muted-foreground text-center truncate w-[200px]">
+          <div className="text-xs font-light text-muted-foreground text-center truncate max-w-full">
             {/* {program.name} */}
             {capitalize(program.title)}
           </div>
