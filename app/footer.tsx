@@ -80,10 +80,15 @@ export function Footer() {
             </a>
           ))}
         </div>
-        <p className="mt-8 text-center text-sm/6 font-normal text-muted-foreground md:order-1 md:mt-0">
-          &copy; {new Date().getFullYear()} {siteConfig.name}. All rights
-          reserved.
-        </p>
+        <div className="mt-8 text-center md:text-left text-sm/6 font-normal text-muted-foreground md:order-1 md:mt-0">
+          <p className="mb-2">
+            &copy; {new Date().getFullYear()} {siteConfig.name}. All rights
+            reserved.
+          </p>
+          <p className="text-xs text-muted-foreground/80">
+            This site is not officially affiliated with the University of Washington.
+          </p>
+        </div>
       </div>
     </footer>
   )
