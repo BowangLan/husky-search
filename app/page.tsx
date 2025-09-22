@@ -1,7 +1,7 @@
 import { Metadata } from "next"
-import { fetchQuery } from "convex/nextjs"
-import { CourseService } from "@/services/course-service"
 import { api } from "@/convex/_generated/api"
+import { CourseService } from "@/services/course-service"
+import { fetchQuery } from "convex/nextjs"
 
 import { ProgramInfo } from "@/types/program"
 import { DOMAIN } from "@/config/site"
@@ -37,21 +37,12 @@ export const metadata: Metadata = {
     url: `https://${DOMAIN}`,
     siteName: "Husky Search",
     type: "website",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Husky Search - UW Course Discovery Platform",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Husky Search - Discover UW Courses and Majors",
     description:
       "Explore University of Washington courses, majors, and academic programs with detailed enrollment data and course information.",
-    images: ["/og-image.png"],
   },
   robots: {
     index: true,
@@ -68,7 +59,6 @@ export const metadata: Metadata = {
     canonical: `https://${DOMAIN}`,
   },
 }
-
 
 export default async function IndexPage() {
   const courses = CourseService.getCourses({
