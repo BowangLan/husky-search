@@ -1,3 +1,4 @@
+import { MyPlanCourseDetail } from "@/types/myplan"
 import { MyplanDataPoint } from "./myplanDataPoints"
 import { MyplanCourseTermData, MyplanCourseTermSession } from "./schema"
 
@@ -134,17 +135,17 @@ function extractCourseCode(input: string) {
   return match ? match[1] : null;
 }
 
-export const processCourseDetail = (courseDetail: any): ProcessedCourseDetail => {
+export const processCourseDetail = (courseDetail: MyPlanCourseDetail): ProcessedCourseDetail => {
   const termId = courseDetail['courseSummaryDetails']['version']['termId']
   const courseId = courseDetail['courseSummaryDetails']['version']['courseId']
-  const description = courseDetail['courseSummaryDetails']['description']
+  const description = courseDetail['courseSummaryDetails']['courseDescription']
   const subjectArea = courseDetail['courseSummaryDetails']['subjectArea']
   const courseNumber = courseDetail['courseSummaryDetails']['courseNumber']
   const title = courseDetail['courseSummaryDetails']['courseTitle']
   const credit = courseDetail['courseSummaryDetails']['credit']
   const genEdRequirements = courseDetail['courseSummaryDetails']['genEdRequirements']
   const termsOffered = courseDetail['courseSummaryDetails']['termsOffered']
-  const campus = courseDetail['courseSummaryDetails']['campusLocations'][0]
+  const campus = courseDetail['courseSummaryDetails']['campusLocations'][0]?.toLowerCase() ?? ""
   const prereqs = courseDetail['courseSummaryDetails']['requisites'].map(extractCourseCode).filter((code: string | null) => code !== null)
   const genEdRequirementsAbbr = courseDetail['courseSummaryDetails']['abbrGenEdRequirements']
 

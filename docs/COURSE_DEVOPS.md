@@ -446,3 +446,55 @@ for code, count in top_subjects:
     title = subject_map.get(code, 'Unknown')
     print(f"{code} ({title}): {count} courses")
 ```
+
+### Count Courses with Empty Detail Data
+
+**Purpose**: Count how many courses in your database have empty `detailData` fields, which indicates courses that need detail scraping.
+
+**Script**: `scripts/count_empty_detail_courses.py`
+
+**Commands**:
+
+```bash
+# Basic count
+uv run python -m scripts.count_empty_detail_courses
+
+# Alternative execution
+python scripts/count_empty_detail_courses.py
+```
+
+**Features**:
+- Uses the `myplan:listEmptyDetailCourses` Convex function for efficient querying
+- Processes results in batches of 500 courses for optimal performance
+- Provides real-time progress updates during counting
+- Returns the total count of courses missing detail data
+
+**Example Output**:
+```
+Counting courses with empty detailData...
+Fetched batch with 500 courses (total so far: 500)
+Fetched batch with 500 courses (total so far: 1000)
+Fetched batch with 500 courses (total so far: 1500)
+...
+Fetched batch with 495 courses (total so far: 8995)
+
+Total courses with empty detailData: 8995
+```
+
+**Use Cases**:
+- Monitor data completeness across your course database
+- Track progress of detail scraping operations
+- Identify courses that need additional data collection
+- Database maintenance and quality assurance
+
+**Integration with Data Pipeline**:
+```bash
+# Check empty detail data before scraping
+uv run python -m scripts.count_empty_detail_courses
+
+# Run detail scraping for courses without data
+# (other scraping scripts would go here)
+
+# Verify improvement after scraping
+uv run python -m scripts.count_empty_detail_courses
+```

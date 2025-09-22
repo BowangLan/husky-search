@@ -81,6 +81,7 @@ export const myplanCourseFullFields = {
   detailData: v.optional(v.any()),
   searchData: v.optional(v.any()),
   embedding: v.optional(v.array(v.float64())),
+  lastUpdated: v.optional(v.number()),
 }
 
 export const myplanCourseInfoObj = v.object(myplanCourseInfoFields)

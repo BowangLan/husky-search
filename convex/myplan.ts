@@ -402,18 +402,29 @@ export const upsertCourseDetail = internalMutation({
         courseNumber: processedCourseDetail.courseNumber,
         prereqs: processedCourseDetail.prereqs,
         genEdReqs: processedCourseDetail.genEdRequirementsAbbr,
-        currentTermData: latestTermsData,
         termsOffered: processedCourseDetail.termsOffered,
+        currentTermData: latestTermsData,
         statsEnrollPercent: 0,
         statsEnrollMax: 0,
         updateIntervalSeconds: 24 * 60 * 60, // 24h
+        lastUpdated: Date.now(),
       });
     } else {
       await ctx.db.patch(existingCourse._id, {
         ...existingCourse,
+        description: processedCourseDetail.description,
+        title: processedCourseDetail.title,
+        credit: processedCourseDetail.credit,
+        campus: processedCourseDetail.campus,
+        subjectArea: processedCourseDetail.subjectArea,
+        courseNumber: processedCourseDetail.courseNumber,
+        prereqs: processedCourseDetail.prereqs,
+        genEdReqs: processedCourseDetail.genEdRequirementsAbbr,
+        termsOffered: processedCourseDetail.termsOffered,
         detailData: args.detailData,
         currentTermData: latestTermsData,
         pastTermData: [...(existingCourse.pastTermData ?? []), ...outdatedTermsData],
+        lastUpdated: Date.now(),
       });
     }
   }
