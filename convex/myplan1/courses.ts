@@ -1,5 +1,5 @@
 import { v } from "convex/values"
-import { query } from "../_generated/server"
+import { mutation, query } from "../_generated/server"
 
 export const listShort = query({
   args: {
@@ -23,3 +23,19 @@ export const listShort = query({
     }
   }
 })
+
+// used by check_course_code_duplicates.py
+// export const deleteByIds = mutation({
+//   args: {
+//     ids: v.array(v.id("myplanCourses")),
+//   },
+//   handler: async (ctx, args) => {
+//     await Promise.all(args.ids.map(async (id) => {
+//       await ctx.db.delete(id);
+//     }));
+
+//     return {
+//       success: true,
+//     };
+//   }
+// })

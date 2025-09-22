@@ -148,6 +148,80 @@ uv run python -m scripts.courses.export_convex_course_codes --analyze
 
 ## Database Monitoring
 
+### Course Code Duplication Checker
+
+**Purpose**: Identify and optionally clean up duplicate course code entries in your Convex myplanCourses table.
+
+**Script**: `scripts/courses/check_course_code_duplicates.py`
+
+**Commands**:
+
+```bash
+# Basic duplicate check (no cleanup)
+uv run python -m scripts.courses.check_course_code_duplicates
+
+# Detailed analysis with duplicate examples
+uv run python -m scripts.courses.check_course_code_duplicates --details --max-examples 20
+
+# Custom output file for detailed report
+uv run python -m scripts.courses.check_course_code_duplicates -o reports/duplicates.json
+
+# Dry run cleanup (safe - shows what would be deleted)
+uv run python -m scripts.courses.check_course_code_duplicates --cleanup
+
+# Actual cleanup (DANGER - will delete data)
+uv run python -m scripts.courses.check_course_code_duplicates --cleanup --no-dry-run
+
+# Custom batch size for large cleanups
+uv run python -m scripts.courses.check_course_code_duplicates --cleanup --no-dry-run --batch-size 50
+```
+
+**Analysis Output**:
+```
+📊 Duplicate Course Code Analysis:
+  Total entries in database: 16,386
+  Unique course codes: 15,755
+  Duplicate course codes: 470
+  Total duplicate entries: 1,101
+  Courses without duplicates: 15,285
+  Redundant entries that could be cleaned: 631
+  Database cleanup potential: 3.85%
+```
+
+**Cleanup Features**:
+- **Dry Run Mode** (default): Shows what would be deleted without making changes
+- **Batched Deletion**: Processes deletions in configurable batches (default: 100)
+- **Smart Duplicate Resolution**: Keeps first entry by ID, deletes redundant copies
+- **Progress Reporting**: Real-time feedback on cleanup progress
+- **Error Recovery**: Continues with remaining batches if individual batches fail
+
+**Safety Features**:
+- Defaults to dry run mode to prevent accidental deletions
+- Requires explicit `--no-dry-run` flag for actual deletions
+- Comprehensive logging and progress reporting
+- CI/CD integration with proper exit codes
+
+**JSON Report Format**:
+```json
+{
+  "analysis_timestamp": "2025-09-22 09:30:39 UTC",
+  "summary": {
+    "total_entries": 16386,
+    "unique_course_codes": 15755,
+    "duplicate_course_codes": 470,
+    "total_duplicate_entries": 1101,
+    "unique_courses": 15285
+  },
+  "duplicates": {
+    "BIOL 100": [
+      {"id": "js7b8v8cazewtxmr1tttnjtjc97r1pvh", "courseCode": "BIOL 100"},
+      {"id": "js7e3eym8zf2r3fkq4wc1n1mvn7r02p4", "courseCode": "BIOL 100"}
+    ]
+  },
+  "recommendations": [...]
+}
+```
+
 ### Course Count Verification
 
 **Use Case**: Verify course counts before and after imports
@@ -288,11 +362,48 @@ The script includes comprehensive error handling:
 # 1. Export existing codes
 uv run python -m scripts.courses.export_convex_course_codes -o temp/existing_codes.json
 
-# 2. Run import with existing codes for duplicate checking
+# 2. Check for duplicates before import
+uv run python -m scripts.courses.check_course_code_duplicates -o temp/pre_import_duplicates.json
+
+# 3. Run import with existing codes for duplicate checking
 uv run python -m scripts.courses.transform_courses_for_convex
 
-# 3. Verify post-import state
+# 4. Check for new duplicates after import
+uv run python -m scripts.courses.check_course_code_duplicates --details
+
+# 5. Clean up duplicates if found
+uv run python -m scripts.courses.check_course_code_duplicates --cleanup --no-dry-run
+
+# 6. Verify post-cleanup state
 uv run python -m scripts.courses.export_convex_course_codes --analyze
+```
+
+### Database Maintenance Workflow
+
+```bash
+# Regular maintenance routine
+#!/bin/bash
+echo "Starting database maintenance..."
+
+# 1. Check current state
+uv run python -m scripts.courses.check_course_code_duplicates -o reports/daily_duplicates.json
+
+# 2. If duplicates found, clean them up
+if [ $? -eq 1 ]; then
+    echo "Duplicates found. Cleaning up..."
+    uv run python -m scripts.courses.check_course_code_duplicates --cleanup --no-dry-run --batch-size 200
+
+    # 3. Verify cleanup
+    uv run python -m scripts.courses.check_course_code_duplicates
+
+    if [ $? -eq 0 ]; then
+        echo "✅ Database cleanup completed successfully"
+    else
+        echo "⚠️ Some duplicates may remain - manual review required"
+    fi
+else
+    echo "✅ No duplicates found - database is clean"
+fi
 ```
 
 ### Use with External Analysis Tools
