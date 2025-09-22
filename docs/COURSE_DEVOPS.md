@@ -6,24 +6,19 @@ This document covers operational scripts and utilities for managing your course 
 
 These scripts help with database maintenance, monitoring, and data export operations for the myplanCourses table.
 
-## Export Operations
+## Export & Sync
 
-### Export All Course Codes as Static Assets
+- Export All Course Codes as Static Assets
+- Export All Subject Areas as Static Assets
 
 **Commands**:
 
 ```bash
 uv run python -m scripts.courses.export_convex_course_codes -o public/course_codes.json
-```
-
-### Export All Subject Areas as Static Assets
-
-**Commands**:
-
-```bash
 uv run python -m scripts.courses.export_convex_subject_areas -o public/subject_areas.json --compressed
 ```
 
+## Export Operations
 
 ### Export All Subject Areas
 
@@ -45,6 +40,7 @@ uv run python -m scripts.courses.export_convex_subject_areas --analyze
 ```
 
 **Output Format**:
+
 ```json
 [
   {
@@ -68,12 +64,14 @@ uv run python -m scripts.courses.export_convex_subject_areas --analyze
 ```
 
 **Analysis Features** (with `--analyze` flag):
+
 - Code length distribution
 - Title length statistics (average, min, max)
 - Longest and shortest subject titles
 - Total count and file size
 
 **Example Analysis Output**:
+
 ```
 📊 Subject Area Analysis:
   Code length distribution:
@@ -110,6 +108,7 @@ uv run python -m scripts.courses.export_convex_course_codes --analyze
 ```
 
 **Output Format**:
+
 ```json
 [
   "AMATH 301",
@@ -123,12 +122,14 @@ uv run python -m scripts.courses.export_convex_course_codes --analyze
 ```
 
 **Analysis Features** (with `--analyze` flag):
+
 - Total course count and file size
 - Top 10 subjects by course count
 - Course level distribution (100s, 200s, 300s, 400s, 500+)
 - Sample course codes preview
 
 **Example Analysis Output**:
+
 ```
 📊 Course Code Analysis:
   Total subjects: 156
@@ -177,6 +178,7 @@ uv run python -m scripts.courses.check_course_code_duplicates --cleanup --no-dry
 ```
 
 **Analysis Output**:
+
 ```
 📊 Duplicate Course Code Analysis:
   Total entries in database: 16,386
@@ -189,6 +191,7 @@ uv run python -m scripts.courses.check_course_code_duplicates --cleanup --no-dry
 ```
 
 **Cleanup Features**:
+
 - **Dry Run Mode** (default): Shows what would be deleted without making changes
 - **Batched Deletion**: Processes deletions in configurable batches (default: 100)
 - **Smart Duplicate Resolution**: Keeps first entry by ID, deletes redundant copies
@@ -196,12 +199,14 @@ uv run python -m scripts.courses.check_course_code_duplicates --cleanup --no-dry
 - **Error Recovery**: Continues with remaining batches if individual batches fail
 
 **Safety Features**:
+
 - Defaults to dry run mode to prevent accidental deletions
 - Requires explicit `--no-dry-run` flag for actual deletions
 - Comprehensive logging and progress reporting
 - CI/CD integration with proper exit codes
 
 **JSON Report Format**:
+
 ```json
 {
   "analysis_timestamp": "2025-09-22 09:30:39 UTC",
@@ -326,11 +331,13 @@ echo "Cleanup completed. Kept latest 30 backups of each type."
 ### Common Issues
 
 1. **Convex Connection Errors**
+
    - Ensure `CONVEX_URL` environment variable is set
    - Check network connectivity
    - Verify Convex credentials
 
 2. **Large Dataset Performance**
+
    - The script uses pagination (1000 items per page)
    - For very large datasets, consider running during off-peak hours
    - Monitor memory usage for extremely large exports
@@ -349,6 +356,7 @@ echo "Cleanup completed. Kept latest 30 backups of each type."
 ### Error Handling
 
 The script includes comprehensive error handling:
+
 - Graceful network failure recovery
 - File system error reporting
 - Data validation checks
@@ -409,6 +417,7 @@ fi
 ### Use with External Analysis Tools
 
 The JSON output can be easily imported into:
+
 - Python pandas for data analysis
 - Excel/Google Sheets for reporting
 - Database tools for comparison
@@ -464,12 +473,14 @@ python scripts/count_empty_detail_courses.py
 ```
 
 **Features**:
+
 - Uses the `myplan:listEmptyDetailCourses` Convex function for efficient querying
 - Processes results in batches of 500 courses for optimal performance
 - Provides real-time progress updates during counting
 - Returns the total count of courses missing detail data
 
 **Example Output**:
+
 ```
 Counting courses with empty detailData...
 Fetched batch with 500 courses (total so far: 500)
@@ -482,12 +493,14 @@ Total courses with empty detailData: 8995
 ```
 
 **Use Cases**:
+
 - Monitor data completeness across your course database
 - Track progress of detail scraping operations
 - Identify courses that need additional data collection
 - Database maintenance and quality assurance
 
 **Integration with Data Pipeline**:
+
 ```bash
 # Check empty detail data before scraping
 uv run python -m scripts.count_empty_detail_courses

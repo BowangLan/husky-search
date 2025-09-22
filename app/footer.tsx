@@ -86,7 +86,8 @@ export function Footer() {
             reserved.
           </p>
           <p className="text-xs text-muted-foreground/80">
-            This site is not officially affiliated with the University of Washington.
+            This site is not officially affiliated with the University of
+            Washington.
           </p>
         </div>
       </div>
