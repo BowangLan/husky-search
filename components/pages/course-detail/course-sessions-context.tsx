@@ -7,6 +7,7 @@ import {
 } from "react"
 import { api } from "@/convex/_generated/api"
 import { CourseDetail } from "@/convex/courses"
+import { MyplanCourseTermSession } from "@/convex/schema"
 import { useQuery } from "convex/react"
 
 import { MyPlanCourseDetail } from "@/types/myplan"
@@ -14,9 +15,9 @@ import { expandDays } from "@/lib/utils"
 
 export type CourseSessionsContextValue = {
   data: CourseDetail | null
-  sessions: any[]
-  displayedSessions: any[]
-  pinnedSessions: any[]
+  sessions: MyplanCourseTermSession[]
+  displayedSessions: MyplanCourseTermSession[]
+  pinnedSessions: MyplanCourseTermSession[]
   isLoading: boolean
 
   selectedWeekDaySet: Set<string>
@@ -33,7 +34,7 @@ export type CourseSessionsContextValue = {
   showOpenOnly: boolean
   setShowOpenOnly: (v: boolean) => void
 
-  getSessionEnrollState: (session: any) => string
+  getSessionEnrollState: (session: MyplanCourseTermSession) => string
 }
 
 const CourseSessionsContext = createContext<CourseSessionsContextValue | null>(
@@ -76,15 +77,17 @@ export const CourseSessionsProvider = ({
   const displayedSessions = useMemo(() => {
     let list = sessions
     if (selectedSessionIds.length > 0) {
-      list = list.filter((s: any) => selectedSessionIds.includes(s.id))
+      list = list.filter((s) => selectedSessionIds.includes(s.id))
     } else if (showOpenOnly) {
       list = list.filter(
-        (s: any) => s.stateKey === "active" && s.enrollCount < s.enrollMaximum
+        (s) =>
+          s.stateKey === "active" &&
+          Number(s.enrollCount) < Number(s.enrollMaximum)
       )
     }
 
     if (selectedWeekDaySet.size > 0) {
-      list = list.filter((s: any) =>
+      list = list.filter((s) =>
         s.meetingDetailsList.some((m: any) =>
           expandDays(m.days).some((d: string) => selectedWeekDaySet.has(d))
         )
@@ -95,18 +98,13 @@ export const CourseSessionsProvider = ({
   }, [sessions, selectedSessionIds, showOpenOnly, selectedWeekDaySet])
 
   const pinnedSessions = useMemo(
-    () => sessions.filter((s: any) => pinnedSessionIds.includes(s.id)),
+    () => sessions.filter((s) => pinnedSessionIds.includes(s.id)),
     [sessions, pinnedSessionIds]
   )
 
-  const getSessionEnrollState = (session: any) => {
-    const enrollCount = Number((session as any).enrollCount ?? 0)
-    const enrollMaximum = Number((session as any).enrollMaximum ?? 0)
-
-    const sessionRaw =
-      data?.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
-        (item: any) => item.activityId === session.id
-      ) as MyPlanCourseDetail["courseOfferingInstitutionList"][0]["courseOfferingTermList"][0]["activityOfferingItemList"][0]
+  const getSessionEnrollState = (session: MyplanCourseTermSession) => {
+    const enrollCount = Number(session.enrollCount ?? 0)
+    const enrollMaximum = Number(session.enrollMaximum ?? 0)
 
     if (session.stateKey !== "active") {
       return session.stateKey
@@ -116,11 +114,8 @@ export const CourseSessionsProvider = ({
       return "closed"
     }
 
-    if (
-      sessionRaw.enrollStatus !== "closed" &&
-      sessionRaw.enrollStatus !== "open"
-    ) {
-      return sessionRaw.enrollStatus
+    if (session.enrollStatus !== "closed" && session.enrollStatus !== "open") {
+      return session.enrollStatus || "open"
     }
 
     return "open"
