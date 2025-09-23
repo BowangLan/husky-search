@@ -65,7 +65,6 @@ export const myplanCourseInfoFields = {
   termsOffered: v.array(v.string()),
   prereqs: v.optional(v.union(
     v.array(v.string()),
-    v.string(),
   )),
   currentTermData: v.optional(v.array(myplanCourseTermDataObj)),
   uwCourseCode: v.optional(v.string()),

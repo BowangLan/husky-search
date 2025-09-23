@@ -118,6 +118,7 @@ const convertCourseToOverview = (c: Doc<"myplanCourses">): ConvexCourseOverview 
     enrollStatus: t.sessions?.[0]?.enrollStatus,
     openSessionCount: t.sessions?.filter((s) => s.stateKey === "active" && s.enrollCount < s.enrollMaximum).length,
   })),
+  prereqs: c.prereqs,
 })
 
 export const listOverviewBySubjectArea = query({

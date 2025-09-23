@@ -6,6 +6,11 @@ import Link from "next/link"
 import { ConvexCourseOverview } from "@/types/convex-courses"
 import { cn, getGenEdLabel } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card"
 import { Progress } from "@/components/ui/progress"
 import {
   Tooltip,
@@ -91,8 +96,8 @@ export function ConvexCourseCardLink({
   course: ConvexCourseOverview
   className?: string
 }) {
-  return (
-    <Card className={cn("relative group isolate", className)}>
+  const cardContent = (
+    <Card className={cn("relative group isolate overflow-visible", className)}>
       <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       <Link
         href={`/courses/${course.courseCode}`}
@@ -110,21 +115,27 @@ export function ConvexCourseCardLink({
 
       <CardContent>
         <div className="space-y-3">
-          <div className="flex flex-col">
-            <div className="flex items-center">
-              <div className="flex items-baseline flex-none">
-                <h3 className="text-base md:text-lg font-medium">
-                  {course.courseCode}
-                </h3>
-                <span className="text-muted-foreground text-xs md:text-sm inline-block ml-2 font-mono">
-                  ({course.credit})
-                </span>
+          <div className="flex flex-col gap-1">
+            {/* Header */}
+            <div className="flex flex-col gap-0.5">
+              {/* Row */}
+              <div className="flex items-center mb-0.5">
+                <div className="flex items-baseline flex-none">
+                  <h3 className="text-base md:text-lg/tight font-medium">
+                    {course.courseCode}
+                  </h3>
+                  <span className="text-muted-foreground text-xs md:text-sm inline-block ml-2 font-mono">
+                    ({course.credit})
+                  </span>
+                </div>
+                <div className="flex-1"></div>
               </div>
-              <div className="flex-1"></div>
+
+              {/* Row */}
+              <h3 className="text-xs/tight md:text-sm/tight font-light text-foreground opacity-60 line-clamp-1">
+                {course.title}
+              </h3>
             </div>
-            <h3 className="text-xs md:text-sm font-normal text-foreground opacity-60 line-clamp-1">
-              {course.title}
-            </h3>
 
             <div className="flex items-center gap-2 flex-wrap absolute top-4 right-4">
               {!course.genEdReqs?.length && (
@@ -146,6 +157,36 @@ export function ConvexCourseCardLink({
               ))}
             </div>
 
+            <div className="md:flex items-center gap-2 flex-wrap absolute top-4 left-4 hidden">
+              {(course.prereqs ?? []).map((req, index) => (
+                <Tooltip key={index}>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      size="sm"
+                      variant="secondary"
+                      className="z-20 cursor-default"
+                    >
+                      <span className="font-semibold">
+                        {course.prereqs?.length}
+                      </span>{" "}
+                      Prereqs
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    {course.prereqs?.map((prereq, index) => (
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="text-xs"
+                      >
+                        {prereq}
+                      </Badge>
+                    ))}
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
+
             {course.enroll.map((enroll) => (
               <CourseEnrollProgress
                 key={enroll.termId}
@@ -159,6 +200,26 @@ export function ConvexCourseCardLink({
       </CardContent>
     </Card>
   )
+
+  return cardContent
+
+  // return (
+  //   <HoverCard openDelay={120} closeDelay={120}>
+  //     <HoverCardTrigger asChild>{cardContent}</HoverCardTrigger>
+  //     <HoverCardContent className="w-80 z-[999]" align="start" side="bottom" sideOffset={8} avoidCollisions={true}>
+  //       <div className="space-y-2">
+  //         <h4 className="text-sm font-semibold">Prerequisites</h4>
+  //         <div className="flex flex-wrap gap-1">
+  //           {course.prereqs?.map((prereq, index) => (
+  //             <Badge key={index} variant="secondary" className="text-xs">
+  //               {prereq}
+  //             </Badge>
+  //           ))}
+  //         </div>
+  //       </div>
+  //     </HoverCardContent>
+  //   </HoverCard>
+  // )
 }
 
 export const ConvexCourseCardHorizontalList = ({
@@ -167,7 +228,7 @@ export const ConvexCourseCardHorizontalList = ({
   courses: ConvexCourseOverview[]
 }) => {
   return (
-    <div className="flex flex-row gap-4 md:gap-6 w-full items-stretch overflow-x-auto snap-x snap-mandatory py-2 -translate-y-2 flex-none">
+    <div className="flex flex-row gap-4 md:gap-6 w-full items-stretch overflow-x-auto overflow-y-visible snap-x snap-mandatory py-2 -translate-y-2 flex-none">
       {courses.map((course) => (
         <ConvexCourseCardLink
           key={course.courseCode}
