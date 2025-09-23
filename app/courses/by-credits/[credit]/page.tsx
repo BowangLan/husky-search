@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
-import { CourseService } from "@/services/course-service"
+import { api } from "@/convex/_generated/api"
+import { fetchQuery } from "convex/nextjs"
 
 import { ComposedCourseListView } from "@/components/composed-course-list-view"
 import { CourseCardGridView } from "@/components/course-card"
@@ -29,11 +30,30 @@ export default async function Page({
       )
     : new Set()
 
-  const courses = await CourseService.getCourses(100, {
+  const coursesData = await fetchQuery(api.courses.listOverviewByCredit, {
     credit,
-    hasPrereq: false,
-    subjects,
+    limit: 100,
   })
+
+  // Transform to match the expected format
+  const courses = coursesData.data.map(course => ({
+    code: course.courseCode,
+    title: course.title,
+    description: course.description,
+    subjectAreaCode: course.subjectArea,
+    subjectAreaTitle: "", // Will be filled by subject lookup
+    number: course.courseNumber,
+    enrollData: {
+      enrollMax: course.enroll[0]?.enrollMax ?? 0,
+      enrollCount: course.enroll[0]?.enrollCount ?? 0,
+    },
+    data: course.enroll.map(e => ({
+      data: {} as any, // Simplified for now
+      quarter: e.termId,
+      subjectAreaCode: course.subjectArea,
+      myplanId: e.termId,
+    })),
+  }))
 
   return (
     <PageWithHeaderLayout

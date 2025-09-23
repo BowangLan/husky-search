@@ -3,8 +3,8 @@
 import { visitCacheStore } from "@/store/visit-cache.store"
 import { useStore } from "zustand"
 
-import { ProgramCardHorizontalListWithSuspense } from "./program-card-horizontal-list"
-import { Section, SectionContent, SectionHeader } from "./section"
+import { ProgramCardHorizontalListWithSuspense } from "@/components/program-card-horizontal-list"
+import { Section, SectionContent, SectionHeader } from "@/components/section"
 
 export function RecentMajorsSection() {
   const recentMajors = useStore(visitCacheStore, (s) => s.recentMajors)

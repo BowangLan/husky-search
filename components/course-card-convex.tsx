@@ -1,5 +1,6 @@
 "use client"
 
+import { Suspense } from "react"
 import Link from "next/link"
 
 import { ConvexCourseOverview } from "@/types/convex-courses"
@@ -12,6 +13,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
+import { ConvexCourseCardGrid } from "./course-card-convex.grid"
+import { ConvexCourseCardSkeleton } from "./course-card-convex.skeleton"
 import { Badge } from "./ui/badge"
 
 const CourseEnrollProgress = ({
@@ -28,7 +31,7 @@ const CourseEnrollProgress = ({
     enrollMax > 0 ? Math.round((enrollCount / enrollMax) * 100) : 0
   const isNearlyFull = !isClosed && percentFull >= 85
   return (
-    <div className="flex flex-col gap-1 mt-2">
+    <div className="flex flex-col gap-1.5 mt-2">
       <div className="flex justify-between">
         <span className="text-xs text-foreground/60 font-light">
           <span

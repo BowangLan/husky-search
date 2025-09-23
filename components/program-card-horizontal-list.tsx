@@ -18,7 +18,7 @@ export const ProgramCardHorizontalList = ({
     <div className="flex flex-row gap-4 md:gap-6 w-full overflow-x-auto snap-x snap-start snap-mandatory py-4 -translate-y-4">
       {programs.map((program) => (
         <ProgramCardLink
-          key={program.id}
+          key={program.code}
           program={program}
           className="w-56 md:w-64 flex-none"
         />

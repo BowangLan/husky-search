@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { CourseService } from "@/services/course-service"
+import { api } from "@/convex/_generated/api"
+import { fetchQuery } from "convex/nextjs"
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,12 +14,13 @@ export async function GET(request: NextRequest) {
     }
 
     const q = query.trim()
-    const courses = await CourseService.search(q, {
+    const result = await fetchQuery(api.courses.searchCourses, {
+      query: q,
       page: pageNumber,
       pageSize: 20,
     })
 
-    return NextResponse.json({ courses })
+    return NextResponse.json({ courses: result.courses })
   } catch (error) {
     console.error("Search error:", error)
     return NextResponse.json(

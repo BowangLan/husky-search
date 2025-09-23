@@ -1,16 +1,11 @@
 import { Metadata } from "next"
-import { api } from "@/convex/_generated/api"
-import { CourseService } from "@/services/course-service"
-import { fetchQuery } from "convex/nextjs"
 
-import { ProgramInfo } from "@/types/program"
 import { DOMAIN } from "@/config/site"
-import { CourseCardGridViewWithSuspense } from "@/components/course-card"
 import { HeroSection } from "@/components/hero-section"
 import { Page } from "@/components/page-wrapper"
-import { ProgramCardHorizontalListWithSuspense } from "@/components/program-card-horizontal-list"
-import { RecentMajorsSection } from "@/components/recent-majors-section"
-import { Section, SectionContent, SectionHeader } from "@/components/section"
+import { PopularCourses } from "@/components/pages/home/popular-courses"
+import { PopularMajors } from "@/components/pages/home/popular-majors"
+import { RecentMajorsSection } from "@/components/pages/home/recent-majors-section"
 
 export const experimental_ppr = true
 
@@ -60,16 +55,7 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function IndexPage() {
-  const courses = CourseService.getCourses({
-    limit: 40,
-    sortBy: "popular",
-    withEnrollData: false,
-  })
-  const topMajors = await fetchQuery(api.myplan1.subjectAreas.getTopMajors, {
-    limit: 20,
-  })
-
+export default function IndexPage() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -77,14 +63,14 @@ export default async function IndexPage() {
     description:
       "Discover and explore University of Washington courses with detailed information about credits, prerequisites, and course content.",
     url: `https://${DOMAIN}`,
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: `https://${DOMAIN}/search?q={search_term_string}`,
-      },
-      "query-input": "required name=search_term_string",
-    },
+    // potentialAction: {
+    //   "@type": "SearchAction",
+    //   target: {
+    //     "@type": "EntryPoint",
+    //     urlTemplate: `https://${DOMAIN}/search?q={search_term_string}`,
+    //   },
+    //   "query-input": "required name=search_term_string",
+    // },
     about: {
       "@type": "EducationalOrganization",
       name: "University of Washington",
@@ -101,24 +87,8 @@ export default async function IndexPage() {
       <Page>
         <HeroSection />
         <RecentMajorsSection />
-        <Section withPadding>
-          <SectionHeader
-            title="Popular Majors"
-            subtitle="Popular majors at UW by course seat count"
-          />
-          <SectionContent>
-            <ProgramCardHorizontalListWithSuspense programs={topMajors} />
-          </SectionContent>
-        </Section>
-        <Section withPadding>
-          <SectionHeader
-            title="Top Courses"
-            subtitle="Most popular courses at UW by seat count"
-          />
-          <SectionContent>
-            <CourseCardGridViewWithSuspense courses={courses} />
-          </SectionContent>
-        </Section>
+        <PopularMajors />
+        <PopularCourses />
       </Page>
     </>
   )

@@ -45,6 +45,9 @@ export const getTopMajors = query({
       .order("asc")
       .take(args.limit);
 
+
+    const seen = new Set<string>();
+
     // Convert to ProgramInfo format
     const results = subjects.map(subject => {
       // Convert Convex ID to a simple hash number
@@ -61,6 +64,12 @@ export const getTopMajors = query({
         collegeTitle: subject.collegeTitle,
         campus: subject.campus,
       };
+    }).filter(subject => {
+      if (seen.has(subject.code)) {
+        return false;
+      }
+      seen.add(subject.code);
+      return true;
     });
 
     return results;

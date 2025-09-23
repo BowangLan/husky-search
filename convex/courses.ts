@@ -6,6 +6,8 @@ import { isStudentHelper } from "./auth";
 import OpenAI from "openai";
 import { createEmbedding } from "./embedding";
 import { KV_STORE_KEYS } from "./kvStore";
+import { Doc } from "./_generated/dataModel";
+import { ConvexCourseOverview } from "@/types/convex-courses";
 
 export const getByCourseCode = query({
   args: {
@@ -100,6 +102,24 @@ export const getByCourseCodeDev = query({
 })
 
 
+const convertCourseToOverview = (c: Doc<"myplanCourses">): ConvexCourseOverview => ({
+  courseCode: c.courseCode,
+  title: c.title,
+  description: c.description,
+  credit: c.credit,
+  subjectArea: c.subjectArea,
+  courseNumber: c.courseNumber,
+  genEdReqs: c.genEdReqs,
+  enroll: (c.currentTermData ?? []).map((t) => ({
+    termId: t.termId,
+    enrollMax: t.enrollMax,
+    enrollCount: t.enrollCount,
+    stateKey: t.sessions?.[0]?.stateKey,
+    enrollStatus: t.sessions?.[0]?.enrollStatus,
+    openSessionCount: t.sessions?.filter((s) => s.stateKey === "active" && s.enrollCount < s.enrollMaximum).length,
+  })),
+})
+
 export const listOverviewBySubjectArea = query({
   args: {
     subjectArea: v.string(),
@@ -116,23 +136,7 @@ export const listOverviewBySubjectArea = query({
     );
     const limited = sorted.slice(0, args.limit ?? 200);
 
-    return limited.map((c) => ({
-      courseCode: c.courseCode,
-      title: c.title,
-      description: c.description,
-      credit: c.credit,
-      subjectArea: c.subjectArea,
-      courseNumber: c.courseNumber,
-      genEdReqs: c.genEdReqs,
-      enroll: (c.currentTermData ?? []).map((t) => ({
-        termId: t.termId,
-        enrollMax: t.enrollMax,
-        enrollCount: t.enrollCount,
-        stateKey: t.sessions?.[0]?.stateKey,
-        enrollStatus: t.sessions?.[0]?.enrollStatus,
-        openSessionCount: t.sessions?.filter((s) => s.stateKey === "active" && s.enrollCount < s.enrollMaximum).length,
-      })),
-    }));
+    return limited.map(convertCourseToOverview);
   },
 })
 
@@ -157,23 +161,7 @@ export const listOverviewByCredit = query({
     // );
     // const limited = sorted.slice(0, args.limit ?? 200);
 
-    const mapped = results.page.map((c) => ({
-      courseCode: c.courseCode,
-      title: c.title,
-      description: c.description,
-      credit: c.credit,
-      subjectArea: c.subjectArea,
-      courseNumber: c.courseNumber,
-      genEdReqs: c.genEdReqs,
-      enroll: (c.currentTermData ?? []).map((t) => ({
-        termId: t.termId,
-        enrollMax: t.enrollMax,
-        enrollCount: t.enrollCount,
-        stateKey: t.sessions?.[0]?.stateKey,
-        enrollStatus: t.sessions?.[0]?.enrollStatus,
-        openSessionCount: t.sessions?.filter((s) => s.stateKey === "active" && s.enrollCount < s.enrollMaximum).length,
-      })),
-    }));
+    const mapped = results.page.map(convertCourseToOverview);
 
     return {
       data: mapped,
@@ -234,13 +222,21 @@ export const vectorSearch = internalAction({
 export const search = mutation({
   args: {
     query: v.string(),
+    cursor: v.optional(v.string()),
+    hasPrereqs: v.optional(v.boolean()),
+    // majors: v.optional(v.array(v.string())),
+    sortBy: v.union(v.literal("popular"), v.literal("code")),
   },
   handler: async (ctx, args) => {
     const results = await ctx.db.query("myplanCourses")
       .withSearchIndex("by_course_code_search", (q) => q.search("courseCode", args.query))
-      .collect();
+      // .order("desc")
+      .paginate({
+        numItems: 20,
+        cursor: args.cursor ?? null,
+      });
 
-    const mappedResults = results.map((result) => ({
+    const mappedResults = results.page.map((result) => ({
       _id: result._id,
       courseCode: result.courseCode,
       title: result.title,
@@ -252,6 +248,8 @@ export const search = mutation({
 
     return {
       data: mappedResults,
+      continueCursor: results.continueCursor,
+      isDone: results.isDone,
     };
   }
 })
@@ -266,14 +264,6 @@ export const getAllCourseCodes = query({
   }
 })
 
-export const getAllSubjectAreas = query({
-  args: {},
-  handler: async (ctx) => {
-    const subjects = await ctx.db.query("myplanSubjects").collect();
-    return subjects.map(subject => subject.code).sort();
-  }
-})
-
 export const getAllSubjects = query({
   args: {},
   handler: async (ctx) => {
@@ -281,3 +271,45 @@ export const getAllSubjects = query({
   }
 })
 
+export const listOverviewByStatsEnrollMax = query({
+  args: {
+    limit: v.number(),
+    cursor: v.optional(v.string()),
+    subjectArea: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const subjectArea = args.subjectArea;
+
+    if (subjectArea) {
+      const courses = await ctx.db.query("myplanCourses")
+        .withIndex("search_idx_by_subject_area", (q) => q.eq("subjectArea", subjectArea))
+        .order("desc")
+        .paginate({
+          numItems: args.limit,
+          cursor: args.cursor ?? null,
+        });
+
+      return {
+        data: courses.page.map(convertCourseToOverview),
+        continueCursor: courses.continueCursor,
+        isDone: courses.isDone,
+      };
+    }
+
+    const courses = await ctx.db
+      .query("myplanCourses")
+      // .withIndex("by_stats_enroll_max", (q) => q.gte("statsEnrollMax", 0))
+      .withIndex("by_stats_enroll_max", (q) => q.gte("statsEnrollMax", 0))
+      .order("desc")
+      .paginate({
+        numItems: args.limit,
+        cursor: args.cursor ?? null,
+      });
+
+    return {
+      data: courses.page.map(convertCourseToOverview),
+      continueCursor: courses.continueCursor,
+      isDone: courses.isDone,
+    };
+  },
+})

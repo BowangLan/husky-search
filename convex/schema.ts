@@ -161,6 +161,8 @@ export default defineSchema({
     .index("by_current_term_data", ["currentTermData"])
     .index("by_stats_enroll_percent", ["statsEnrollPercent"])
     .index("by_stats_enroll_max", ["statsEnrollMax"])
+    // .index("search_idx", ["statsEnrollMax"])
+    .index("search_idx_by_subject_area", ["subjectArea", "statsEnrollMax"])
     .vectorIndex("by_embedding", {
       vectorField: "embedding",
       dimensions: 1536,
