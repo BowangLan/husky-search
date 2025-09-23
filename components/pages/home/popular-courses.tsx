@@ -1,10 +1,11 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import Link from "next/link"
 import { api } from "@/convex/_generated/api"
 import { fetchQuery } from "convex/nextjs"
 import { useQueries, useQuery } from "convex/react"
-import { MoreHorizontal, Search, X } from "lucide-react"
+import { ExternalLink, MoreHorizontal, Search, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -14,6 +15,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import {
   ConvexCourseCardGrid,
   ConvexCourseCardGridSkeleton,
@@ -77,6 +83,24 @@ export const PopularCourses = () => {
             size="sm"
           >
             {major.code}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  href={`/majors/${major.code}`}
+                  prefetch
+                  className="text-muted-foreground group inline-flex z-[52]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ExternalLink
+                    className="group-hover:text-foreground trans"
+                    style={{ height: "14px", width: "14px" }}
+                  />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Go to major page</p>
+              </TooltipContent>
+            </Tooltip>
           </Button>
         ))}
         {selectedSubjectArea && !firstFewMajorSet.has(selectedSubjectArea) && (
@@ -86,6 +110,21 @@ export const PopularCourses = () => {
             size="sm"
           >
             {selectedSubjectArea}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  href={`/majors/${selectedSubjectArea}`}
+                  prefetch
+                  className="text-muted-foreground hover:text-foreground inline-flex z-[52]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ExternalLink style={{ height: "14px", width: "14px" }} />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Go to major page</p>
+              </TooltipContent>
+            </Tooltip>
           </Button>
         )}
         <DropdownMenu>
