@@ -3,11 +3,11 @@
 import { useMemo, useState } from "react"
 import Link from "next/link"
 import { api } from "@/convex/_generated/api"
+import { visitCacheStore } from "@/store/visit-cache.store"
 import { fetchQuery } from "convex/nextjs"
 import { useQueries, useQuery } from "convex/react"
 import { ExternalLink, MoreHorizontal, Search, X } from "lucide-react"
 import { useStore } from "zustand"
-import { visitCacheStore } from "@/store/visit-cache.store"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -64,17 +64,19 @@ export const PopularCourses = () => {
 
     // Get recent majors from visit cache
     const recentMajors = getRecentMajors(MAX_VISIBLE_FILTERS)
-    const recentMajorCodes = new Set(recentMajors.map(m => m.code))
+    const recentMajorCodes = new Set(recentMajors.map((m) => m.code))
 
     // Start with recent majors that exist in topMajors
     const validRecentMajors = recentMajors
-      .map(recentMajor => sortedMajors.find(m => m.code === recentMajor.code))
+      .map((recentMajor) =>
+        sortedMajors.find((m) => m.code === recentMajor.code)
+      )
       .filter((m): m is NonNullable<typeof m> => m !== undefined)
 
     // Fill remaining slots with top majors that aren't already included
     const remainingSlots = MAX_VISIBLE_FILTERS - validRecentMajors.length
     const fillMajors = sortedMajors
-      .filter(major => !recentMajorCodes.has(major.code))
+      .filter((major) => !recentMajorCodes.has(major.code))
       .slice(0, remainingSlots)
 
     const firstFewMajors = [...validRecentMajors, ...fillMajors]
@@ -153,7 +155,7 @@ export const PopularCourses = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-56 max-h-[400px] flex flex-col"
+            className="w-56 h-[70vh] md:h-[400px] flex flex-col"
             side="bottom"
             align="end"
             style={{ zIndex: 99 }}
