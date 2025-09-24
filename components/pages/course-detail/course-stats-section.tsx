@@ -28,10 +28,7 @@ import {
   StudentRequiredCardContent,
 } from "@/components/student-required-card"
 
-import {
-  CourseMetadataSection,
-  CourseMetadataSectionCard,
-} from "./course-metadata-section"
+import { CourseMetadataSectionCard } from "./course-metadata-section"
 
 export const EasinessStat = ({ data }: { data: CourseDetail }) => {
   const gpaDistro = data?.dp?.gpa_distro

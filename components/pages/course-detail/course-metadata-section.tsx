@@ -13,59 +13,36 @@ export const parseDescription = (description: string) => {
     .replace(/<[^>]*>/g, "")
 }
 
-export const CourseMetadataSection = ({
-  course,
-}: {
-  course: MyPlanCourseCodeGroupWithDetail
-}) => {
-  return (
-    <>
-      <Section>
-        <SectionHeader border>
-          <div className="flex items-center gap-2">
-            {/* <GraduationCap className="h-4 w-4 text-muted-foreground" /> */}
-            <h3 className="text-sm text-muted-foreground font-medium">
-              Prerequisites
-            </h3>
-          </div>
-        </SectionHeader>
-        <SectionContent>
-          <p className="leading-relaxed max-w-4xl text-sm md:text-base font-light">
-            {!!course.data[0]!.data.prereqs &&
-            course.data[0]!.data.prereqs !== "null"
-              ? capitalizeSingle(course.data[0]!.data.prereqs)
-              : "No prerequisites"}
-          </p>
-        </SectionContent>
-      </Section>
-
-      <Section>
-        <SectionHeader border>
-          <div className="flex items-center gap-2">
-            {/* <GraduationCap className="h-4 w-4 text-muted-foreground" /> */}
-            <h3 className="text-sm text-muted-foreground font-medium">
-              Description
-            </h3>
-          </div>
-        </SectionHeader>
-        <SectionContent>
-          <p className="leading-relaxed max-w-4xl text-sm md:text-base font-light">
-            {course.detail?.courseSummaryDetails.courseDescription}
-          </p>
-        </SectionContent>
-      </Section>
-    </>
-  )
+const formatPrereqs = (prereqs: string[] | undefined) => {
+  if (prereqs == null || prereqs === undefined || prereqs.length === 0)
+    return "No prerequisites"
+  return prereqs.join(", ")
 }
 
-const formatPrereqs = (prereqs: string[] | string | undefined) => {
-  if (!prereqs) return "No prerequisites"
-  if (typeof prereqs === "string") return capitalizeSingle(prereqs)
+const formatRawPrereqs = (prereqs: string[] | undefined) => {
+  // [
+  //   "A minimum grade of 2.0 in <span class=\"linkified\" data-id=\"df39e383-5abc-4454-9cf5-8aed65f05a48\" data-subject=\"PHYS\" data-number=\"321\"  data-title=\"Electromagnetism I\" data-text=\"PHYS 321\" />."
+  // ]
+  if (prereqs == null || prereqs === undefined || prereqs.length === 0)
+    return "No prerequisites"
+
   return prereqs
-    .map((prereq) => {
-      return prereq.split(" ")[0]
+    .map((prereq, index) => {
+      return prereq.replace(
+        /<span class="linkified"[^>]*data-subject="([^"]*)"[^>]*data-number="([^"]*)"[^>]*data-title="([^"]*)"[^>]*data-text="([^"]*)"[^>]*\/>/g,
+        '<a href="/courses/$1 $2" class="underline hover:text-purple-500 trans" title="$3">$4</a>'
+      )
     })
-    .join(", ")
+    .map((p) => p.split("; "))
+    .flat()
+    .map((p, index) => {
+      let t = p.trim()
+      if ("and" === t.trim()) {
+        t = t.slice(3)
+      }
+      return <li key={index} dangerouslySetInnerHTML={{ __html: t }} />
+    })
+  // return <li key={index} dangerouslySetInnerHTML={{ __html: t }} />
 }
 
 export const CourseMetadataSectionCard = ({
@@ -86,9 +63,17 @@ export const CourseMetadataSectionCard = ({
             </div>
           </SectionHeader>
           <SectionContent className="py-3">
-            <p className="leading-relaxed max-w-4xl text-sm md:text-base font-light">
+            {/* <p className="leading-relaxed max-w-4xl text-sm md:text-base font-light">
               {formatPrereqs(course.myplanCourse?.prereqs)}
-            </p>
+            </p> */}
+            <div className="markdown">
+              <ul className="leading-relaxed max-w-4xl text-sm md:text-base font-light">
+                {formatRawPrereqs(
+                  course.myplanCourse?.detailData?.courseSummaryDetails
+                    .requisites
+                )}
+              </ul>
+            </div>
           </SectionContent>
         </Section>
 
@@ -102,12 +87,14 @@ export const CourseMetadataSectionCard = ({
             </div>
           </SectionHeader>
           <SectionContent className="py-3">
-            <p className="leading-relaxed max-w-4xl text-sm md:text-base font-light">
-              {parseDescription(
-                course.myplanCourse?.detailData?.courseSummaryDetails
-                  .courseDescription
-              )}
-            </p>
+            <div className="markdown">
+              <p>
+                {parseDescription(
+                  course.myplanCourse?.detailData?.courseSummaryDetails
+                    .courseDescription
+                )}
+              </p>
+            </div>
           </SectionContent>
         </Section>
       </CardContent>

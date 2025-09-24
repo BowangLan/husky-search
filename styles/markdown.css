@@ -1,5 +1,5 @@
 .markdown {
-  @apply text-base leading-8 text-neutral-300;
+  @apply text-base/relaxed font-light text-neutral-300;
 }
 
 .markdown h1 {
