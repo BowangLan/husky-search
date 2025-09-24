@@ -7,6 +7,7 @@ import { fontSans } from "@/lib/fonts"
 import { cn } from "@/lib/utils"
 import { Toaster } from "@/components/ui/sonner"
 import { GlobalLayoutWrapper } from "@/components/global-layout-wrapper"
+import { MessageDialogManager } from "@/components/message-dialog-manager"
 import { SiteHeader } from "@/components/site-header"
 import { TailwindIndicator } from "@/components/tailwind-indicator"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <div className="">{children}</div>
                 <Footer />
               </div>
+              <MessageDialogManager />
               {process.env.NODE_ENV === "development" && <TailwindIndicator />}
               <Toaster
                 position="top-center"

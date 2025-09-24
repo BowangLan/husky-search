@@ -95,7 +95,7 @@ export const PopularCourses = () => {
         subtitle="Most popular courses at UW by seat count"
         className="pb-0 lg:pb-0"
       />
-      <div className="flex flex-row gap-3 py-4 z-[51] w-full overflow-x-auto isolate sticky top-16 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+      <div className="flex flex-row gap-3 py-4 z-[21] w-full overflow-x-auto isolate sticky top-16 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
         {firstFewMajors.map((major) => (
           <Button
             key={major.code}
@@ -109,7 +109,7 @@ export const PopularCourses = () => {
                 <Link
                   href={`/majors/${major.code}`}
                   prefetch
-                  className="text-muted-foreground group inline-flex z-[52]"
+                  className="text-muted-foreground group inline-flex"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <ExternalLink
@@ -136,7 +136,7 @@ export const PopularCourses = () => {
                 <Link
                   href={`/majors/${selectedSubjectArea}`}
                   prefetch
-                  className="text-muted-foreground hover:text-foreground inline-flex z-[52]"
+                  className="text-muted-foreground hover:text-foreground inline-flex"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <ExternalLink style={{ height: "14px", width: "14px" }} />
