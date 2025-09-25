@@ -105,7 +105,9 @@ const WeekDaySelector = () => {
 }
 
 export const CourseSessionsToolbar = () => {
-  const { setSelectedSessionIds } = useCourseSessions()
+  const { setSelectedSessionIds, data } = useCourseSessions()
+
+  if (!data) return null
 
   return (
     <div className="my-4 mx-4 md:mx-6 md:my-6 flex flex-col gap-4 md:gap-6">
@@ -134,11 +136,17 @@ export const CourseSessionsToolbar = () => {
       </div>
 
       {/* Row */}
-      <div>
+      <div className="flex font-light flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
         <p className="text-xs text-muted-foreground">
           Data source: MyPlan. Updates range from every few minutes to every few
           hours.
         </p>
+        <div className="text-xs text-muted-foreground lg:text-right">
+          {data.myplanCourse?.lastUpdated &&
+            `Last updated: ${new Date(
+              data.myplanCourse.lastUpdated
+            ).toLocaleString()}`}
+        </div>
       </div>
     </div>
   )

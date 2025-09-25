@@ -17,6 +17,7 @@ export type ConvexCourseOverview = {
   enroll: ConvexCourseOverviewEnroll[]
   genEdReqs?: string[]
   prereqs?: string[]
+  lastUpdated?: number
 }
 
 
