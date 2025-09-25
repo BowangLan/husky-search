@@ -105,9 +105,9 @@ export function ConvexCourseCardLink({
         prefetch
       ></Link>
 
-      <div className="relative aspect-video w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-muted/50 to-muted/30 hidden md:block">
+      <div className="relative aspect-video w-full overflow-hidden rounded-t-lg hidden md:block">
         <div className="flex h-full items-center justify-center">
-          <div className="text-3xl font-medium text-muted-foreground/30">
+          <div className="text-3xl font-medium text-muted-foreground">
             {course.courseCode}
           </div>
         </div>
