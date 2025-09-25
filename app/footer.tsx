@@ -89,6 +89,18 @@ export function Footer() {
             This site is not officially affiliated with the University of
             Washington.
           </p>
+          <p className="text-xs text-muted-foreground/80 mt-2">
+            Powered by{" "}
+            <a
+              href="https://convex.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground transition-colors underline"
+            >
+              Convex
+            </a>{" "}
+            • Made with ❤️ for UW
+          </p>
         </div>
       </div>
     </footer>
