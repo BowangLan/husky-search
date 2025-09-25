@@ -125,21 +125,20 @@ await ctx.runAction(
 
 ### Step-by-Step Process:
 
-1. **Scrape UW course catalog**:
-
-   ```bash
-   uv run python -m scripts.courses.scrape_all_uw_courses
-   ```
-
-2. **Transform for Convex import**:
-
-   ```bash
-   uv run python -m scripts.courses.transform_courses_for_convex
-   ```
-
+1. **Scrape UW course catalog**
+2. **Transform for Convex import**
 3. **Import into Convex**: Use the Convex dashboard/CLI with the import action
 
+
+```bash
+uv run python -m scripts.courses.scrape_all_uw_courses
+uv run python -m scripts.courses.transform_courses_for_convex
+bunx convex import --table myplanCourses --append temp/convex_courses.json
+```
+
 4. **Enrich with MyPlan details** (optional): Run enrichment action in Convex
+
+Go to Convex dashboard, run `myplanScrapers:scheduleEmtpyAll` . 
 
 > **Note**: For database exports and monitoring, see [Course DevOps Documentation](./COURSE_DEVOPS.md)
 

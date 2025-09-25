@@ -270,29 +270,40 @@ export const scrapeAndSaveCourseDetailBatch = internalAction({
   }
 })
 
-export const scrapeAndSaveCourseDetailFromEmptyDetailCourses = internalAction({
+export const scheduleEmtpyAll = internalAction({
   args: {},
   handler: async (ctx) => {
-    const courses = await ctx.runQuery(api.myplan.listEmptyDetailCourses, {
-      limit: 100,
+    const BATCH_SIZE = 100
+    const BATCH_INTERVAL_MS = 1000 * 60 * 5; // 5 minutes between batches
+
+    let page = 1;
+
+    let paginatedResult = await ctx.runQuery(api.myplan.listEmptyDetailCourses, {
+      limit: BATCH_SIZE,
+      cursor: undefined,
     });
+    console.log(`Scheduling batch 1 to run at ${new Date(Date.now() + 0).toLocaleTimeString()}`);
+    await ctx.scheduler.runAfter(0, internal.myplanScrapers.scrapeAndSaveCourseDetailBatch, {
+      courseCodes: paginatedResult.page.map((course) => course.courseCode),
+    });
+    page++;
 
-    if (courses.page.length === 0) {
-      console.log(`No courses to scrape`);
-      return;
-    }
-
-    const batchSize = 10;
-    for (let i = 0; i < courses.page.length; i += batchSize) {
-      console.log(`Processing batch ${i / batchSize + 1} of ${Math.ceil(courses.page.length / batchSize)} (codes = ${courses.page.slice(i, i + batchSize).map((course) => course.courseCode).join(", ")})`);
-      const batch = courses.page.slice(i, i + batchSize);
-      await ctx.runAction(internal.myplanScrapers.scrapeAndSaveCourseDetailBatch, {
-        courseCodes: batch.map((course) => course.courseCode),
+    while (!paginatedResult.isDone) {
+      paginatedResult = await ctx.runQuery(api.myplan.listEmptyDetailCourses, {
+        limit: BATCH_SIZE,
+        cursor: paginatedResult.continueCursor,
       });
+      console.log(`Scheduling batch ${page} to run at ${new Date(Date.now() + (page - 1) * BATCH_INTERVAL_MS).toLocaleTimeString()}`);
+      await ctx.scheduler.runAfter((page - 1) * BATCH_INTERVAL_MS, internal.myplanScrapers.scrapeAndSaveCourseDetailBatch, {
+        courseCodes: paginatedResult.page.map((course) => course.courseCode),
+      });
+      page++;
     }
 
-    // schedule next batch in 1 minute
-    // await ctx.scheduler.runAfter(60 * 1000, internal.myplanScrapers.scrapeAndSaveCourseDetailFromEmptyDetailCourses, {});
+    console.log(`Scheduled all courses to be scraped in ${page * BATCH_INTERVAL_MS} seconds`);
+    return {
+      success: true,
+    };
   }
 })
 

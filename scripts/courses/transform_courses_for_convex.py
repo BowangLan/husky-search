@@ -42,7 +42,7 @@ def transform_course_to_convex_schema(course: Dict[str, Any]) -> Dict[str, Any]:
         "description": course.get("description", ""),
         "title": course.get("title", ""),
         "credit": credit,
-        "campus": "seattle",  # default for UW
+        "campus": course.get("campus", "seattle"),
         "subjectArea": course.get("subject", ""),
         "courseNumber": course.get("number", ""),
         "genEdReqs": [],  # empty array as default

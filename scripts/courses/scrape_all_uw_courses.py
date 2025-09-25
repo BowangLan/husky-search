@@ -8,6 +8,25 @@ import time
 from pathlib import Path
 
 
+CAMPUSES = {
+    "seattle": {
+        "name": "Seattle",
+        "url": "https://www.washington.edu/students/crscat/",
+        "code": "seattle",
+    },
+    "tacoma": {
+        "name": "Tacoma",
+        "url": "https://www.washington.edu/students/crscatt/",
+        "code": "tacoma",
+    },
+    "bothell": {
+        "name": "Bothell",
+        "url": "https://www.washington.edu/students/crscatb/",
+        "code": "bothell",
+    },
+}
+
+
 def extract_links_under_h2(html_content: str) -> list[dict]:
     """
     Extracts all links under h2 headings using XPath
@@ -34,7 +53,9 @@ def extract_links_under_h2(html_content: str) -> list[dict]:
     return links
 
 
-async def scrape_courses_from_catalog_page(url: str) -> list[dict]:
+async def scrape_courses_from_catalog_page(
+    url: str, campus_code: str = "seattle"
+) -> list[dict]:
     """
     Scrapes courses from a single catalog page - using exact logic from original script
     """
@@ -108,6 +129,7 @@ async def scrape_courses_from_catalog_page(url: str) -> list[dict]:
                 "quarters": link["quarters"],
                 "subject": link["subject"],
                 "number": link["number"],
+                "campus": campus_code,
             }
 
             # Only add courses that have myplan codes
@@ -118,58 +140,71 @@ async def scrape_courses_from_catalog_page(url: str) -> list[dict]:
         return courses
 
 
-async def scrape_all_uw_courses() -> list[dict]:
+async def scrape_all_uw_courses(campuses: list[str] = None) -> list[dict]:
     """
     Main function to scrape all UW courses from the catalog
     """
-    print("Starting UW course catalog scraping...")
+    if campuses is None:
+        campuses = ["seattle"]  # Default to Seattle campus
 
-    # Get department links
-    async with httpx.AsyncClient() as client:
-        response = await client.get("https://www.washington.edu/students/crscat/")
-        response.raise_for_status()
-
-        department_links = extract_links_under_h2(response.text)
-        print(f"Found {len(department_links)} department links")
-
-    # Create temp directory if it doesn't exist
-    if not Path("temp").exists():
-        Path("temp").mkdir(parents=True)
+    print(f"Starting UW course catalog scraping for campuses: {', '.join(campuses)}...")
 
     all_courses = []
 
-    # Process departments in batches of 5 to avoid overwhelming the server
-    batch_size = 10
-    for i in range(0, len(department_links), batch_size):
-        batch = department_links[i : i + batch_size]
-        print(
-            f"Processing batch {i // batch_size + 1}/{(len(department_links) + batch_size - 1) // batch_size}"
-        )
+    for campus_code in campuses:
+        if campus_code not in CAMPUSES:
+            print(f"Unknown campus: {campus_code}. Skipping.")
+            continue
 
-        # Create tasks for this batch
-        tasks = [
-            scrape_courses_from_catalog_page(
-                f"https://www.washington.edu/students/crscat/{link['href']}"
+        campus = CAMPUSES[campus_code]
+        print(f"\nScraping {campus['name']} campus...")
+
+        # Get department links for this campus
+        async with httpx.AsyncClient() as client:
+            response = await client.get(campus["url"])
+            response.raise_for_status()
+
+            department_links = extract_links_under_h2(response.text)
+            print(
+                f"Found {len(department_links)} department links for {campus['name']}"
             )
-            for link in batch
-        ]
 
-        # Execute batch in parallel
-        try:
-            batch_results = await asyncio.gather(*tasks, return_exceptions=True)
+        # Create temp directory if it doesn't exist
+        if not Path("temp").exists():
+            Path("temp").mkdir(parents=True)
 
-            for result in batch_results:
-                if isinstance(result, Exception):
-                    print(f"Error in batch: {result}")
-                else:
-                    all_courses.extend(result)
+        # Process departments in batches to avoid overwhelming the server
+        batch_size = 10
+        for i in range(0, len(department_links), batch_size):
+            batch = department_links[i : i + batch_size]
+            print(
+                f"Processing batch {i // batch_size + 1}/{(len(department_links) + batch_size - 1) // batch_size} for {campus['name']}"
+            )
 
-        except Exception as e:
-            print(f"Error processing batch: {e}")
+            # Create tasks for this batch
+            tasks = [
+                scrape_courses_from_catalog_page(
+                    f"{campus['url']}{link['href']}", campus_code
+                )
+                for link in batch
+            ]
 
-        # Add delay between batches
-        if i + batch_size < len(department_links):
-            await asyncio.sleep(1)
+            # Execute batch in parallel
+            try:
+                batch_results = await asyncio.gather(*tasks, return_exceptions=True)
+
+                for result in batch_results:
+                    if isinstance(result, Exception):
+                        print(f"Error in batch: {result}")
+                    else:
+                        all_courses.extend(result)
+
+            except Exception as e:
+                print(f"Error processing batch: {e}")
+
+            # Add delay between batches
+            if i + batch_size < len(department_links):
+                await asyncio.sleep(1)
 
     print(f"Total courses scraped: {len(all_courses)}")
 
@@ -191,27 +226,37 @@ async def scrape_all_uw_courses() -> list[dict]:
     return all_courses
 
 
-async def test_single_department():
+async def test_single_department(campus_code: str = "seattle"):
     """
     Test function to scrape a single department
     """
-    print("Testing with INFO department...")
+    if campus_code not in CAMPUSES:
+        print(f"Unknown campus: {campus_code}")
+        return
+
+    campus = CAMPUSES[campus_code]
+    print(f"Testing with INFO department on {campus['name']} campus...")
     courses = await scrape_courses_from_catalog_page(
-        "https://www.washington.edu/students/crscat/info.html"
+        f"{campus['url']}info.html", campus_code
     )
 
     print(f"Found {len(courses)} INFO courses")
     for course in courses[:3]:  # Show first 3 courses
         print(
-            f"  {course['uwCourseCode']} -> {course['myplanCode']}: {course['title'][:50]}..."
+            f"  {course['uwCourseCode']} -> {course['myplanCode']}: {course['title'][:50]}... (Campus: {course['campus']})"
         )
 
 
 if __name__ == "__main__":
     # Uncomment to test with single department first
-    # asyncio.run(test_single_department())
+    # asyncio.run(test_single_department("seattle"))
+    # asyncio.run(test_single_department("tacoma"))
+    # asyncio.run(test_single_department("bothell"))
 
-    # Run full scrape
+    # Run full scrape for all campuses
     start_time = time.time()
-    asyncio.run(scrape_all_uw_courses())
+    # asyncio.run(scrape_all_uw_courses(["seattle", "tacoma", "bothell"]))
+    # asyncio.run(scrape_all_uw_courses(["seattle"]))
+    # asyncio.run(scrape_all_uw_courses(["tacoma"]))
+    asyncio.run(scrape_all_uw_courses(["bothell"]))
     print(f"Total scraping time: {time.time() - start_time:.2f} seconds")
