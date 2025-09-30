@@ -11,7 +11,8 @@
     "preview": "next build && next start",
     "typecheck": "tsc --noEmit",
     "format:write": "prettier --write \"**/*.{ts,tsx,mdx}\" --cache",
-    "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache"
+    "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache",
+    "convex:export": "bunx convex export --path temp/convex_export.zip && unzip -o temp/convex_export.zip"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.27",
