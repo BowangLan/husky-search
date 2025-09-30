@@ -1,13 +1,12 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { useRouter } from "next/navigation"
 import { CourseSearchResultItem } from "@/services/course-service"
 import { Command, Search, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
-import { useStaticCourseCodes, useStaticSubjectAreas, SubjectArea } from "@/hooks/use-static-course-data"
+import { useCourseSearch } from "@/hooks/use-course-search"
 import { Button } from "@/components/ui/button"
 import {
   Drawer,
@@ -24,15 +23,19 @@ import { CourseSearchEmptyState } from "@/components/course-search-empty-state"
 import { CourseSearchLoadingSkeleton } from "@/components/course-search-loading-skeleton"
 
 export function CourseSearchMobile() {
-  const [query, setQuery] = useState("")
-  const [courses, setCourses] = useState<string[]>([])
-  const [majors, setMajors] = useState<SubjectArea[]>([])
-  const [loading, setLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const { data: allCourseCodes } = useStaticCourseCodes()
-  const { data: allSubjectAreas } = useStaticSubjectAreas()
-  const navigate = useRouter()
+  const {
+    query,
+    courses,
+    majors,
+    loading,
+    clearSearch,
+    handleChange,
+    handleKeyDown,
+    handleCourseSelect,
+    handleMajorSelect,
+  } = useCourseSearch()
 
   useEffect(() => {
     if (isOpen) {
@@ -42,96 +45,41 @@ export function CourseSearchMobile() {
       }, 100)
     } else {
       // Reset state when dialog closes
-      setQuery("")
-      setCourses([])
-      setMajors([])
-      setLoading(false)
+      clearSearch()
     }
-  }, [isOpen])
+  }, [isOpen, clearSearch])
 
   const handleClear = () => {
-    setQuery("")
-    setCourses([])
-    setMajors([])
+    clearSearch()
     inputRef.current?.focus()
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleInputKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       setIsOpen(false)
       return
     }
 
+    handleKeyDown(e)
+
+    // Close drawer after navigation
     if (e.key === "Enter") {
-      if (courses.length === 1 && majors.length === 0) {
-        navigate.push(`/courses/${courses[0]}`)
-        setIsOpen(false)
-        setCourses([])
-        setMajors([])
-        inputRef.current?.blur()
-      } else if (
-        majors.length === 1 &&
-        majors[0].code === query.trim().toUpperCase()
-      ) {
-        navigate.push(`/majors/${majors[0].code}`)
-        setIsOpen(false)
-        setCourses([])
-        setMajors([])
-        inputRef.current?.blur()
-      }
+      setIsOpen(false)
+      inputRef.current?.blur()
     }
   }
 
-  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toUpperCase()
-    setQuery(value)
-
-    if (value.trim() === "") {
-      setCourses([])
-      setMajors([])
-      return
-    }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleChange(e.target.value)
   }
 
-  useEffect(() => {
-    if (query.trim() === "") {
-      setCourses([])
-      setMajors([])
-      setLoading(false)
-      return
-    }
-    if (!allCourseCodes || !allSubjectAreas) {
-      setLoading(true)
-      return
-    }
-    setLoading(false)
-    const normalized = query.replace(/\s+/g, "")
-
-    // Filter courses
-    const filteredCourses = allCourseCodes
-      .filter((code) => code.replace(/\s+/g, "").startsWith(normalized))
-      .slice(0, 50)
-    setCourses(filteredCourses)
-
-    // Filter majors
-    const filteredMajors = allSubjectAreas
-      .filter((area) => area.code.replace(/\s+/g, "").startsWith(normalized))
-      .slice(0, 10)
-    setMajors(filteredMajors)
-  }, [query, allCourseCodes, allSubjectAreas])
-
-  const handleCourseSelect = (courseCode: string) => {
-    setQuery(courseCode)
-    setCourses([])
-    setMajors([])
+  const handleMobileCourseSelect = (courseCode: string) => {
+    handleCourseSelect(courseCode)
     setIsOpen(false)
   }
 
-  const handleMajorSelect = (major: SubjectArea) => {
-    navigate.push(`/majors/${major.code}`)
-    setQuery(major.code)
-    setCourses([])
-    setMajors([])
+  const handleMobileMajorSelect = (major: any) => {
+    handleMajorSelect(major)
     setIsOpen(false)
   }
 
@@ -170,8 +118,8 @@ export function CourseSearchMobile() {
                 ref={inputRef}
                 placeholder="Type course or major code (e.g., CSE 142)..."
                 value={query}
-                onChange={handleChange}
-                onKeyDown={handleKeyDown}
+                onChange={handleInputChange}
+                onKeyDown={handleInputKeyDown}
                 className="pl-10 pr-10 placeholder:text-sm placeholder:leading-[1] text-base"
               />
               {query && (
@@ -222,7 +170,7 @@ export function CourseSearchMobile() {
                         {majors.map((major, index) => (
                           <button
                             key={`major-${major.code}`}
-                            onClick={() => handleMajorSelect(major)}
+                            onClick={() => handleMobileMajorSelect(major)}
                             className="w-full flex items-center rounded-lg px-3 py-2 text-left text-sm hover:bg-foreground/10 hover:text-accent-foreground trans cursor-pointer border border-transparent hover:border-border"
                           >
                             <div className="flex flex-col">
@@ -252,7 +200,7 @@ export function CourseSearchMobile() {
                               } as unknown as CourseSearchResultItem
                             }
                             index={index}
-                            onSelect={handleCourseSelect}
+                            onSelect={handleMobileCourseSelect}
                           />
                         ))}
                       </div>

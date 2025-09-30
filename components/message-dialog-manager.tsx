@@ -137,9 +137,11 @@ const evaluateDisplay = async (
   {
     pathname,
     isSignedIn,
+    user,
   }: {
     pathname: string
     isSignedIn: boolean
+    user?: any
   },
   storage: StorageHelpers
 ) => {
@@ -155,6 +157,7 @@ const evaluateDisplay = async (
     hasBeenShownBefore,
     hasOptedOut,
     getStorageValue: storage.get,
+    user,
   }
 
   if (shouldRespectOptOut(config) && hasOptedOut) {
@@ -218,7 +221,7 @@ const evaluateDisplay = async (
 
 export const MessageDialogManager = () => {
   const pathname = usePathname() ?? "/"
-  const { isLoaded, isSignedIn } = useUser()
+  const { isLoaded, isSignedIn, user } = useUser()
   const [queue, setQueue] = useState<MessageDialogConfig[]>([])
 
   const getStorageItem = useCallback((key: string) => {
@@ -288,6 +291,7 @@ export const MessageDialogManager = () => {
           {
             pathname,
             isSignedIn: Boolean(isSignedIn),
+            user,
           },
           storage
         )
@@ -315,7 +319,7 @@ export const MessageDialogManager = () => {
     return () => {
       cancelled = true
     }
-  }, [isLoaded, isSignedIn, pathname, storage])
+  }, [isLoaded, isSignedIn, user, pathname, storage])
 
   useEffect(() => {
     if (!activeMessage) {

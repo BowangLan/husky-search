@@ -1,4 +1,5 @@
 import { ReactNode } from "react"
+import { isEmailFromUW } from "@/constants"
 
 /**
  * Context shared with custom display conditions.
@@ -9,6 +10,7 @@ export type MessageDialogConditionContext = {
   hasBeenShownBefore: boolean
   hasOptedOut: boolean
   getStorageValue: (key: string) => string | null
+  user?: any // Clerk user object
 }
 
 export type MessageDialogDisplayCondition =
@@ -115,6 +117,47 @@ export const messageDialogConfigs: MessageDialogConfig[] = [
       { label: "Maybe later", variant: "ghost" },
       {
         label: "Sign in",
+        href: "/sign-in",
+        variant: "default",
+      },
+    ],
+  },
+  {
+    id: "non-uw-email",
+    eyebrow: "Access Limited",
+    title: "UW Email Required",
+    renderContent: () => (
+      <div className="space-y-2 text-base/relaxed font-light text-foreground">
+        <p>
+          You're signed in with a non-UW email address. Some features and course data are restricted to UW students only.
+        </p>
+        <p>
+          To access full features including DawgPath and CEC data, please sign in with your UW email address (@u.washington.edu, @uw.edu, or @cs.washington.edu).
+        </p>
+      </div>
+    ),
+    tone: "warning",
+    conditions: [
+      { type: "signedInOnly" },
+      {
+        type: "custom",
+        shouldShow: async (ctx) => {
+          if (!ctx.isSignedIn || !ctx.user) {
+            return false
+          }
+
+          return !ctx.user.emailAddresses.some((email: any) =>
+            isEmailFromUW(email.emailAddress)
+          )
+        },
+      },
+      { type: "showOnce" },
+    ],
+    allowDontShowAgain: true,
+    actions: [
+      { label: "I understand", variant: "secondary" },
+      {
+        label: "Sign in with UW email",
         href: "/sign-in",
         variant: "default",
       },

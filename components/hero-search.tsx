@@ -2,31 +2,31 @@
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { Search, X } from "lucide-react"
 import { motion } from "motion/react"
 
 import { EASE_OUT_CUBIC } from "@/config/animation"
 import { useIsMobile } from "@/hooks/use-mobile"
-import {
-  SubjectArea,
-  useStaticCourseCodes,
-  useStaticSubjectAreas,
-} from "@/hooks/use-static-course-data"
+import { useCourseSearch } from "@/hooks/use-course-search"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 export function HeroSearch() {
-  const [query, setQuery] = useState("")
-  const [courses, setCourses] = useState<string[]>([])
-  const [majors, setMajors] = useState<SubjectArea[]>([])
-  const [loading, setLoading] = useState(false)
-  const [showResults, setShowResults] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const { data: allCourseCodes } = useStaticCourseCodes()
-  const { data: allSubjectAreas } = useStaticSubjectAreas()
-  const navigate = useRouter()
+  const {
+    query,
+    courses,
+    majors,
+    loading,
+    showResults,
+    setShowResults,
+    clearSearch,
+    handleChange,
+    handleKeyDown,
+    isExactMatch,
+    isExactMajorMatch,
+  } = useCourseSearch()
 
   useEffect(() => {
     if (isFocused) {
@@ -35,113 +35,28 @@ export function HeroSearch() {
   }, [isFocused])
 
   const handleClear = () => {
-    setQuery("")
-    setCourses([])
-    setMajors([])
-    setShowResults(false)
+    clearSearch()
     inputRef.current?.focus()
   }
 
-  const isExactMatch = (searchQuery: string) => {
-    if (!allCourseCodes) return false
-    const normalized = searchQuery.replace(/\s+/g, "")
-    return allCourseCodes.some(
-      (code) => code.replace(/\s+/g, "") === normalized
-    )
-  }
-
-  const isExactMajorMatch = (searchQuery: string) => {
-    if (!allSubjectAreas) return false
-    const normalized = searchQuery.replace(/\s+/g, "")
-    return allSubjectAreas.some(
-      (area) => area.code.replace(/\s+/g, "") === normalized
-    )
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleInputKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       setShowResults(false)
+      return
     }
 
+    handleKeyDown(e)
+
+    // Close results and blur input after navigation
     if (e.key === "Enter") {
-      if (courses.length === 1 && majors.length === 0) {
-        navigate.push(`/courses/${courses[0]}`)
-        setShowResults(false)
-        setCourses([])
-        setMajors([])
-        inputRef.current?.blur()
-      } else if (
-        majors.length === 1 &&
-        majors[0].code === query.trim().toUpperCase()
-      ) {
-        navigate.push(`/majors/${majors[0].code}`)
-        setShowResults(false)
-        setCourses([])
-        setMajors([])
-        inputRef.current?.blur()
-      } else if (isExactMatch(query)) {
-        const exactMatch = allCourseCodes?.find(
-          (code) => code.replace(/\s+/g, "") === query.replace(/\s+/g, "")
-        )
-        if (exactMatch) {
-          navigate.push(`/courses/${exactMatch}`)
-          setShowResults(false)
-          setCourses([])
-          setMajors([])
-          inputRef.current?.blur()
-        }
-      } else if (isExactMajorMatch(query)) {
-        const exactMatch = allSubjectAreas?.find(
-          (area) => area.code.replace(/\s+/g, "") === query.replace(/\s+/g, "")
-        )
-        if (exactMatch) {
-          navigate.push(`/majors/${exactMatch.code}`)
-          setShowResults(false)
-          setCourses([])
-          setMajors([])
-          inputRef.current?.blur()
-        }
-      }
-    }
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toUpperCase()
-    setQuery(value)
-    setShowResults(true)
-    if (value.trim() === "") {
-      setCourses([])
-      setMajors([])
       setShowResults(false)
+      inputRef.current?.blur()
     }
   }
 
-  useEffect(() => {
-    if (query.trim() === "") {
-      setCourses([])
-      setMajors([])
-      setLoading(false)
-      return
-    }
-    if (!allCourseCodes || !allSubjectAreas) {
-      setLoading(true)
-      return
-    }
-    setLoading(false)
-    const normalized = query.replace(/\s+/g, "")
-
-    // Filter courses
-    const filteredCourses = allCourseCodes
-      .filter((code) => code.replace(/\s+/g, "").startsWith(normalized))
-      .slice(0, 50)
-    setCourses(filteredCourses)
-
-    // Filter majors
-    const filteredMajors = allSubjectAreas
-      .filter((area) => area.code.replace(/\s+/g, "").startsWith(normalized))
-      .slice(0, 10)
-    setMajors(filteredMajors)
-  }, [query, allCourseCodes, allSubjectAreas])
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleChange(e.target.value)
+  }
 
   return (
     <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
@@ -152,8 +67,8 @@ export function HeroSearch() {
             ref={inputRef}
             placeholder="Search for courses or majors (e.g. CSE 142, MATH 126)..."
             value={query}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
+            onChange={handleInputChange}
+            onKeyDown={handleInputKeyDown}
             onFocus={() => {
               setIsFocused(true)
               if (query.trim()) {
@@ -218,9 +133,6 @@ export function HeroSearch() {
                           onClick={(e) => {
                             e.stopPropagation()
                             setShowResults(false)
-                            setQuery(major.code)
-                            setCourses([])
-                            setMajors([])
                           }}
                         >
                           <div className="flex flex-col">
@@ -252,9 +164,6 @@ export function HeroSearch() {
                           onClick={(e) => {
                             e.stopPropagation()
                             setShowResults(false)
-                            setQuery(course)
-                            setCourses([])
-                            setMajors([])
                           }}
                         >
                           <div className="flex flex-col">

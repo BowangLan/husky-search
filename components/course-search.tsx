@@ -2,12 +2,11 @@
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { Search, X } from "lucide-react"
 import { motion } from "motion/react"
 
 import { EASE_OUT_CUBIC } from "@/config/animation"
-import { useStaticCourseCodes, useStaticSubjectAreas, SubjectArea } from "@/hooks/use-static-course-data"
+import { useCourseSearch } from "@/hooks/use-course-search"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -15,16 +14,19 @@ const WIDTH = "300px"
 const WIDTH_FOCUSED = "400px"
 
 export function CourseSearch() {
-  const [query, setQuery] = useState("")
-  const [courses, setCourses] = useState<string[]>([])
-  const [majors, setMajors] = useState<SubjectArea[]>([])
-  const [loading, setLoading] = useState(false)
-  const [showResults, setShowResults] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const { data: allCourseCodes } = useStaticCourseCodes()
-  const { data: allSubjectAreas } = useStaticSubjectAreas()
-  const navigate = useRouter()
+  const {
+    query,
+    courses,
+    majors,
+    loading,
+    showResults,
+    setShowResults,
+    clearSearch,
+    handleChange,
+    handleKeyDown,
+  } = useCourseSearch()
 
   useEffect(() => {
     if (isFocused) {
@@ -46,75 +48,28 @@ export function CourseSearch() {
   }, [])
 
   const handleClear = () => {
-    setQuery("")
-    setCourses([])
-    setMajors([])
-    setShowResults(false)
+    clearSearch()
     inputRef.current?.focus()
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleInputKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       setShowResults(false)
+      return
     }
 
+    handleKeyDown(e)
+
+    // Close results and blur input after navigation
     if (e.key === "Enter") {
-      if (courses.length === 1 && majors.length === 0) {
-        navigate.push(`/courses/${courses[0]}`)
-        setShowResults(false)
-        setCourses([])
-        setMajors([])
-        inputRef.current?.blur()
-      } else if (
-        majors.length === 1 &&
-        majors[0].code === query.trim().toUpperCase()
-      ) {
-        navigate.push(`/majors/${majors[0].code}`)
-        setShowResults(false)
-        setCourses([])
-        setMajors([])
-        inputRef.current?.blur()
-      }
-    }
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toUpperCase()
-    setQuery(value)
-    setShowResults(true)
-    if (value.trim() === "") {
-      setCourses([])
-      setMajors([])
       setShowResults(false)
+      inputRef.current?.blur()
     }
   }
 
-  useEffect(() => {
-    if (query.trim() === "") {
-      setCourses([])
-      setMajors([])
-      setLoading(false)
-      return
-    }
-    if (!allCourseCodes || !allSubjectAreas) {
-      setLoading(true)
-      return
-    }
-    setLoading(false)
-    const normalized = query.replace(/\s+/g, "")
-
-    // Filter courses
-    const filteredCourses = allCourseCodes
-      .filter((code) => code.replace(/\s+/g, "").startsWith(normalized))
-      .slice(0, 50)
-    setCourses(filteredCourses)
-
-    // Filter majors
-    const filteredMajors = allSubjectAreas
-      .filter((area) => area.code.replace(/\s+/g, "").startsWith(normalized))
-      .slice(0, 10)
-    setMajors(filteredMajors)
-  }, [query, allCourseCodes, allSubjectAreas])
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleChange(e.target.value)
+  }
 
   return (
     <div className="relative hidden md:block">
@@ -131,15 +86,15 @@ export function CourseSearch() {
           ref={inputRef}
           placeholder="Search courses or majors..."
           value={query}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
+          onChange={handleInputChange}
+          onKeyDown={handleInputKeyDown}
           onFocus={() => {
             setIsFocused(true)
-            // setShowResults(true)
+            setShowResults(true)
           }}
           onBlur={() => {
             setIsFocused(false)
-            // setShowResults(false)
+            setTimeout(() => setShowResults(false), 150)
           }}
           className="pl-10 pr-10 w-full"
         />
@@ -182,15 +137,14 @@ export function CourseSearch() {
                         onClick={(e) => {
                           e.stopPropagation()
                           setShowResults(false)
-                          setQuery(major.code)
-                          setCourses([])
-                          setMajors([])
                         }}
                       >
                         <div className="flex flex-col">
                           <div className="flex items-center gap-2">
                             <span className="font-medium">{major.code}</span>
-                            <span className="text-xs text-muted-foreground">{major.title}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {major.title}
+                            </span>
                           </div>
                         </div>
                       </Link>
@@ -212,9 +166,6 @@ export function CourseSearch() {
                         onClick={(e) => {
                           e.stopPropagation()
                           setShowResults(false)
-                          setQuery(course)
-                          setCourses([])
-                          setMajors([])
                         }}
                       >
                         <div className="flex flex-col">
