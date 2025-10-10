@@ -1,5 +1,7 @@
+import { MyplanCourseTermSession } from "@/convex/schema"
 import { AlertCircle } from "lucide-react"
 
+import { SessionEnrollState } from "@/lib/session-utils"
 import { capitalize, cn } from "@/lib/utils"
 import { Progress } from "@/components/ui/progress"
 import {
@@ -12,14 +14,26 @@ export const SessionEnrollProgress = ({
   session,
   sessionRaw,
 }: {
-  session: any
+  session: MyplanCourseTermSession
   sessionRaw: any
 }) => {
-  const isClosed = session.enrollCount >= session.enrollMaximum
+  const { enrollCount, enrollMaximum } = session
+
+  if (!enrollMaximum || !enrollCount) {
+    return null
+  }
+
+  const isClosed = enrollCount >= enrollMaximum
   const capacityPct = Math.min(
     100,
-    (session.enrollCount / Math.max(1, session.enrollMaximum)) * 100
+    (Number(enrollCount) / Math.max(1, Number(enrollMaximum))) * 100
   )
+
+  const addCodeRequired =
+    session?.enrollStatus === SessionEnrollState["ADD CODE REQUIRED"]
+  const facultyCodeRequired =
+    session?.enrollStatus === SessionEnrollState["FACULTY CODE REQUIRED"]
+  const codeRequired = addCodeRequired || facultyCodeRequired
 
   if (session.stateKey !== "active") {
     return (
@@ -40,13 +54,13 @@ export const SessionEnrollProgress = ({
               isClosed && "text-muted-foreground font-normal"
             )}
           >
-            {Math.max(0, session.enrollMaximum - session.enrollCount)}
+            {Math.max(0, Number(enrollMaximum) - Number(enrollCount))}
           </span>
           {" avail of "}
           <span className="font-mono">{session.enrollMaximum}</span>
         </div>
         <div className="flex-1" />
-        {sessionRaw?.enrollStatus === "add code required" && (
+        {addCodeRequired && (
           <Tooltip>
             <TooltipTrigger asChild>
               <div className={cn("size-2 rounded-full bg-amber-500")} />
@@ -54,11 +68,21 @@ export const SessionEnrollProgress = ({
             <TooltipContent>This session requires an add code.</TooltipContent>
           </Tooltip>
         )}
+        {facultyCodeRequired && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className={cn("size-2 rounded-full bg-amber-500")} />
+            </TooltipTrigger>
+            <TooltipContent>
+              This session requires a faculty code.
+            </TooltipContent>
+          </Tooltip>
+        )}
         <div
           className={cn(
             "flex flex-row items-center gap-1.5 text-[13px] text-foreground tabular-nums leading-none",
             isClosed && "text-muted-foreground",
-            sessionRaw?.enrollStatus === "add code required" ? "hidden" : ""
+            codeRequired ? "hidden" : ""
           )}
         >
           <div
@@ -67,7 +91,7 @@ export const SessionEnrollProgress = ({
               isClosed ? "bg-rose-500" : "bg-emerald-500"
             )}
           />
-          {capitalize(sessionRaw?.enrollStatus ?? "")}
+          {capitalize(session?.enrollStatus ?? "")}
         </div>
       </div>
       <Progress
@@ -77,7 +101,7 @@ export const SessionEnrollProgress = ({
           height: "6px",
         }}
         indicatorClassName={cn(
-          sessionRaw?.enrollStatus === "add code required"
+          codeRequired
             ? "progress-indicator-yellow"
             : isClosed
             ? "progress-indicator-red"

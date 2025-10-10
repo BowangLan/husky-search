@@ -16,6 +16,7 @@ import { toast } from "sonner"
 
 import { MyPlanCourseDetail } from "@/types/myplan"
 import {
+  SessionEnrollState,
   getEnrollOutlineClasses,
   getEnrollPrimaryClasses,
   getSessionEnrollState,
@@ -261,6 +262,12 @@ const CalendarEventCard = ({
     }, 120)
   }
 
+  const addCodeRequired =
+    event.session?.enrollStatus === SessionEnrollState["ADD CODE REQUIRED"]
+  const facultyCodeRequired =
+    event.session?.enrollStatus === SessionEnrollState["FACULTY CODE REQUIRED"]
+  const codeRequired = addCodeRequired || facultyCodeRequired
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
@@ -325,13 +332,23 @@ const CalendarEventCard = ({
                 <span className="text-[11px] px-1.5 py-0.5 rounded bg-foreground/5 text-muted-foreground uppercase">
                   {capitalize(event.session.type)}
                 </span>
-                {sessionRaw?.addCodeRequired && (
+                {addCodeRequired && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <KeyRound className="size-4 opacity-70" />
                     </TooltipTrigger>
                     <TooltipContent>
                       This session requires an add code.
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+                {facultyCodeRequired && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <KeyRound className="size-4 opacity-70" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      This session requires a faculty code.
                     </TooltipContent>
                   </Tooltip>
                 )}
