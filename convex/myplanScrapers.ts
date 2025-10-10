@@ -1,10 +1,15 @@
-import { v } from "convex/values";
+import { ConvexError, Infer, v } from "convex/values";
 import { action, internalAction, internalMutation, mutation, query } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import { MyplanCourseInfo, myplanCourseInfoObj, MyplanCourseTermData, myplanSubjectFields } from "./schema";
 
+const campuses = ["seattle", "tacoma", "bothell"] as const;
+const campusLiteral = campuses.map(c => v.literal(c));
+const campusUnion = v.union(...campusLiteral);
+type Campus = Infer<typeof campusUnion>;
+
 // TypeScript interfaces for data types
-export interface Course {
+export interface SearchCourseItem {
   id: string;
   courseId: string;
   code: string;
@@ -12,11 +17,11 @@ export interface Course {
   level: string;
   title: string;
   credit: string;
-  campus: string;
+  campus: Campus;
   termId: string;
   institution: string;
   allCredits: string[];
-  genEduReqs: any[];
+  genEduReqs: string[];
   sectionGroups: string[];
   startTime: number;
   endTime: number;
@@ -38,7 +43,7 @@ export interface Course {
 export interface SubjectArea {
   code: string;
   title: string;
-  campus: string;
+  campus: Campus;
   collegeCode: string;
   collegeTitle: string;
   departmentCode: string;
@@ -98,8 +103,9 @@ export const scrapeSearchCourses = action({
     startTime: v.optional(v.string()),
     endTime: v.optional(v.string()),
     days: v.optional(v.array(v.string())),
+    campus: v.optional(campusUnion),
   },
-  handler: async (ctx, args): Promise<Course[]> => {
+  handler: async (ctx, args): Promise<SearchCourseItem[]> => {
     const payload: SearchCoursesPayload = {
       username: "GUEST",
       requestId: generateRequestId(),
@@ -107,7 +113,7 @@ export const scrapeSearchCourses = action({
       instructorSearch: false,
       queryString: args.query,
       consumerLevel: "UNDERGRADUATE",
-      campus: "seattle",
+      campus: args.campus || "seattle",
       startTime: args.startTime || "0630",
       endTime: args.endTime || "2230",
       days: args.days || [],
@@ -124,14 +130,14 @@ export const scrapeSearchCourses = action({
 
       if (!response.ok) {
         console.error(`Error making request to MyPlan API: ${response.status} ${response.statusText}`);
-        return [];
+        throw new ConvexError("Error making request to MyPlan API");
       }
 
       const data = await response.json();
-      return data as Course[];
+      return data as SearchCourseItem[];
     } catch (error) {
       console.error(`Error making request to MyPlan API: ${error}`);
-      return [];
+      throw new ConvexError("Error making request to MyPlan API");
     }
   },
 });
@@ -366,19 +372,19 @@ export const scrapeAndSaveSearchResultsForAllSubjectAreas = action({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-
+    console.log(`Scraping latest subject areas...`);
     const subjectAreas = await ctx.runAction(internal.myplanScrapers.scrapeSubjectAreas, {});
-    const kvStoreCourseCodes = new Set(await ctx.runQuery(internal.myplan.getKVStoreCourseCodes, {}));
+    console.log(`Found ${subjectAreas.length} subject areas`);
 
     const offset = args.offset ?? 0;
     const limit = args.limit ?? undefined
-    const filteredSubjectAreas = subjectAreas.slice(offset, limit);
+    const filteredSubjectAreas = subjectAreas.slice(offset, limit ? offset + limit : undefined);
+    console.log(`Filtered subject areas to process: ${filteredSubjectAreas.length}`);
 
     let i = 0;
     let totalCourses = 0;
-    let totalExistingCourses = 0;
 
-    const courses: MyplanCourseInfo[] = [];
+    const seen = new Set<string>();
 
     // Process subject areas in batches of 100
     const batchSize = 20;
@@ -387,62 +393,42 @@ export const scrapeAndSaveSearchResultsForAllSubjectAreas = action({
       console.log(`Processing subject area batch ${i / batchSize + 1} of ${Math.ceil(filteredSubjectAreas.length / batchSize)}`);
 
       const searchData = await Promise.all(batch.map(async (subjectArea) => {
+        console.log(`Start scraping search courses for subject area '${subjectArea.code}'...`);
         const searchData = await ctx.runAction(api.myplanScrapers.scrapeSearchCourses, {
           query: subjectArea.code,
+          campus: subjectArea.campus,
         });
+        console.log(`Found ${searchData.length} courses for subject area '${subjectArea.code}'`);
         return searchData;
       }));
 
-      for (const batchSearchData of searchData) {
-        for (const course of batchSearchData) {
-          if (kvStoreCourseCodes.has(course.code)) {
-            // console.log(`Course ${course.code} already exists in KV store`);
-            totalExistingCourses++;
-            continue;
-          }
-          courses.push({
+      let courseData = searchData.flat();
+      const batchSize2 = 100;
+      courseData = courseData.filter((course) => !seen.has(course.code));
+      for (let i = 0; i < courseData.length; i += batchSize2) {
+        console.log(`Updating course data batch ${i / batchSize2 + 1} of ${Math.ceil(courseData.length / batchSize2)}`);
+        const batch = courseData.slice(i, i + batchSize2);
+        await ctx.runMutation(internal.myplan.updateCourseByCourseCodeBatch, {
+          courseCodes: batch.map((course) => ({
             courseCode: course.code,
-            courseId: course.courseId,
-            description: "", // Not available in search results
-            title: course.title,
-            credit: course.credit,
-            campus: course.campus,
-            subjectArea: course.subject,
-            courseNumber: course.code.slice(-3),
-            genEdReqs: [],
-            termsOffered: [],
-            prereqs: [],
-          });
-        }
-      }
-    }
-
-    for (let i = 0; i < courses.length; i += 100) {
-      console.log(`Processing batch ${i / 100 + 1} of ${Math.ceil(courses.length / 100)}`);
-      const batch = courses.slice(i, i + 100);
-      await ctx.runMutation(internal.myplan.addCourseCodesToKVStore, {
-        courseCodes: batch.map((course) => course.courseCode),
-      });
-      await Promise.all(batch.map(async (course) => {
-        await ctx.runMutation(internal.myplan.upsertCourseInfo, {
-          ...course
+            allCredits: course.allCredits,
+            genEduReqs: course.genEduReqs ?? [],
+          })),
         });
-        // await ctx.runMutation(internal.myplan.upsertCourseSearch, {
-        //   courseCode: course.courseCode,
-        //   searchData: course,
-        // });
-      }));
+        batch.forEach((course) => {
+          seen.add(course.code);
+        });
+      }
+
+      totalCourses += courseData.length;
     }
 
+    console.log(`Scraped ${totalCourses} courses in total`);
 
-    console.log(`Scraped ${totalCourses + totalExistingCourses} courses for ${i} subject areas`);
-    console.log(`Saved ${totalCourses} courses`);
-    console.log(`Skipped ${totalExistingCourses} courses`);
 
     return {
       success: true,
       totalCourses: totalCourses,
-      totalExistingCourses: totalExistingCourses,
       totalSubjectAreas: i,
     };
   }
@@ -555,6 +541,8 @@ export const runCourseDetailCronJob = internalAction({
   }
 })
 
+// Subject area related functions
+
 export const getAllSubjects = query({
   args: {},
   handler: async (ctx) => {
@@ -578,39 +566,54 @@ export const deleteSubject = internalMutation({
   }
 })
 
+export const upsertSubject = internalMutation({
+  args: {
+    ...myplanSubjectFields,
+    subjectId: v.id("myplanSubjects"),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.patch(args.subjectId, args);
+  }
+})
+
+
 export const scrapeAndSaveSubjectAreas = internalAction({
   args: {},
   handler: async (ctx) => {
     console.log("Scraping subject areas from MyPlan API");
 
-    const subjectAreas = await ctx.runAction(internal.myplanScrapers.scrapeSubjectAreas, {});
+    const newSubjectAreas = await ctx.runAction(internal.myplanScrapers.scrapeSubjectAreas, {});
 
-    console.log(`Found ${subjectAreas.length} subject areas`);
+    console.log(`Found ${newSubjectAreas.length} subject areas`);
 
     // Clear existing subject areas and insert new ones
     const existingSubjects = await ctx.runQuery(api.myplanScrapers.getAllSubjects, {});
-    for (const subject of existingSubjects) {
-      await ctx.runMutation(internal.myplanScrapers.deleteSubject, {
-        subjectId: subject._id,
-      });
-    }
+    const existingSubjectsMap = new Map(existingSubjects.map((subject) => [subject.code, subject]));
 
     // // Insert new subject areas
-    for (const subjectArea of subjectAreas) {
-      await ctx.runMutation(internal.myplanScrapers.insertSubject, {
-        code: subjectArea.code,
-        title: subjectArea.title,
-        campus: subjectArea.campus,
-        collegeCode: subjectArea.collegeCode,
-        collegeTitle: subjectArea.collegeTitle,
-        departmentCode: subjectArea.departmentCode,
-        departmentTitle: subjectArea.departmentTitle,
-        codeNoSpaces: subjectArea.codeNoSpaces,
-        quotedCode: subjectArea.quotedCode,
-      });
+    for (const subjectArea of newSubjectAreas) {
+      const existingSubject = existingSubjectsMap.get(subjectArea.code);
+      if (existingSubject) {
+        await ctx.runMutation(internal.myplanScrapers.upsertSubject, {
+          subjectId: existingSubject._id,
+          ...subjectArea,
+        });
+      } else {
+        await ctx.runMutation(internal.myplanScrapers.insertSubject, {
+          code: subjectArea.code,
+          title: subjectArea.title,
+          campus: subjectArea.campus,
+          collegeCode: subjectArea.collegeCode,
+          collegeTitle: subjectArea.collegeTitle,
+          departmentCode: subjectArea.departmentCode,
+          departmentTitle: subjectArea.departmentTitle,
+          codeNoSpaces: subjectArea.codeNoSpaces,
+          quotedCode: subjectArea.quotedCode,
+        });
+      }
     }
 
-    console.log(`Saved ${subjectAreas.length} subject areas to database`);
+    console.log(`Saved ${newSubjectAreas.length} subject areas to database`);
 
     return {
       success: true,

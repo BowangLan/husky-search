@@ -58,10 +58,18 @@ export const myplanCourseInfoFields = {
   description: v.string(),
   title: v.string(),
   credit: v.string(),
+
+  allCredits: v.optional(v.array(v.string())),
+  // e.g. ["1", "2", "3"]
+  // This is used to filter courses by credits
+
   campus: v.string(),
   subjectArea: v.string(),
   courseNumber: v.string(),
+
   genEdReqs: v.array(v.string()),
+  // used for filtering courses by gen ed requirements
+
   termsOffered: v.array(v.string()),
   prereqs: v.optional(v.union(
     v.array(v.string()),
@@ -166,6 +174,21 @@ export default defineSchema({
       vectorField: "embedding",
       dimensions: 1536,
     })
+  ,
+
+  myplan_course_credits: defineTable({
+    courseId: v.id("myplanCourses"),
+    credit: v.string()
+  })
+    .index("by_credit", ["credit"])
+    .index("by_course_id", ["courseId"])
+  ,
+  myplan_course_gen_ed_reqs: defineTable({
+    courseId: v.id("myplanCourses"),
+    genEduReq: v.string()
+  })
+    .index("by_gen_ed_req", ["genEduReq"])
+    .index("by_course_id", ["courseId"])
   ,
 
   myplanSubjects: defineTable({

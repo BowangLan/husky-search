@@ -196,6 +196,30 @@ export const listEmptyDetailCourses = query({
   }
 })
 
+// not working - all credits are stored in myplan_course_credits table
+export const listEmptyAllCreditsCourses = query({
+  args: {
+    limit: v.optional(v.number()),
+    cursor: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const courses = await ctx.db
+      .query("myplanCourses")
+      // .withIndex("by_all_credits", (q) => q.eq("allCredits", undefined))
+      .paginate({
+        numItems: args.limit ?? 100,
+        cursor: args.cursor ?? null,
+      });
+
+    return {
+      page: courses.page,
+      continueCursor: courses.continueCursor,
+      isDone: courses.isDone,
+    };
+  }
+})
+
+
 export const fillCourseCodeToKvStore = mutation({
   args: {},
   handler: async (ctx, args) => {
@@ -242,6 +266,66 @@ export const updateCourseStats = internalMutation({
     return {
       success: true,
     };
+  }
+})
+
+export const updateCourseByCourseCodeBatch = internalMutation({
+  args: {
+    courseCodes: v.array(v.object({
+      courseCode: v.string(),
+      allCredits: v.array(v.string()),
+      genEduReqs: v.array(v.string()),
+    })),
+  },
+  handler: async (ctx, args) => {
+    await Promise.all(args.courseCodes.map(async (c) => {
+      const course = await ctx.db.query("myplanCourses").withIndex("by_course_code", (q) => q.eq("courseCode", c.courseCode)).first();
+      if (!course) {
+        console.log(`Course not found: ${c.courseCode}`);
+        return;
+      }
+
+      const currentCredits = await ctx.db.query("myplan_course_credits")
+        .withIndex("by_course_id", (q) => q.eq("courseId", course._id))
+        .collect();
+      const currentCreditsMap = new Map(currentCredits.map((c) => [c.credit, c._id]));
+      const currentCreditsSet = new Set(currentCredits.map((c) => c.credit));
+      const newCreditsSet = new Set(c.allCredits);
+      const creditsToAdd = Array.from(newCreditsSet).filter((credit) => !currentCreditsSet.has(credit));
+      const creditsToRemove = Array.from(currentCreditsSet).filter((credit) => !newCreditsSet.has(credit)).map((credit) => currentCreditsMap.get(credit)!);
+      await Promise.all(creditsToAdd.map(async (credit) => {
+        await ctx.db.insert("myplan_course_credits", {
+          courseId: course._id,
+          credit: credit,
+        });
+      }));
+      await Promise.all(creditsToRemove.map(async (credit) => {
+        await ctx.db.delete(credit);
+      }));
+
+      const currentGenEduReqs = await ctx.db.query("myplan_course_gen_ed_reqs")
+        .withIndex("by_course_id", (q) => q.eq("courseId", course._id))
+        .collect();
+      const currentGenEduReqsMap = new Map(currentGenEduReqs.map((c) => [c.genEduReq, c._id]));
+      const currentGenEduReqsSet = new Set(currentGenEduReqs.map((c) => c.genEduReq));
+      const newGenEduReqsSet = new Set(c.genEduReqs);
+      const genEduReqsToAdd = Array.from(newGenEduReqsSet).filter((genEduReq) => !currentGenEduReqsSet.has(genEduReq));
+      const genEduReqsToRemove = Array.from(currentGenEduReqsSet).filter((genEduReq) => !newGenEduReqsSet.has(genEduReq)).map((genEduReq) => currentGenEduReqsMap.get(genEduReq)!);
+      await Promise.all(genEduReqsToAdd.map(async (genEduReq) => {
+        await ctx.db.insert("myplan_course_gen_ed_reqs", {
+          courseId: course._id,
+          genEduReq: genEduReq,
+        });
+      }));
+      await Promise.all(genEduReqsToRemove.map(async (genEduReq) => {
+        await ctx.db.delete(genEduReq);
+      }));
+      await Promise.all(genEduReqsToRemove.map(async (genEduReq) => {
+        await ctx.db.delete(genEduReq);
+      }));
+
+      console.log(`Updated ${c.courseCode}: +${creditsToAdd.length} credits, -${creditsToRemove.length} credits, +${genEduReqsToAdd.length} gen edu reqs, -${genEduReqsToRemove.length} gen edu reqs`);
+    }));
   }
 })
 
