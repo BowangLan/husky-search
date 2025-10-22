@@ -135,38 +135,44 @@ function extractCourseCode(input: string) {
   return match ? match[1] : null;
 }
 
-export const processCourseDetail = (courseDetail: MyPlanCourseDetail): ProcessedCourseDetail => {
-  const termId = courseDetail['courseSummaryDetails']['version']['termId']
-  const courseId = courseDetail['courseSummaryDetails']['version']['courseId']
-  const description = courseDetail['courseSummaryDetails']['courseDescription']
-  const subjectArea = courseDetail['courseSummaryDetails']['subjectArea']
-  const courseNumber = courseDetail['courseSummaryDetails']['courseNumber']
-  const title = courseDetail['courseSummaryDetails']['courseTitle']
-  const credit = courseDetail['courseSummaryDetails']['credit']
-  const genEdRequirements = courseDetail['courseSummaryDetails']['genEdRequirements']
-  const termsOffered = courseDetail['courseSummaryDetails']['termsOffered']
-  const campus = courseDetail['courseSummaryDetails']['campusLocations'][0]?.toLowerCase() ?? ""
-  const prereqs = courseDetail['courseSummaryDetails']['requisites'].map(extractCourseCode).filter((code: string | null) => code !== null)
-  const genEdRequirementsAbbr = courseDetail['courseSummaryDetails']['abbrGenEdRequirements']
+export const processCourseDetail = (courseDetail: MyPlanCourseDetail): ProcessedCourseDetail | null => {
+  try {
 
-  const termEnrollCountMap = getCourseEnrollCount(courseDetail)
-  const termSessionMap = getSessionsExtractedGroupedByTerm(courseDetail)
+    const termId = courseDetail['courseSummaryDetails'].version.termId
+    const courseId = courseDetail['courseSummaryDetails'].version.courseId
+    const description = courseDetail['courseSummaryDetails']['courseDescription']
+    const subjectArea = courseDetail['courseSummaryDetails']['subjectArea']
+    const courseNumber = courseDetail['courseSummaryDetails']['courseNumber']
+    const title = courseDetail['courseSummaryDetails']['courseTitle']
+    const credit = courseDetail['courseSummaryDetails']['credit']
+    const genEdRequirements = courseDetail['courseSummaryDetails']['genEdRequirements']
+    const termsOffered = courseDetail['courseSummaryDetails']['termsOffered']
+    const campus = courseDetail['courseSummaryDetails']['campusLocations'][0]?.toLowerCase() ?? ""
+    const prereqs = courseDetail['courseSummaryDetails']['requisites'].map(extractCourseCode).filter((code: string | null) => code !== null)
+    const genEdRequirementsAbbr = courseDetail['courseSummaryDetails']['abbrGenEdRequirements']
 
-  return {
-    termId,
-    courseId,
-    description,
-    subjectArea,
-    courseNumber,
-    title,
-    credit,
-    genEdRequirements,
-    termsOffered,
-    genEdRequirementsAbbr,
-    termEnrollCountMap,
-    termSessionMap,
-    campus,
-    prereqs,
+    const termEnrollCountMap = getCourseEnrollCount(courseDetail)
+    const termSessionMap = getSessionsExtractedGroupedByTerm(courseDetail)
+
+    return {
+      termId,
+      courseId,
+      description,
+      subjectArea,
+      courseNumber,
+      title,
+      credit,
+      genEdRequirements,
+      termsOffered,
+      genEdRequirementsAbbr,
+      termEnrollCountMap,
+      termSessionMap,
+      campus,
+      prereqs,
+    }
+  } catch (error) {
+    console.error(`Error processing course detail:`, error);
+    return null;
   }
 }
 

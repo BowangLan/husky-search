@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { internalAction, internalMutation, internalQuery, mutation, MutationCtx, query, QueryCtx } from "./_generated/server";
 import { MyplanCourse, myplanCourseFullFields, myplanCourseInfoObj, MyplanCourseTermData } from "./schema";
 import { api, internal } from "./_generated/api";
@@ -466,6 +466,11 @@ export const upsertCourseDetail = internalMutation({
       .first();
 
     const processedCourseDetail = processCourseDetail(args.detailData)
+    if (!processedCourseDetail) {
+      // weird case
+      throw new ConvexError(`Error processing course detail for ${args.courseCode}`);
+    }
+
     const [latestTermsData, outdatedTermsData] = mergeTermData(processedCourseDetail, existingCourse?.currentTermData)
 
     const legacyDataPoints = migrateEnrollData(existingCourse?.currentTermData ?? [], args.courseCode)
