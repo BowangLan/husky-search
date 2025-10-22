@@ -5,8 +5,6 @@ import Link from "next/link"
 import { Search, X } from "lucide-react"
 import { motion } from "motion/react"
 
-import { EASE_OUT_CUBIC } from "@/config/animation"
-import { useIsMobile } from "@/hooks/use-mobile"
 import { useCourseSearch } from "@/hooks/use-course-search"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
