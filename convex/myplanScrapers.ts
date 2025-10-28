@@ -625,31 +625,33 @@ export const scrapeAndSaveSubjectAreas = internalAction({
   }
 })
 
-export const scrapeAndSaveCourseDetialBySubjectArea = internalAction({
+export const scrapeAndSaveCourseDetialBySubjectAreas = internalAction({
   args: {
-    subjectArea: v.string(),
+    subjectAreas: v.array(v.string()),
   },
   handler: async (ctx, args) => {
-    const courses = await ctx.runQuery(api.myplan.listCourseCodesBySubjectArea, {
-      subjectArea: args.subjectArea,
-    });
+    for (const subjectArea of args.subjectAreas) {
+      const courses = await ctx.runQuery(api.myplan.listCourseCodesBySubjectArea, {
+        subjectArea: subjectArea,
+      });
 
-    console.log(`Found ${courses.length} courses for subject area ${args.subjectArea}`);
+      console.log(`Found ${courses.length} courses for subject area ${subjectArea}`);
 
-    const batchSize = 10;
-    for (let i = 0; i < courses.length; i += batchSize) {
-      const batch = courses.slice(i, i + batchSize);
-      console.log(`Scraping batch ${i / batchSize + 1} of ${Math.ceil(courses.length / batchSize)} [${batch.map((course) => course.courseCode).join(", ")}]`);
-      await Promise.all(
-        batch.map(course =>
-          ctx.runAction(internal.myplanScrapers.scrapeAndSaveCourseDetail, {
-            courseCode: course.courseCode,
-          })
-        )
-      );
+      const batchSize = 10;
+      for (let i = 0; i < courses.length; i += batchSize) {
+        const batch = courses.slice(i, i + batchSize);
+        console.log(`Scraping batch ${i / batchSize + 1} of ${Math.ceil(courses.length / batchSize)} [${batch.map((course) => course.courseCode).join(", ")}]`);
+        await Promise.all(
+          batch.map(course =>
+            ctx.runAction(internal.myplanScrapers.scrapeAndSaveCourseDetail, {
+              courseCode: course.courseCode,
+            })
+          )
+        );
+      }
+
+      console.log(`Scraped ${courses.length} courses for subject area ${subjectArea}`);
     }
-
-    console.log(`Scraped ${courses.length} courses for subject area ${args.subjectArea}`);
 
     return {
       success: true,

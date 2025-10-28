@@ -38,6 +38,7 @@ export const myplanSessionDataFields = {
   // })),
   meetingDetailsList: v.array(v.any()),
   instructor: v.optional(v.any()),
+  sectionComments: v.optional(v.union(v.null(), v.string())),
 } as const
 export const myplanSessionDataObj = v.object(myplanSessionDataFields)
 

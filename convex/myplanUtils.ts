@@ -47,6 +47,7 @@ export function getSessionsExtractedGroupedByTerm(
           instructor: offering.instructor,
           addCodeRequired: offering.addCodeRequired,
           enrollStatus: offering.enrollStatus,
+          sectionComments: offering.sectionComments,
         })
       }
     }
