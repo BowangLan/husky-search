@@ -149,6 +149,20 @@ export const listCourseCodes = query({
 })
 
 
+export const listCourseCodesBySubjectArea = query({
+  args: {
+    subjectArea: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const data = await ctx.db.query("myplanCourses").withIndex("by_subject_area", (q) => q.eq("subjectArea", args.subjectArea)).collect();
+    return data.map((item) => ({
+      _id: item._id,
+      courseCode: item.courseCode,
+    }));
+  }
+})
+
+
 export const listCourseCodesWithDescription = query({
   args: {
     cursor: v.optional(v.string()),
