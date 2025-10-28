@@ -8,6 +8,7 @@ import { createEmbedding } from "./embedding";
 import { KV_STORE_KEYS } from "./kvStore";
 import { Doc } from "./_generated/dataModel";
 import { ConvexCourseOverview } from "@/types/convex-courses";
+import { MyplanCourseTermData } from "./schema";
 
 export const getByCourseCode = query({
   args: {
@@ -27,6 +28,7 @@ export const getByCourseCode = query({
     //     cecCourse: [],
     //   };
     // }
+    const currentTerms = await ctx.runQuery(api.kvStore.getCurrentTerms);
 
     const [myplanCourse, dp, cecCourse] = await Promise.all([
       ctx.db.query("myplanCourses")
@@ -40,8 +42,27 @@ export const getByCourseCode = query({
         .collect(),
     ]);
 
+    if (!myplanCourse) {
+      return {
+        myplanCourse: null,
+        dp: null,
+        cecCourse: [],
+      };
+    }
+
+    const currentTermData: MyplanCourseTermData[] = (await Promise.all(currentTerms.map(async (term) => {
+      return await ctx.db.query("myplanCourseDetails")
+        .withIndex("by_course_code_and_term_id", (q) => q.eq("courseCode", args.courseCode).eq("termId", term))
+        .first();
+    })))
+      .filter((item) => item !== null)
+      .map((item) => item.processedCourseDetail);
+
     return {
-      myplanCourse,
+      myplanCourse: {
+        ...myplanCourse,
+        // currentTermData,
+      },
       dp: dp?.detailData,
       cecCourse,
     };

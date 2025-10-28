@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { internalAction, internalMutation, internalQuery, mutation, MutationCtx, query, QueryCtx } from "./_generated/server";
-import { MyplanCourse, myplanCourseFullFields, myplanCourseInfoObj, MyplanCourseTermData } from "./schema";
+import { MyplanCourse, myplanCourseFullFields, myplanCourseInfoObj, MyplanCourseTermData, MyplanCourseTermSession } from "./schema";
 import { api, internal } from "./_generated/api";
 import { getDataPointFromCourseDetail, getLatestEnrollCount, mergeTermData, migrateEnrollData, processCourseDetail } from "./myplanUtils";
 import { Id } from "./_generated/dataModel";
@@ -397,13 +397,6 @@ export const syncStats = internalAction({
   }
 })
 
-export const getKVStoreCourseCodes = internalQuery({
-  args: {},
-  handler: async (ctx, args) => {
-    const kvStoreCourseCodes = await ctx.db.query("kvStore").withIndex("by_key", (q) => q.eq("key", "myplan_course_codes")).first();
-    return (kvStoreCourseCodes?.value || []) as string[];
-  }
-})
 
 export const addCourseCodesToKVStore = internalMutation({
   args: {
@@ -473,11 +466,11 @@ export const upsertCourseDetail = internalMutation({
 
     const [latestTermsData, outdatedTermsData] = mergeTermData(processedCourseDetail, existingCourse?.currentTermData)
 
-    const legacyDataPoints = migrateEnrollData(existingCourse?.currentTermData ?? [], args.courseCode)
-    const newDataPoints = getDataPointFromCourseDetail(processedCourseDetail, args.courseCode)
-    await ctx.runMutation(internal.myplanDataPoints.insertDataPoints, {
-      dataPoints: [...legacyDataPoints, ...newDataPoints],
-    });
+    // const legacyDataPoints = migrateEnrollData(existingCourse?.currentTermData ?? [], args.courseCode)
+    // const newDataPoints = getDataPointFromCourseDetail(processedCourseDetail, args.courseCode)
+    // await ctx.runMutation(internal.myplanDataPoints.insertDataPoints, {
+    //   dataPoints: [...legacyDataPoints, ...newDataPoints],
+    // });
 
     if (!existingCourse) {
       await ctx.db.insert("myplanCourses", {
@@ -499,8 +492,7 @@ export const upsertCourseDetail = internalMutation({
         lastUpdated: Date.now(),
       });
     } else {
-      await ctx.db.patch(existingCourse._id, {
-        ...existingCourse,
+      const newCourseMetadata = {
         description: processedCourseDetail.description,
         title: processedCourseDetail.title,
         credit: processedCourseDetail.credit,
@@ -510,12 +502,120 @@ export const upsertCourseDetail = internalMutation({
         prereqs: processedCourseDetail.prereqs,
         genEdReqs: processedCourseDetail.genEdRequirementsAbbr,
         termsOffered: processedCourseDetail.termsOffered,
-        detailData: args.detailData,
-        currentTermData: latestTermsData,
-        pastTermData: [...(existingCourse.pastTermData ?? []), ...outdatedTermsData],
+      }
+
+      const oldCourseMetadata = {
+        description: existingCourse.description,
+        title: existingCourse.title,
+        credit: existingCourse.credit,
+        campus: existingCourse.campus,
+        subjectArea: existingCourse.subjectArea,
+        courseNumber: existingCourse.courseNumber,
+        prereqs: existingCourse.prereqs,
+        genEdReqs: existingCourse.genEdReqs,
+        termsOffered: existingCourse.termsOffered,
+      }
+
+      if (JSON.stringify(newCourseMetadata) !== JSON.stringify(oldCourseMetadata)) {
+        await ctx.db.patch(existingCourse._id, {
+          ...existingCourse,
+          ...newCourseMetadata,
+          // detailData: args.detailData,
+          // currentTermData: latestTermsData,
+          // pastTermData: [...(existingCourse.pastTermData ?? []), ...outdatedTermsData],
+          lastUpdated: Date.now(),
+        });
+      }
+
+      // legacy code using currentTermData and pastTermData
+      // await ctx.db.patch(existingCourse._id, {
+      //   ...existingCourse,
+      //   description: processedCourseDetail.description,
+      //   title: processedCourseDetail.title,
+      //   credit: processedCourseDetail.credit,
+      //   campus: processedCourseDetail.campus,
+      //   subjectArea: processedCourseDetail.subjectArea,
+      //   courseNumber: processedCourseDetail.courseNumber,
+      //   prereqs: processedCourseDetail.prereqs,
+      //   genEdReqs: processedCourseDetail.genEdRequirementsAbbr,
+      //   termsOffered: processedCourseDetail.termsOffered,
+      //   detailData: args.detailData,
+      //   currentTermData: latestTermsData,
+      //   pastTermData: [...(existingCourse.pastTermData ?? []), ...outdatedTermsData],
+      //   lastUpdated: Date.now(),
+      // });
+    }
+
+    const existingCourseDetailItems = await ctx.db.query("myplanCourseDetails")
+      .withIndex("by_course_code_and_term_id", (q) => q.eq("courseCode", args.courseCode))
+      .order("desc")
+      .take(5);
+
+    const existingTermIdSet = new Set(existingCourseDetailItems.map((item) => item.termId));
+
+    const insertTermData = async (termData: MyplanCourseTermData) => {
+      await ctx.db.insert("myplanCourseDetails", {
+        courseCode: args.courseCode,
+        termId: termData.termId,
+        processedCourseDetail: termData,
         lastUpdated: Date.now(),
       });
     }
+
+    const upsertTermData = async (termData: MyplanCourseTermData) => {
+      if (existingTermIdSet.has(termData.termId)) {
+        await ctx.db.patch(existingCourseDetailItems.find((item) => item.termId === termData.termId)!._id, {
+          processedCourseDetail: termData,
+          lastUpdated: Date.now(),
+        });
+      } else {
+        await insertTermData(termData);
+      }
+    }
+
+    const upsertSessions = async (sessions: MyplanCourseTermSession[], termId: string) => {
+      await Promise.all(sessions.map(async (session) => {
+        // get by session id
+        const existingSession = await ctx.db.query("myplanCourseSessions")
+          .withIndex("by_session_id", (q) => q.eq("sessionId", session.id))
+          .first();
+        if (existingSession) {
+          await ctx.db.patch(existingSession._id, {
+            sessionData: session,
+          });
+        } else {
+          await ctx.db.insert("myplanCourseSessions", {
+            courseCode: args.courseCode,
+            termId: termId,
+            sessionId: session.id,
+            sessionData: session,
+          });
+        }
+      }));
+    }
+
+    await Promise.all([
+      ...latestTermsData,
+      ...outdatedTermsData,
+    ].map(async (termData) => {
+      await upsertTermData(termData);
+    }));
+
+    await Promise.all(latestTermsData.map(async (termData) => {
+      await upsertSessions(termData.sessions, termData.termId);
+    }));
+
+    // if (existingCourseDetailItems.length > 0) {
+    //   // already migrated from currentTermData and pastTermData
+    // } else {
+    //   // scraping the first term data of the course
+    //   await Promise.all([
+    //     ...latestTermsData,
+    //     ...outdatedTermsData,
+    //   ].map(async (termData) => {
+    //     await insertTermData(termData);
+    //   }));
+    // }
   }
 })
 

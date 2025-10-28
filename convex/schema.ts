@@ -18,6 +18,29 @@ export const cecCourseObj = v.object(cecCourseFields)
 
 export type CecCourse = Infer<typeof cecCourseObj>;
 
+export const myplanSessionDataFields = {
+  id: v.string(),
+  code: v.string(),
+  enrollMaximum: v.string(),
+  enrollCount: v.string(),
+  registrationCode: v.string(),
+  newThisYear: v.boolean(),
+  stateKey: v.string(),
+  type: v.string(),
+  addCodeRequired: v.optional(v.boolean()),
+  enrollStatus: v.optional(v.string()),
+  // meetingDetailsList: v.array(v.object({
+  //   building: v.string(),
+  //   campus: v.string(),
+  //   days: v.string(),
+  //   room: v.string(),
+  //   time: v.string()
+  // })),
+  meetingDetailsList: v.array(v.any()),
+  instructor: v.optional(v.any()),
+} as const
+export const myplanSessionDataObj = v.object(myplanSessionDataFields)
+
 export const myplanCourseTermDataObj = v.object({
   termId: v.string(),
   enrollCount: v.number(),
@@ -27,27 +50,7 @@ export const myplanCourseTermDataObj = v.object({
     c: v.number(), // enroll count
     m: v.number(), // enroll max
   }))),
-  sessions: v.array(v.object({
-    id: v.string(),
-    code: v.string(),
-    enrollMaximum: v.string(),
-    enrollCount: v.string(),
-    registrationCode: v.string(),
-    newThisYear: v.boolean(),
-    stateKey: v.string(),
-    type: v.string(),
-    addCodeRequired: v.optional(v.boolean()),
-    enrollStatus: v.optional(v.string()),
-    // meetingDetailsList: v.array(v.object({
-    //   building: v.string(),
-    //   campus: v.string(),
-    //   days: v.string(),
-    //   room: v.string(),
-    //   time: v.string()
-    // })),
-    meetingDetailsList: v.array(v.any()),
-    instructor: v.optional(v.any()),
-  })),
+  sessions: v.array(myplanSessionDataObj),
 })
 export type MyplanCourseTermData = Infer<typeof myplanCourseTermDataObj>
 export type MyplanCourseTermSession = Infer<typeof myplanCourseTermDataObj>['sessions'][number]
@@ -96,6 +99,16 @@ export const myplanCourseObj = v.object(myplanCourseFullFields)
 
 export type MyplanCourseInfo = Infer<typeof myplanCourseInfoObj>
 export type MyplanCourse = Infer<typeof myplanCourseObj>
+
+export const myplanCourseDetailFields = {
+  courseCode: v.string(),
+  termId: v.string(),
+  processedCourseDetail: myplanCourseTermDataObj,
+  lastUpdated: v.number(),
+} as const
+
+export const myplanCourseDetailObj = v.object(myplanCourseDetailFields)
+export type MyplanCourseDetail = Infer<typeof myplanCourseDetailObj>
 
 export const myplanSubjectFields = {
   code: v.string(),
@@ -189,6 +202,21 @@ export default defineSchema({
   })
     .index("by_gen_ed_req", ["genEduReq"])
     .index("by_course_id", ["courseId"])
+  ,
+
+  myplanCourseDetails: defineTable({
+    ...myplanCourseDetailFields,
+  })
+    .index("by_course_code_and_term_id", ["courseCode", "termId"])
+  ,
+  myplanCourseSessions: defineTable({
+    courseCode: v.string(),
+    termId: v.string(),
+    sessionId: v.string(),
+    sessionData: myplanSessionDataObj,
+  })
+    .index("by_course_code_and_term_id", ["courseCode", "termId"])
+    .index("by_session_id", ["sessionId"])
   ,
 
   myplanSubjects: defineTable({
