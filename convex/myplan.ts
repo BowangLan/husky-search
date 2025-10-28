@@ -985,3 +985,22 @@ export const stats = internalAction({
   }
 })
 
+
+export const currentTermStats = internalQuery({
+  args: {},
+  handler: async (ctx, args) => {
+    const currentTerms = await ctx.db.query("kvStore").withIndex("by_key", (q) => q.eq("key", "current_terms")).first();
+    if (!currentTerms) {
+      return {}
+    }
+
+    const currentTermsArray = currentTerms.value as string[];
+
+    const currentTermData = await Promise.all(currentTermsArray.map(async (term) => {
+      const termData = await ctx.db.query("myplanCourseTermData").withIndex("by_term_id", (q) => q.eq("termId", term)).collect();
+      return termData.length;
+    }));
+
+    return Object.fromEntries(currentTermsArray.map((term, index) => [term, currentTermData[index]]));
+  }
+})

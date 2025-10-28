@@ -212,6 +212,7 @@ export default defineSchema({
     lastUpdated: v.number(),
   })
     .index("by_course_code_and_term_id", ["courseCode", "termId"])
+    .index("by_term_id", ["termId"])
   ,
   myplanCourseSessions: defineTable({
     courseCode: v.string(),
