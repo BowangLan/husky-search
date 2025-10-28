@@ -1,5 +1,7 @@
 import { useState } from "react"
 import Link from "next/link"
+import { MyplanCourseTermSession } from "@/convex/schema"
+import { useIsSessionScheduled } from "@/store/schedule.store"
 import { Clock, Info, KeyRound, MapPin, Pin } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 
@@ -23,10 +25,11 @@ export const SessionRowDesktop = ({
   session,
   pinned,
 }: {
-  session: any
+  session: MyplanCourseTermSession
   pinned?: boolean
 }) => {
   const { data } = useCourseSessions()
+  const isScheduled = useIsSessionScheduled(session.id)
 
   const sessionRaw =
     data?.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
@@ -36,7 +39,10 @@ export const SessionRowDesktop = ({
   return (
     <div key={session.id} className="group relative hidden lg:block">
       <div
-        className="px-4 py-4 md:px-6 flex w-full flex-col gap-3 md:grid md:items-center md:gap-6"
+        className={cn(
+          "px-4 py-4 md:px-6 flex w-full flex-col gap-3 md:grid md:items-center md:gap-6",
+          isScheduled && "bg-gradient-to-r from-primary/40 to-primary/60"
+        )}
         style={{
           gridTemplateColumns:
             "minmax(96px,108px) minmax(96px,160px) 1.5fr auto minmax(200px,240px) auto",
@@ -48,7 +54,7 @@ export const SessionRowDesktop = ({
             <h3 className="text-sm md:text-base font-medium tracking-tight">
               {session.code}
             </h3>
-            {sessionRaw?.addCodeRequired && (
+            {session.addCodeRequired && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <KeyRound className="size-3.5 opacity-70" />
@@ -106,9 +112,7 @@ export const SessionRowDesktop = ({
                   <TooltipTrigger asChild>
                     <div className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0 cursor-help" />
                   </TooltipTrigger>
-                  <TooltipContent>
-                    CEC data available
-                  </TooltipContent>
+                  <TooltipContent>CEC data available</TooltipContent>
                 </Tooltip>
               )}
             </div>
@@ -116,10 +120,10 @@ export const SessionRowDesktop = ({
         </div>
 
         <div className="text-sm">
-          {Array.isArray((session as any).meetingDetailsList) &&
-            (session as any).meetingDetailsList.length > 0 && (
+          {Array.isArray(session.meetingDetailsList) &&
+            session.meetingDetailsList.length > 0 && (
               <div className="space-y-1">
-                {(session as any).meetingDetailsList.map(
+                {session.meetingDetailsList.map(
                   (
                     meeting: {
                       days?: string
@@ -168,7 +172,7 @@ export const SessionRowDesktop = ({
         </div>
 
         <div>
-          <SessionEnrollProgress session={session} sessionRaw={sessionRaw} />
+          <SessionEnrollProgress session={session} />
         </div>
 
         <SessionScheduleToggleButton session={session} />
@@ -184,7 +188,7 @@ export const SessionRowMobile = ({
   session,
   pinned,
 }: {
-  session: any
+  session: MyplanCourseTermSession
   pinned?: boolean
 }) => {
   const { data } = useCourseSessions()
@@ -206,7 +210,7 @@ export const SessionRowMobile = ({
               <h3 className="text-sm md:text-base font-medium tracking-tight">
                 {session.code}
               </h3>
-              {sessionRaw?.addCodeRequired && (
+              {session.addCodeRequired && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <KeyRound className="size-3.5 opacity-70" />
@@ -272,9 +276,7 @@ export const SessionRowMobile = ({
                   <TooltipTrigger asChild>
                     <div className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0 cursor-help" />
                   </TooltipTrigger>
-                  <TooltipContent>
-                    CEC data available
-                  </TooltipContent>
+                  <TooltipContent>CEC data available</TooltipContent>
                 </Tooltip>
               )}
             </div>
@@ -282,10 +284,10 @@ export const SessionRowMobile = ({
         )}
 
         <div className="text-sm">
-          {Array.isArray((session as any).meetingDetailsList) &&
-            (session as any).meetingDetailsList.length > 0 && (
+          {Array.isArray(session.meetingDetailsList) &&
+            session.meetingDetailsList.length > 0 && (
               <div className="space-y-1">
-                {(session as any).meetingDetailsList.map(
+                {session.meetingDetailsList.map(
                   (
                     meeting: {
                       days?: string
@@ -329,7 +331,7 @@ export const SessionRowMobile = ({
             )}
         </div>
 
-        <SessionEnrollProgress session={session} sessionRaw={sessionRaw} />
+        <SessionEnrollProgress session={session} />
       </div>
       <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
         <div className="absolute inset-0 bg-foreground/[0.02] dark:bg-foreground/[0.03]" />
@@ -342,7 +344,7 @@ const SessionList = ({
   sessions,
   pinned,
 }: {
-  sessions: any[]
+  sessions: MyplanCourseTermSession[]
   pinned?: boolean
 }) => {
   return (
