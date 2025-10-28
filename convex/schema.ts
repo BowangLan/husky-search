@@ -204,14 +204,19 @@ export default defineSchema({
     .index("by_course_id", ["courseId"])
   ,
 
-  myplanCourseDetails: defineTable({
-    ...myplanCourseDetailFields,
+  myplanCourseTermData: defineTable({
+    courseCode: v.string(),
+    termId: v.string(),
+    enrollCount: v.number(),
+    enrollMax: v.number(),
+    lastUpdated: v.number(),
   })
     .index("by_course_code_and_term_id", ["courseCode", "termId"])
   ,
   myplanCourseSessions: defineTable({
     courseCode: v.string(),
     termId: v.string(),
+    convexTermDataId: v.id("myplanCourseTermData"),
     sessionId: v.string(),
     sessionData: myplanSessionDataObj,
   })

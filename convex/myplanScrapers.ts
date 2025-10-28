@@ -81,20 +81,23 @@ function generateRequestId(): string {
 // Base API configuration
 const BASE_URL = "https://course-app-api.planning.sis.uw.edu/api";
 
-const MYPLAN_COOKIE = `_ga_VQZHV3SH3P=GS2.1.s1746589140$o1$g1$t1746589227$j0$l0$h0; _hjSessionUser_3542396=eyJpZCI6ImNhYzQ2MjlmLTM4YzgtNTY3Ni1iYmIzLTI0NjMxYzdkNmU4YyIsImNyZWF0ZWQiOjE3NDcxOTc3MjU4ODUsImV4aXN0aW5nIjp0cnVlfQ==; _fbp=fb.1.1747197726331.115911875945980748; _ga_0V5LFWD2KQ=GS2.1.s1747935853$o1$g1$t1747936345$j19$l0$h0$dR2YvLwKSS1jCphuMmKjS-bP4T4IWuOGjQA; _ga_5NP8JDX6NQ=GS2.1.s1748087044$o3$g0$t1748087046$j58$l0$h0$dG4XvxCAG0rfpOKPrtoRi1AbSSPVA4UkpLA; _ga_MX29D1QWGH=GS2.1.s1748087044$o3$g0$t1748087046$j58$l0$h0$dxC1HkbqNja6xDBYDEseQwSEKt83uCm8LWw; _ga_0VMRR09G41=GS2.1.s1748364465$o1$g0$t1748364470$j0$l0$h0; _ga_S51TRWK3R8=GS2.1.s1750134110$o4$g0$t1750134111$j59$l0$h0; ps_rvm_ZkiN=%7B%22pssid%22%3A%2238Y0jAzv3GjOFtQ7-1750107949183%22%2C%22last-visit%22%3A%221750134111689%22%7D; _uetvid=c9d07890307d11f0b754537bf5d08d37|kj0mft|1748066424492|2|1|bat.bing.com/p/insights/c/j; _ga_MBEGNXVCWH=GS2.1.s1750704315$o1$g1$t1750704355$j20$l0$h72956306; _ga_YJ09SKYQ9C=GS2.1.s1750704315$o1$g1$t1750704355$j20$l0$h0; _clck=ghtic3%7C2%7Cfx9%7C0%7C2009; _ga_29JYF25HLW=GS2.1.s1751472063$o2$g1$t1751472878$j60$l0$h1135471766; fs_uid=#o-1V47MT-na1#0d1e305f-fceb-4356-a2f3-2a575a93a39d:00a92d97-a482-4617-8a9c-61f71a39812c:1753945821112::1#efac8273#/1775255924; _gcl_au=1.1.892997884.1757364387; _ga_58P4G5E9Q9=GS2.1.s1757364387$o1$g0$t1757364392$j55$l0$h0; _ga_5RFPSMZQJ7=GS2.1.s1757364387$o1$g0$t1757364393$j54$l0$h0; _ga_K5Q4WV298H=GS2.1.s1757364406$o2$g0$t1757364415$j51$l0$h0; _ga_YHX5G0W6DX=GS2.1.s1757364370$o3$g1$t1757364422$j8$l0$h0; _ga_WGSVEGE14H=GS2.1.s1757593238$o14$g1$t1757593261$j37$l0$h0; _ga_B3VH61T4DT=GS2.1.s1758297737$o57$g0$t1758297737$j60$l0$h0; _ga_BFQJ094C4L=GS2.1.s1758670657$o18$g0$t1758670657$j60$l0$h0; _ga=GA1.1.107335358.1742470468; _ga_63X2ZQHK8P=GS2.1.s1758774265$o1$g1$t1758774579$j18$l0$h0; _ga_ZYFDGVCGY3=GS2.1.s1759017050$o4$g0$t1759017050$j60$l0$h0; sessionId=f8ad6377ab31b8123c6831ee64780dd739d2193403c07dde6f301bca65db0027; _ga_TNNYEHDN9L=GS2.1.s1759253124$o87$g1$t1759253136$j48$l0$h0`
-const MYPLAN_CSRF_TOKEN = `43545b32caef059c2afa82b6001d9435a57704975fe20e2c193b8230b84a0ac08a7577a4717158efe0eca5f243c2075bb06a8b152585535792dcb477cc30ab10153beabd137cc96696d6c8bcbf6cc76236314691f046bf13e95eb5e7ac402d6e73b81b1569643028d65fe6830db29a752573a47d68fabfa93bcf40be6e4c59b0`
+export const getHeaders = query({
+  args: {},
+  handler: async (ctx) => {
+    const cookie: string = await ctx.runQuery(api.kvStore.getMyplanCookie, {});
+    const csrfToken: string = await ctx.runQuery(api.kvStore.getMyplanCsrfToken, {});
 
-function getHeaders() {
-  return {
-    "accept": "*/*",
-    "content-type": "application/json",
-    "origin": "https://myplan.uw.edu",
-    "referer": "https://myplan.uw.edu/",
-    "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-    "cookie": MYPLAN_COOKIE,
-    "x-csrf-token": MYPLAN_CSRF_TOKEN,
-  };
-}
+    return {
+      "accept": "*/*",
+      "content-type": "application/json",
+      "origin": "https://myplan.uw.edu",
+      "referer": "https://myplan.uw.edu/",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+      "cookie": cookie,
+      "x-csrf-token": csrfToken,
+    };
+  }
+});
 
 // Convex action to search for courses
 export const scrapeSearchCourses = action({
@@ -119,7 +122,7 @@ export const scrapeSearchCourses = action({
       days: args.days || [],
     };
 
-    const headers = getHeaders();
+    const headers = await ctx.runQuery(api.myplanScrapers.getHeaders, {});
 
     try {
       const response = await fetch(`${BASE_URL}/courses`, {
@@ -146,7 +149,7 @@ export const scrapeSearchCourses = action({
 export const scrapeSubjectAreas = internalAction({
   args: {},
   handler: async (ctx): Promise<SubjectArea[]> => {
-    const headers = getHeaders();
+    const headers = await ctx.runQuery(api.myplanScrapers.getHeaders, {});
 
     try {
       const response = await fetch(`${BASE_URL}/subjectAreas`, {
@@ -172,7 +175,7 @@ export const scrapeSubjectAreas = internalAction({
 export const scrapeInstructors = action({
   args: {},
   handler: async (ctx): Promise<Instructor[]> => {
-    const headers = getHeaders();
+    const headers = await ctx.runQuery(api.myplanScrapers.getHeaders, {});
 
     try {
       const response = await fetch(`${BASE_URL}/instructors`, {
@@ -200,7 +203,7 @@ export const scrapeCourseDetail = action({
     courseCode: v.string(),
   },
   handler: async (ctx, args): Promise<Record<string, any>> => {
-    const headers = getHeaders();
+    const headers = await ctx.runQuery(api.myplanScrapers.getHeaders, {});
 
     const url = new URL(`${BASE_URL}/courses/${args.courseCode}/details`);
 
@@ -624,9 +627,10 @@ export const scrapeAndSaveSubjectAreas = internalAction({
 export const healthCheck = action({
   args: {},
   handler: async (ctx, args) => {
+    const headers = await ctx.runQuery(api.myplanScrapers.getHeaders, {});
     const response = await fetch(`${BASE_URL}/courses`, {
       method: "POST",
-      headers: getHeaders(),
+      headers: headers,
       body: JSON.stringify({
         username: "GUEST",
         requestId: generateRequestId(),

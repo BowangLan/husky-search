@@ -4,7 +4,29 @@ import { mutation, query } from "./_generated/server";
 export const KV_STORE_KEYS = {
   MYPLAN_COURSE_CODES: "myplan_course_codes",
   CURRENT_TERMS: "current_terms",
-}
+  MYPLAN_COOKIE: "myplan_cookie",
+  MYPLAN_CSRF_TOKEN: "myplan_token",
+} as const;
+
+export const getMyplanCookie = query({
+  args: {},
+  returns: v.string(),
+  handler: async (ctx) => {
+    const kvStoreCookie = await ctx.db.query("kvStore")
+      .withIndex("by_key", (q) => q.eq("key", KV_STORE_KEYS.MYPLAN_COOKIE)).first();
+    return (kvStoreCookie?.value ?? "") as string;
+  }
+})
+
+export const getMyplanCsrfToken = query({
+  args: {},
+  returns: v.string(),
+  handler: async (ctx) => {
+    const kvStoreCsrfToken = await ctx.db.query("kvStore")
+      .withIndex("by_key", (q) => q.eq("key", KV_STORE_KEYS.MYPLAN_CSRF_TOKEN)).first();
+    return (kvStoreCsrfToken?.value ?? "") as string;
+  }
+})
 
 export const getKVStoreCourseCodes = mutation({
   args: {},
@@ -25,3 +47,4 @@ export const getCurrentTerms = query({
     return (kvStoreCurrentTerms?.value || []) as string[];
   }
 })
+

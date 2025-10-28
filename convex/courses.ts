@@ -51,17 +51,31 @@ export const getByCourseCode = query({
     }
 
     const currentTermData: MyplanCourseTermData[] = (await Promise.all(currentTerms.map(async (term) => {
-      return await ctx.db.query("myplanCourseDetails")
+      const termData = await ctx.db.query("myplanCourseTermData")
         .withIndex("by_course_code_and_term_id", (q) => q.eq("courseCode", args.courseCode).eq("termId", term))
         .first();
+
+      if (!termData) {
+        return null;
+      }
+
+      const sessions = await ctx.db.query("myplanCourseSessions")
+        .withIndex("by_course_code_and_term_id", (q) => q.eq("courseCode", args.courseCode).eq("termId", term))
+        .collect();
+
+      return {
+        termId: termData.termId,
+        enrollCount: termData.enrollCount,
+        enrollMax: termData.enrollMax,
+        sessions: sessions.map((session) => session.sessionData),
+      };
     })))
       .filter((item) => item !== null)
-      .map((item) => item.processedCourseDetail);
 
     return {
       myplanCourse: {
         ...myplanCourse,
-        // currentTermData,
+        currentTermData,
       },
       dp: dp?.detailData,
       cecCourse,

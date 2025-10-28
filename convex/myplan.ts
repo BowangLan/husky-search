@@ -546,47 +546,53 @@ export const upsertCourseDetail = internalMutation({
       // });
     }
 
-    const existingCourseDetailItems = await ctx.db.query("myplanCourseDetails")
+    const existingCourseDetailItems = await ctx.db.query("myplanCourseTermData")
       .withIndex("by_course_code_and_term_id", (q) => q.eq("courseCode", args.courseCode))
       .order("desc")
-      .take(5);
+      .take(5); // take the latest 5 term data items
 
-    const existingTermIdSet = new Set(existingCourseDetailItems.map((item) => item.termId));
+    const existingTermIdMap = new Map(existingCourseDetailItems.map((item) => [item.termId, item._id]));
 
     const insertTermData = async (termData: MyplanCourseTermData) => {
-      await ctx.db.insert("myplanCourseDetails", {
+      return await ctx.db.insert("myplanCourseTermData", {
         courseCode: args.courseCode,
         termId: termData.termId,
-        processedCourseDetail: termData,
+        enrollCount: termData.enrollCount,
+        enrollMax: termData.enrollMax,
         lastUpdated: Date.now(),
       });
     }
 
     const upsertTermData = async (termData: MyplanCourseTermData) => {
-      if (existingTermIdSet.has(termData.termId)) {
-        await ctx.db.patch(existingCourseDetailItems.find((item) => item.termId === termData.termId)!._id, {
-          processedCourseDetail: termData,
+      if (existingTermIdMap.has(termData.termId)) {
+        const existingTermDataId = existingTermIdMap.get(termData.termId)!;
+        await ctx.db.patch(existingTermDataId, {
           lastUpdated: Date.now(),
         });
+        return existingTermDataId;
       } else {
-        await insertTermData(termData);
+        return await insertTermData(termData);
       }
     }
 
-    const upsertSessions = async (sessions: MyplanCourseTermSession[], termId: string) => {
+    const upsertSessions = async (sessions: MyplanCourseTermSession[], termId: string, convexTermDataId: Id<"myplanCourseTermData">) => {
       await Promise.all(sessions.map(async (session) => {
         // get by session id
         const existingSession = await ctx.db.query("myplanCourseSessions")
           .withIndex("by_session_id", (q) => q.eq("sessionId", session.id))
           .first();
         if (existingSession) {
-          await ctx.db.patch(existingSession._id, {
-            sessionData: session,
-          });
+          // only update if the session data has changed
+          if (JSON.stringify(existingSession.sessionData) !== JSON.stringify(session)) {
+            await ctx.db.patch(existingSession._id, {
+              sessionData: session,
+            });
+          }
         } else {
           await ctx.db.insert("myplanCourseSessions", {
             courseCode: args.courseCode,
             termId: termId,
+            convexTermDataId: convexTermDataId,
             sessionId: session.id,
             sessionData: session,
           });
@@ -594,28 +600,14 @@ export const upsertCourseDetail = internalMutation({
       }));
     }
 
-    await Promise.all([
-      ...latestTermsData,
-      ...outdatedTermsData,
-    ].map(async (termData) => {
+    await Promise.all(latestTermsData.map(async (termData) => {
+      const termDataId = await upsertTermData(termData);
+      await upsertSessions(termData.sessions, termData.termId, termDataId);
+    }));
+
+    await Promise.all(outdatedTermsData.map(async (termData) => {
       await upsertTermData(termData);
     }));
-
-    await Promise.all(latestTermsData.map(async (termData) => {
-      await upsertSessions(termData.sessions, termData.termId);
-    }));
-
-    // if (existingCourseDetailItems.length > 0) {
-    //   // already migrated from currentTermData and pastTermData
-    // } else {
-    //   // scraping the first term data of the course
-    //   await Promise.all([
-    //     ...latestTermsData,
-    //     ...outdatedTermsData,
-    //   ].map(async (termData) => {
-    //     await insertTermData(termData);
-    //   }));
-    // }
   }
 })
 
