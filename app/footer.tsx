@@ -1,4 +1,7 @@
-import { siteConfig } from "@/config/site"
+import { MessageCircle } from "lucide-react"
+
+import { externalLinks, siteConfig } from "@/config/site"
+import { Button } from "@/components/ui/button"
 
 const navigation = [
   // {
@@ -68,7 +71,7 @@ export function Footer() {
   return (
     <footer className="border-t border-border/50">
       <div className="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
-        <div className="flex justify-center gap-x-6 md:order-2">
+        <div className="flex justify-center items-center gap-x-6 md:order-2">
           {navigation.map((item) => (
             <a
               key={item.name}
@@ -79,6 +82,16 @@ export function Footer() {
               <item.icon aria-hidden="true" className="size-6" />
             </a>
           ))}
+          <a href={externalLinks.feedback} target="_blank" rel="noopener noreferrer">
+            <Button
+              variant="outline"
+              className="h-9 px-3"
+              aria-label="Feedback"
+            >
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Feedback
+            </Button>
+          </a>
         </div>
         <div className="mt-8 text-center md:text-left text-sm/6 font-normal text-muted-foreground md:order-1 md:mt-0">
           <p className="mb-2">

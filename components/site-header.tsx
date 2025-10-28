@@ -5,9 +5,9 @@ import Link from "next/link"
 import { api } from "@/convex/_generated/api"
 import { useScheduleCount } from "@/store/schedule.store"
 import { useQuery } from "convex/react"
-import { Calendar, MessageCircle } from "lucide-react"
+import { Calendar } from "lucide-react"
 
-import { externalLinks, siteConfig } from "@/config/site"
+import { siteConfig } from "@/config/site"
 import { CourseSearch } from "@/components/course-search"
 import { MainNav } from "@/components/main-nav"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -47,17 +47,6 @@ export function SiteHeader() {
               </span>
             </Button>
           )}
-
-          <Link href={externalLinks.feedback} target="_blank">
-            <Button
-              variant="outline"
-              className="size-9 p-0 md:size-auto md:px-3 md:h-9"
-              aria-label="Feedback"
-            >
-              <MessageCircle className="h-4 w-4" />
-              <span className="hidden md:inline">Feedback</span>
-            </Button>
-          </Link>
 
           <HeaderUser />
         </div>
