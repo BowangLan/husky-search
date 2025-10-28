@@ -99,6 +99,7 @@ export const getHeaders = query({
   }
 });
 
+
 // Convex action to search for courses
 export const scrapeSearchCourses = action({
   args: {
