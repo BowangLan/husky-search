@@ -30,7 +30,29 @@ export function useScheduleToggleWithToasts(session: any) {
 
   const triggerToggle = () => {
     if (!scheduleEnabled) return
+    const willSwitch = !isScheduled && !canAdd.ok && (canAdd.reason === "switch-single-letter" || canAdd.reason === "switch-double-letter")
     const willAdd = !isScheduled && canAdd.ok
+
+    // Handle switching between sessions (single-letter or double-letter)
+    if (willSwitch && canAdd.existingSessionId) {
+      // Remove the existing session
+      scheduleStore.getState().remove(canAdd.existingSessionId)
+      // Add the new session
+      scheduleStore.getState().add(session, { courseCode, courseTitle, courseCredit })
+
+      const meeting = Array.isArray((session as any)?.meetingDetailsList)
+        ? (session as any).meetingDetailsList.find(
+          (m: any) => m?.days || m?.time
+        )
+        : undefined
+      const when = [meeting?.days, meeting?.time].filter(Boolean).join(" ")
+      const codePart = [courseCode, (session as any)?.code]
+        .filter(Boolean)
+        .join(" ")
+      toast.success(`Switched to ${codePart}`)
+      return
+    }
+
     if (willAdd) {
       // If this is a double-letter session, try to add its parent single-letter first.
       // Only show a single toast message for the double-letter add; no extra toast for parent add.
@@ -76,22 +98,22 @@ export function useScheduleToggleWithToasts(session: any) {
         toast.success(`Added ${codePart} to your schedule`)
       }
     }
+
     toggle(session, {
       courseCode,
       courseTitle,
       courseCredit,
       onViolation: (reason) => {
-        if (reason === "single-letter-exists")
+        if (reason === "switch-single-letter" || reason === "switch-double-letter") {
+          // This should not happen as we handle it above, but just in case
+          toast.error("Unable to switch sessions.")
+        } else if (reason === "single-letter-exists")
           toast.error(
             "You already added a single-letter session for this course."
           )
         else if (reason === "double-letter-exists")
           toast.error(
             "You already added a double-letter session for this course."
-          )
-        else if (reason === "double-letter-prefix-mismatch")
-          toast.error(
-            "Choose a double-letter session that starts with your selected single-letter session."
           )
         else if (reason === "time-conflict")
           toast.error("This session conflicts with your current schedule.")

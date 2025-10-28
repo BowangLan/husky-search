@@ -9,8 +9,9 @@ import { isScheduleFeatureEnabled } from "@/config/features"
 export type ScheduleViolationReason =
   | "single-letter-exists"
   | "double-letter-exists"
-  | "double-letter-prefix-mismatch"
   | "time-conflict"
+  | "switch-single-letter"
+  | "switch-double-letter"
 
 export type ScheduleMeeting = {
   days?: string
@@ -30,6 +31,7 @@ export type ScheduleSession = {
   courseCode?: string
   courseTitle?: string
   courseCredit?: string | number
+  creditOverwrite?: string | number
 }
 
 export type ScheduleState = {
@@ -37,7 +39,7 @@ export type ScheduleState = {
   sessionsById: Record<string, ScheduleSession>
   add: (
     session: any,
-    options?: { courseCode?: string; courseTitle?: string; courseCredit?: string | number }
+    options?: { courseCode?: string; courseTitle?: string; courseCredit?: string | number; creditOverwrite?: string | number }
   ) => void
   remove: (sessionId: string) => void
   toggle: (
@@ -47,26 +49,28 @@ export type ScheduleState = {
       onViolation?: (reason: ScheduleViolationReason) => void
       courseTitle?: string
       courseCredit?: string | number
+      creditOverwrite?: string | number
     }
   ) => void
   clear: () => void
   has: (sessionId?: string) => boolean
   getAll: () => ScheduleSession[]
+  updateSessionCreditOverwrite: (sessionId: string, creditOverwrite?: string | number) => void
 
   // Checks
   canAdd: (
     session: any,
     options?: { courseCode?: string }
-  ) => { ok: true } | { ok: false; reason: ScheduleViolationReason }
+  ) => { ok: true } | { ok: false; reason: ScheduleViolationReason; existingSessionId?: string }
 }
 
 const ssrSafeStorage = createJSONStorage(() => {
   if (typeof window === "undefined") {
     return {
       getItem: () => null,
-      setItem: () => {},
-      removeItem: () => {},
-      clear: () => {},
+      setItem: () => { },
+      removeItem: () => { },
+      clear: () => { },
       key: () => null,
       length: 0,
     } as Storage
@@ -77,18 +81,18 @@ const ssrSafeStorage = createJSONStorage(() => {
 function normalizeSession(
   raw: any,
   courseCode?: string,
-  courseMeta?: { courseTitle?: string; courseCredit?: string | number }
+  courseMeta?: { courseTitle?: string; courseCredit?: string | number; creditOverwrite?: string | number }
 ): ScheduleSession {
   const meetingDetailsList: ScheduleMeeting[] = Array.isArray(
     raw?.meetingDetailsList
   )
     ? raw.meetingDetailsList.map((m: any) => ({
-        days: m?.days,
-        time: m?.time,
-        building: m?.building,
-        room: m?.room,
-        campus: m?.campus,
-      }))
+      days: m?.days,
+      time: m?.time,
+      building: m?.building,
+      room: m?.room,
+      campus: m?.campus,
+    }))
     : []
 
   return {
@@ -101,6 +105,7 @@ function normalizeSession(
     courseCode,
     courseTitle: courseMeta?.courseTitle,
     courseCredit: courseMeta?.courseCredit,
+    creditOverwrite: courseMeta?.creditOverwrite,
   }
 }
 
@@ -162,25 +167,22 @@ export const scheduleStore = createStore<ScheduleState>()(
           const isSingle = currentAlpha.length === 1
           const isDouble = currentAlpha.length === 2
           if (isSingle) {
-            const existsSingle = sameCourse.some((s) => (s.code || "").replace(/[^A-Za-z]/g, "").length === 1)
-            if (existsSingle)
-              return { ok: false as const, reason: "single-letter-exists" }
-          }
-          if (isDouble) {
-            // Enforce: if a single-letter session exists for this course, any double-letter must start with it
-            const existingSingleAlpha = (
-              sameCourse.find((s) => (s.code || "").replace(/[^A-Za-z]/g, "").length === 1)?.code || ""
-            )
-              .replace(/[^A-Za-z]/g, "")
-              .toUpperCase()
-            if (existingSingleAlpha) {
-              if (!currentAlpha.toUpperCase().startsWith(existingSingleAlpha)) {
-                return { ok: false as const, reason: "double-letter-prefix-mismatch" }
+            const existingSingle = sameCourse.find((s) => (s.code || "").replace(/[^A-Za-z]/g, "").length === 1)
+            if (existingSingle) {
+              // Allow switching if it's a different single-letter session
+              if (existingSingle.id !== normalized.id) {
+                return { ok: false as const, reason: "switch-single-letter", existingSessionId: existingSingle.id }
               }
             }
-            const existsDouble = sameCourse.some((s) => (s.code || "").replace(/[^A-Za-z]/g, "").length === 2)
-            if (existsDouble)
-              return { ok: false as const, reason: "double-letter-exists" }
+          }
+          if (isDouble) {
+            const existingDouble = sameCourse.find((s) => (s.code || "").replace(/[^A-Za-z]/g, "").length === 2)
+            if (existingDouble) {
+              // Allow switching if it's a different double-letter session
+              if (existingDouble.id !== normalized.id) {
+                return { ok: false as const, reason: "switch-double-letter", existingSessionId: existingDouble.id }
+              }
+            }
           }
         }
 
@@ -192,13 +194,14 @@ export const scheduleStore = createStore<ScheduleState>()(
       },
       add: (
         session: any,
-        options?: { courseCode?: string; courseTitle?: string; courseCredit?: string | number }
+        options?: { courseCode?: string; courseTitle?: string; courseCredit?: string | number; creditOverwrite?: string | number }
       ) => {
         if (!isScheduleFeatureEnabled()) return
         set((state) => {
           const normalized = normalizeSession(session, options?.courseCode, {
             courseTitle: options?.courseTitle,
             courseCredit: options?.courseCredit,
+            creditOverwrite: options?.creditOverwrite,
           })
           return {
             sessionsById: {
@@ -224,6 +227,7 @@ export const scheduleStore = createStore<ScheduleState>()(
           onViolation?: (reason: ScheduleViolationReason) => void
           courseTitle?: string
           courseCredit?: string | number
+          creditOverwrite?: string | number
         }
       ) => {
         if (!isScheduleFeatureEnabled()) return
@@ -244,6 +248,22 @@ export const scheduleStore = createStore<ScheduleState>()(
         return !!get().sessionsById[String(sessionId)]
       },
       getAll: () => Object.values(get().sessionsById),
+      updateSessionCreditOverwrite: (sessionId: string, creditOverwrite?: string | number) => {
+        if (!isScheduleFeatureEnabled()) return
+        set((state) => {
+          const session = state.sessionsById[sessionId]
+          if (!session) return {}
+          return {
+            sessionsById: {
+              ...state.sessionsById,
+              [sessionId]: {
+                ...session,
+                creditOverwrite,
+              },
+            },
+          }
+        })
+      },
     }),
     {
       name: "schedule-store",
@@ -328,7 +348,7 @@ export function useClearSchedule(): () => void {
 export function useCanAddToSchedule(
   session?: any,
   options?: { courseCode?: string }
-): { ok: boolean; reason?: ScheduleViolationReason } {
+): { ok: boolean; reason?: ScheduleViolationReason; existingSessionId?: string } {
   const enabled = isScheduleFeatureEnabled()
   const hydrated = useStore(scheduleStore, (s) => s.hydrated)
   const canAddFn = useStore(scheduleStore, (s) => s.canAdd)
@@ -337,6 +357,18 @@ export function useCanAddToSchedule(
   return useMemo(() => {
     if (!enabled || !hydrated || !session) return { ok: false }
     const res = canAddFn(session, { courseCode: options?.courseCode })
-    return res.ok ? { ok: true } : { ok: false, reason: res.reason }
+    return res.ok ? { ok: true } : { ok: false, reason: res.reason, existingSessionId: res.existingSessionId }
   }, [enabled, hydrated, canAddFn, sessionsById, session, options?.courseCode])
+}
+
+export function useUpdateSessionCreditOverwrite(): (sessionId: string, creditOverwrite?: string | number) => void {
+  const update = useStore(scheduleStore, (s) => s.updateSessionCreditOverwrite)
+  const enabled = isScheduleFeatureEnabled()
+  return useCallback(
+    (sessionId: string, creditOverwrite?: string | number) => {
+      if (!enabled) return
+      update(sessionId, creditOverwrite)
+    },
+    [enabled, update]
+  )
 }

@@ -18,6 +18,7 @@ import { CourseSearchMobile } from "./course-search-mobile"
 import HeaderUser from "./header-user"
 import { MainNavMobile } from "./main-nav-mobile"
 import { ScheduleSheet } from "./schedule/schedule-sheet"
+import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
 
 export function SiteHeader() {
@@ -39,12 +40,19 @@ export function SiteHeader() {
               variant="outline"
               onClick={() => setOpen(true)}
               aria-label={`Schedule${scheduleCount ? ` (${scheduleCount})` : ""}`}
-              className="size-9 p-0 md:size-auto md:px-3 md:h-9"
+              className="size-9 p-0 md:size-auto md:px-3 md:h-9 relative"
             >
               <Calendar className="h-4 w-4" />
-              <span className="hidden md:inline">
-                Schedule{scheduleCount ? ` (${scheduleCount})` : ""}
-              </span>
+              <span className="hidden md:inline">Schedule</span>
+              {scheduleCount > 0 && (
+                <Badge
+                  size="sm"
+                  variant="default"
+                  className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] leading-none"
+                >
+                  {scheduleCount}
+                </Badge>
+              )}
             </Button>
           )}
 

@@ -6,6 +6,7 @@ export const KV_STORE_KEYS = {
   CURRENT_TERMS: "current_terms",
   MYPLAN_COOKIE: "myplan_cookie",
   MYPLAN_CSRF_TOKEN: "myplan_token",
+  DAWGPATH_COOKIE: "dawgpath_cookie",
 } as const;
 
 export const getMyplanCookie = query({
@@ -48,3 +49,12 @@ export const getCurrentTerms = query({
   }
 })
 
+export const getDawgpathCookie = query({
+  args: {},
+  returns: v.string(),
+  handler: async (ctx) => {
+    const kvStoreCookie = await ctx.db.query("kvStore")
+      .withIndex("by_key", (q) => q.eq("key", KV_STORE_KEYS.DAWGPATH_COOKIE)).first();
+    return (kvStoreCookie?.value ?? "") as string;
+  }
+})

@@ -27,6 +27,12 @@ export const CourseDetailHeader = ({ courseCode }: { courseCode: string }) => {
     return null
   }
 
+  const hasCurrentTermData =
+    courseData?.myplanCourse?.currentTermData &&
+    courseData.myplanCourse.currentTermData.length > 0 &&
+    courseData.myplanCourse.currentTermData[0]?.sessions &&
+    courseData.myplanCourse.currentTermData[0].sessions.length > 0
+
   const termsOfferedFromConvex = (courseData.myplanCourse as any)
     ?.termsOffered as string[] | undefined
   // Note: We no longer have access to course.detail, but the main data source should be sufficient
@@ -92,10 +98,18 @@ export const CourseDetailHeader = ({ courseCode }: { courseCode: string }) => {
             </TooltipContent>
           </Tooltip>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <h2 className="text-base font-light text-foreground sm:text-xl lg:text-2xl opacity-60">
             {courseData.myplanCourse.title}
           </h2>
+          {!hasCurrentTermData && (
+            <Badge
+              variant="outline"
+              className="bg-muted/50 text-muted-foreground border-muted-foreground/20 text-xs"
+            >
+              Not Currently Offered
+            </Badge>
+          )}
         </div>
       </div>
       <div className="flex flex-col items-start md:flex-row md:items-center gap-2">

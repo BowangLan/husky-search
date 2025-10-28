@@ -308,6 +308,27 @@ export const getAllSubjects = query({
   }
 })
 
+export const getSessionsByIds = query({
+  args: {
+    sessionIds: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const sessions = await Promise.all(
+      args.sessionIds.map(async (sessionId) => {
+        const session = await ctx.db
+          .query("myplanCourseSessions")
+          .withIndex("by_session_id", (q) => q.eq("sessionId", sessionId))
+          .first();
+
+        return session ? session.sessionData : null;
+      })
+    );
+
+    // Filter out nulls and return only found sessions
+    return sessions.filter((s) => s !== null);
+  }
+})
+
 export const listOverviewByStatsEnrollMax = query({
   args: {
     limit: v.number(),

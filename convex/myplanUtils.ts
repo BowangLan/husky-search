@@ -48,6 +48,7 @@ export function getSessionsExtractedGroupedByTerm(
           addCodeRequired: offering.addCodeRequired,
           enrollStatus: offering.enrollStatus,
           sectionComments: offering.sectionComments,
+          qtryr: offering.qtryr,
         })
       }
     }

@@ -134,8 +134,8 @@ export function CecProfessorEvalRadarChart({
               stroke="var(--color-average)"
               strokeWidth={2}
               strokeOpacity={0.4}
-              dot={(props: any) => {
-                const { cx, cy, value, payload } = props
+              dot={(props) => {
+                const { cx, cy, value, payload, key } = props
                 const v =
                   typeof value === "number"
                     ? value
@@ -143,6 +143,7 @@ export function CecProfessorEvalRadarChart({
                 const fill = getColor5(Number.isFinite(v) ? v : 0)
                 return (
                   <circle
+                    key={key}
                     cx={cx}
                     cy={cy}
                     r={3}
@@ -160,8 +161,8 @@ export function CecProfessorEvalRadarChart({
           <p>
             Averaged over {evals.length} evaluations (
             {evals.map((ev, index) => (
-              <React.Fragment key={ev._id || index}>
-                <span key={ev._id || index} className="inline-flex">
+              <React.Fragment key={index}>
+                <span key={index} className="inline-flex">
                   <Link
                     href={`https://www.washington.edu/cec/${ev.url}`}
                     target="_blank"

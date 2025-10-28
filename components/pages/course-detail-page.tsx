@@ -55,27 +55,40 @@ const PageTab = ({
   )
 }
 
-const CourseDetailPageContentMobile = ({
-  courseCode,
-}: {
-  courseCode: string
-}) => {
-  const [tab, setTab] = useState<"sessions" | "cec">("sessions")
+const CourseDetailPageContent = ({ courseCode }: { courseCode: string }) => {
+  const c = useQuery(api.courses.getByCourseCode, { courseCode })
+  const hasCurrentTermData =
+    c?.myplanCourse?.currentTermData &&
+    c.myplanCourse.currentTermData.length > 0 &&
+    c.myplanCourse.currentTermData[0]?.sessions &&
+    c.myplanCourse.currentTermData[0].sessions.length > 0
+
+  const [tab, setTab] = useState<"sessions" | "cec">(
+    hasCurrentTermData ? "sessions" : "cec"
+  )
+
   return (
     <div className="space-y-4 md:space-y-6">
       <CourseDetailHeader courseCode={courseCode} />
       <CourseDetailStatsSection courseCode={courseCode} />
 
       <div className="flex items-center gap-2 my-6">
-        <PageTab active={tab === "sessions"} onClick={() => setTab("sessions")}>
-          Sessions
-        </PageTab>
+        {hasCurrentTermData && (
+          <PageTab
+            active={tab === "sessions"}
+            onClick={() => setTab("sessions")}
+          >
+            Sessions
+          </PageTab>
+        )}
         <PageTab active={tab === "cec"} onClick={() => setTab("cec")}>
           CEC Evaluations
         </PageTab>
       </div>
 
-      {tab === "sessions" && <CourseSessionsSection courseCode={courseCode} />}
+      {tab === "sessions" && hasCurrentTermData && (
+        <CourseSessionsSection courseCode={courseCode} />
+      )}
       {tab === "cec" && <CECEvaluations courseCode={courseCode} />}
 
       {/* {gpaDistro && gpaDistro.length > 0 ? (
@@ -84,7 +97,16 @@ const CourseDetailPageContentMobile = ({
 
       {/* <section className="space-y-4">
         <iframe
-          src={`https://myplan.uw.edu/course/#/courses/${course.code}`}
+          src={`https://myplan.uw.edu/course/#/courses/${courseCode}`}
+          className="w-full aspect-video overflow-hidden rounded-xl md:block hidden"
+        ></iframe>
+      </section> */}
+
+      {/* <section>
+        <iframe
+          src={
+            "https://sdb.admin.uw.edu/timeschd/uwnetid/sln.asp?QTRYR=WIN+2026&SLN=15893"
+          }
           className="w-full aspect-video overflow-hidden rounded-xl md:block hidden"
         ></iframe>
       </section> */}
@@ -221,14 +243,11 @@ export function CourseDetailPage({ courseCode }: { courseCode: string }) {
       {/* <PageTopToolbar>
         <BackButton url={`/majors/${course.subjectAreaCode}`} />
       </PageTopToolbar> */}
-      {/* <div className="hidden md:block">
-        <CourseDetailPageContentDesktop course={course} />
-      </div> */}
       <div className="pb-12">
         {isLoading ? (
           <CourseDetailPageSkeleton />
         ) : (
-          <CourseDetailPageContentMobile courseCode={courseCode} />
+          <CourseDetailPageContent courseCode={courseCode} />
         )}
         {/* <CECEvaluations items={(c as any)?.cecCourse} /> */}
       </div>

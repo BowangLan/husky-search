@@ -12,10 +12,8 @@ import {
 
 export const SessionEnrollProgress = ({
   session,
-  sessionRaw,
 }: {
   session: MyplanCourseTermSession
-  sessionRaw: any
 }) => {
   const { enrollCount, enrollMaximum } = session
 

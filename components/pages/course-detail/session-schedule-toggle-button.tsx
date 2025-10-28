@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
+import { isScheduleFeatureEnabled } from "@/config/features"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -21,19 +22,27 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-import { isScheduleFeatureEnabled } from "@/config/features"
-
 import { useScheduleToggleWithToasts } from "./use-schedule-toggle"
 
 export const SessionScheduleToggleButton = ({ session }: { session: any }) => {
   if (!isScheduleFeatureEnabled()) return null
   const { isScheduled, canAdd, triggerToggle } =
     useScheduleToggleWithToasts(session)
-  const isDisabled = !isScheduled && !canAdd.ok
+
+  // Allow switching between sessions
+  const canSwitch =
+    !canAdd.ok &&
+    (canAdd.reason === "switch-single-letter" ||
+      canAdd.reason === "switch-double-letter")
+  const isDisabled = !isScheduled && !canAdd.ok && !canSwitch
+
   let variant = "default"
-  if (isDisabled) {
+  if (canSwitch) {
+    variant = "secondary"
+  } else if (isDisabled) {
     variant = "ghost"
   }
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -76,12 +85,13 @@ export const SessionScheduleToggleButton = ({ session }: { session: any }) => {
           ? "Remove from schedule"
           : canAdd.ok
           ? "Add to schedule"
+          : canAdd.reason === "switch-single-letter" ||
+            canAdd.reason === "switch-double-letter"
+          ? "Switch to this session"
           : canAdd.reason === "single-letter-exists"
           ? "Single-letter session already added for this course"
           : canAdd.reason === "double-letter-exists"
           ? "Double-letter session already added for this course"
-          : canAdd.reason === "double-letter-prefix-mismatch"
-          ? "Pick a double-letter session starting with your selected single letter"
           : canAdd.reason === "time-conflict"
           ? "Time conflict with your schedule"
           : "Cannot add this session"}

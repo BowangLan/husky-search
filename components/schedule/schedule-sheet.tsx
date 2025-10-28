@@ -2,25 +2,46 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
+import { api } from "@/convex/_generated/api"
 import {
   useClearSchedule,
   useRemoveFromSchedule,
   useScheduledSessions,
+  useUpdateSessionCreditOverwrite,
 } from "@/store/schedule.store"
-import { Calendar, Clock, List, MapPin, Trash2 } from "lucide-react"
-
-import { expandDays, weekDays } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { useQuery } from "convex/react"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { FilterTabItem, FilterTabList } from "@/components/ui/filter-tabs"
-import { CopySLNButton } from "@/components/copy-sln-button"
+  Bell,
+  Calendar,
+  Check,
+  Copy,
+  Info,
+  List,
+  MoreVertical,
+  X,
+} from "lucide-react"
+import { toast } from "sonner"
+
 import { isScheduleFeatureEnabled } from "@/config/features"
+import { expandDays, weekDays } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { FilterTabItem, FilterTabList } from "@/components/ui/filter-tabs"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+
+import { ScheduledSessionCard } from "./scheduled-session-card"
 
 export function ScheduleSheet({
   open,
@@ -33,7 +54,57 @@ export function ScheduleSheet({
   const sessions = useScheduledSessions()
   const remove = useRemoveFromSchedule()
   const clear = useClearSchedule()
+  const updateCreditOverwrite = useUpdateSessionCreditOverwrite()
   const [viewType, setViewType] = useState<"list" | "calendar">("list")
+  const [copied, setCopied] = useState(false)
+
+  // Fetch session data from Convex
+  const sessionIds = sessions.map((s) => s.id)
+  const sessionDataList = useQuery(
+    api.courses.getSessionsByIds,
+    sessionIds.length > 0 ? { sessionIds } : "skip"
+  )
+  const isLoadingSessionData = sessionDataList === undefined && sessionIds.length > 0
+
+  // Create a map of sessionId -> sessionData for quick lookup
+  const sessionDataMap = useMemo(() => {
+    const map = new Map()
+    if (sessionDataList) {
+      sessionDataList.forEach((data) => {
+        map.set(data.id, data)
+      })
+    }
+    return map
+  }, [sessionDataList])
+
+  const handleCopySLNs = async () => {
+    // Get all SLN codes (registrationCode), filter out undefined/null, and join with commas
+    const slnCodes = sessions
+      .map((s) => s.registrationCode)
+      .filter((code) => code !== undefined && code !== null && code !== "")
+      .join(",")
+
+    if (slnCodes) {
+      try {
+        await navigator.clipboard.writeText(slnCodes)
+        setCopied(true)
+        const count = slnCodes.split(",").length
+        toast.success(`Copied ${count} SLN code${count > 1 ? "s" : ""}`, {
+          description: slnCodes,
+          duration: 3000,
+        })
+        setTimeout(() => setCopied(false), 2000)
+      } catch (err) {
+        toast.error("Failed to copy SLN codes", {
+          description: "Please try again or copy manually",
+        })
+      }
+    } else {
+      toast.error("No SLN codes to copy", {
+        description: "Add sessions with registration codes first",
+      })
+    }
+  }
 
   // Keyboard shortcut: Alt+S to toggle dialog (avoid typing fields)
   useEffect(() => {
@@ -197,6 +268,13 @@ export function ScheduleSheet({
     return Object.values(map)
   }, [sessions])
 
+  // Compute effective credit for a session (overwrite takes priority)
+  const getEffectiveCredit = (session: (typeof sessions)[0]) => {
+    return session.creditOverwrite !== undefined
+      ? session.creditOverwrite
+      : session.courseCredit
+  }
+
   const courseColors = useMemo(() => {
     const colorMap = new Map<string, string>()
     courses.forEach((c, idx) => {
@@ -258,20 +336,20 @@ export function ScheduleSheet({
   const viewHeight = intervals * rowPx
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full sm:max-w-5xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-2xl p-0 flex flex-col"
+      >
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
             <Calendar className="size-4" />
             My Schedule
-          </DialogTitle>
-          <DialogDescription>
-            Sessions you have added to your weekly schedule.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetTitle>
+        </SheetHeader>
 
-        <div className="flex-1 flex flex-col">
-          <div className="flex items-center flex-none mb-4">
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex items-center justify-between flex-none px-4 pb-2">
             {/* View toggle */}
             <div>
               <FilterTabList>
@@ -291,11 +369,21 @@ export function ScheduleSheet({
                 </FilterTabItem>
               </FilterTabList>
             </div>
+            {/* Clear all button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => clear()}
+              disabled={sessions.length === 0}
+            >
+              <X />
+              Clear all
+            </Button>
           </div>
 
           {/* List View */}
           <div
-            className="pb-24 space-y-3 flex-1 overflow-y-auto"
+            className="px-4 space-y-4 flex-1 overflow-y-auto pb-4"
             style={{ display: viewType === "list" ? "block" : "none" }}
           >
             {sessions.length === 0 ? (
@@ -305,97 +393,49 @@ export function ScheduleSheet({
               </div>
             ) : (
               courses.map((c) => (
-                <div key={c.code} className="rounded-md border">
+                <div
+                  key={c.code}
+                  className="border-l-4 border-l-purple-600 border border-border bg-card shadow-sm"
+                >
                   {/* Course header */}
-                  <div className="px-3 py-3 border-b flex items-center gap-2">
-                    {/* <div
-                      className="size-2 rounded-full"
-                      style={{
-                        background:
-                          courseColors.get(c.code) || sessionColors[0],
-                      }}
-                    /> */}
-
-                    <div className="min-w-0 flex flex-col">
-                      <div className="font-medium truncate text-base/tight flex items-center gap-2">
+                  <div className="px-4 py-3 flex items-start gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
                         <Link
                           href={`/courses/${encodeURIComponent(c.code)}`}
-                          className="hover:text-purple-500 trans"
+                          className="font-semibold text-base text-blue-600 dark:text-blue-400 hover:underline"
                         >
                           {c.code}
                         </Link>
                         {c.credit !== undefined ? (
-                          <div className="text-xs/tight text-muted-foreground">
-                            {String(c.credit)} cr
-                            {/* {String(c.credit) === "1" ? "" : "s"} */}
-                          </div>
+                          <Badge variant="secondary" size="sm">
+                            {String(c.credit)} CR
+                          </Badge>
                         ) : null}
                       </div>
                       {c.title ? (
-                        <span className="text-muted-foreground text-xs/tight truncate">
-                          {c.title}
-                        </span>
+                        <div className="text-sm text-foreground">{c.title}</div>
                       ) : null}
                     </div>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="size-8 shrink-0"
+                    >
+                      <MoreVertical className="size-4" />
+                    </Button>
                   </div>
 
                   {/* Sessions under course */}
-                  <div className="p-3 space-y-3">
+                  <div className="border-t divide-y">
                     {c.sessions.map((s) => (
-                      <div key={s.id} className="">
-                        <div className="flex items-center gap-2">
-                          <div className="font-medium truncate">
-                            {s.code}
-                            {s.type ? (
-                              <span className="text-muted-foreground">
-                                {" "}
-                                • {s.type}
-                              </span>
-                            ) : null}
-                          </div>
-                          <div className="flex-1" />
-                          {s.registrationCode ? (
-                            <CopySLNButton session={s} />
-                          ) : null}
-                        </div>
-                        {s.instructor ? (
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            {s.instructor}
-                          </div>
-                        ) : null}
-                        <div className="mt-2 space-y-1">
-                          {(s.meetingDetailsList ?? []).map((m, i) => (
-                            <div
-                              key={i}
-                              className="text-[13px] text-foreground/80 flex flex-wrap items-center gap-x-3 gap-y-1"
-                            >
-                              <span className="inline-flex items-center gap-1.5 tabular-nums">
-                                <Clock className="size-4 opacity-70" />
-                                {(m.days && m.days.trim()) || "TBA"}
-                                {m.time ? ` • ${m.time}` : ""}
-                              </span>
-                              {(m.building || m.room) && (
-                                <span className="inline-flex items-center gap-1.5 uppercase">
-                                  <span className="text-foreground/30">•</span>
-                                  <MapPin className="size-4 opacity-70" />
-                                  {m.building ? `${m.building}` : null}
-                                  {m.room ? ` ${m.room}` : ""}
-                                </span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                        <div className="mt-3 flex items-center gap-2">
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => remove(s.id)}
-                          >
-                            <Trash2 className="size-4" />
-                            Remove
-                          </Button>
-                        </div>
-                      </div>
+                      <ScheduledSessionCard
+                        key={s.id}
+                        session={s}
+                        sessionData={sessionDataMap.get(s.id)}
+                        isLoading={isLoadingSessionData}
+                        onRemove={() => remove(s.id)}
+                      />
                     ))}
                   </div>
                 </div>
@@ -405,7 +445,7 @@ export function ScheduleSheet({
 
           {/* Calendar View */}
           <div
-            className="px-4 pb-24 flex-col"
+            className="px-4 flex-col"
             style={{ display: viewType === "calendar" ? "flex" : "none" }}
           >
             <div className="w-full overflow-x-auto flex-1 flex flex-col">
@@ -529,22 +569,43 @@ export function ScheduleSheet({
           </div>
         </div>
 
-        <div className="mt-auto p-4 border-t bg-background">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => clear()}
-              disabled={sessions.length === 0}
-            >
-              Clear all
-            </Button>
-            <Button className="flex-1" onClick={() => onOpenChange(false)}>
-              Done
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        <SheetFooter className="border-t">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                className="w-full transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                onClick={handleCopySLNs}
+                disabled={sessions.length === 0}
+              >
+                {copied ? (
+                  <>
+                    <Check className="size-4 mr-2 animate-in zoom-in-50 duration-200" />
+                    <span className="animate-in fade-in slide-in-from-left-1 duration-200">
+                      Copied!
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="size-4 mr-2" />
+                    Copy SLN Codes
+                  </>
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                Copy all registration codes to paste into Register.UW
+                {sessions.length > 0 &&
+                  ` (${sessions.filter((s) => s.registrationCode).length} code${
+                    sessions.filter((s) => s.registrationCode).length !== 1
+                      ? "s"
+                      : ""
+                  })`}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   )
 }

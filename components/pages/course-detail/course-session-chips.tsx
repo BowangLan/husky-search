@@ -70,7 +70,7 @@ const SessionChip = ({
         // isPinned &&
         //   "bg-purple-600 text-white border-purple-600 dark:bg-purple-600 dark:text-white dark:border-purple-600",
         isScheduled &&
-          "bg-purple-600 text-white border-purple-600 dark:bg-purple-600 dark:text-white dark:border-purple-600",
+          "bg-primary text-white border-primary dark:bg-primary dark:text-white dark:border-primary",
         selectedSessionIdSet.size > 0 &&
           !isSelected &&
           !isPinned &&
