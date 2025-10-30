@@ -23,6 +23,8 @@ export function useScheduleToggleWithToasts(session: any) {
     | string
     | number
     | undefined
+  // Extract termId from currentTermData
+  const termId = (data as any)?.myplanCourse?.currentTermData?.[0]?.termId as string | undefined
   const canAddResult = useCanAddToSchedule(session, { courseCode })
   const toggle = useToggleSchedule()
   const isScheduled = scheduleEnabled ? scheduled : false
@@ -34,11 +36,11 @@ export function useScheduleToggleWithToasts(session: any) {
     const willAdd = !isScheduled && canAdd.ok
 
     // Handle switching between sessions (single-letter or double-letter)
-    if (willSwitch && canAdd.existingSessionId) {
+    if (willSwitch && canAdd.existingSessionId && courseCode) {
       // Remove the existing session
-      scheduleStore.getState().remove(canAdd.existingSessionId)
+      scheduleStore.getState().removeSessionFromCourse(courseCode, canAdd.existingSessionId, termId)
       // Add the new session
-      scheduleStore.getState().add(session, { courseCode, courseTitle, courseCredit })
+      scheduleStore.getState().addSessionToCourse(courseCode, session, termId)
 
       const meeting = Array.isArray((session as any)?.meetingDetailsList)
         ? (session as any).meetingDetailsList.find(
@@ -53,7 +55,7 @@ export function useScheduleToggleWithToasts(session: any) {
       return
     }
 
-    if (willAdd) {
+    if (willAdd && courseCode) {
       // If this is a double-letter session, try to add its parent single-letter first.
       // Only show a single toast message for the double-letter add; no extra toast for parent add.
       const alpha = String((session as any)?.code || "").replace(/[^A-Za-z]/g, "").toUpperCase()
@@ -68,11 +70,15 @@ export function useScheduleToggleWithToasts(session: any) {
         )
         if (parent) {
           const parentId = String(parent?.id ?? parent?.activityId ?? parent?.registrationCode)
-          const hasParent = scheduleStore.getState().has(parentId)
+          const hasParent = scheduleStore.getState().hasSession(parentId)
           if (!hasParent) {
-            const parentCheck = scheduleStore.getState().canAdd(parent, { courseCode })
+            const parentCheck = scheduleStore.getState().canAddSession(parent, { courseCode })
             if ((parentCheck as any)?.ok) {
-              scheduleStore.getState().add(parent, { courseCode, courseTitle, courseCredit })
+              // Ensure course exists
+              if (!scheduleStore.getState().hasCourse(courseCode)) {
+                scheduleStore.getState().addCourse(courseCode, { courseTitle, courseCredit })
+              }
+              scheduleStore.getState().addSessionToCourse(courseCode, parent, termId)
               parentAdded = true
               parentCode = String(parent?.code ?? alpha[0])
             }
@@ -103,6 +109,7 @@ export function useScheduleToggleWithToasts(session: any) {
       courseCode,
       courseTitle,
       courseCredit,
+      termId,
       onViolation: (reason) => {
         if (reason === "switch-single-letter" || reason === "switch-double-letter") {
           // This should not happen as we handle it above, but just in case

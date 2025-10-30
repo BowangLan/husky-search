@@ -13,6 +13,10 @@ export const siteConfig = {
       title: "Majors",
       href: "/majors",
     },
+    // {
+    //   title: "Plan",
+    //   href: "/plan",
+    // },
     {
       title: "About",
       href: "/about",

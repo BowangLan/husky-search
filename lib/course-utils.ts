@@ -84,7 +84,7 @@ export type Term = {
   labelShort: string
 }
 
-export const parseTermId = (termId: string) => {
+export const parseTermId = (termId: string): Term => {
   // termId is in the format of "20251"
   // 2025 is the year
   // 1 is the quarter
@@ -116,6 +116,44 @@ export const parseTermId = (termId: string) => {
     quarter,
     label: `${year} ${quarterLabel}${optionalSuffix}`,
     labelShort: `${quarterLabelShort}${optionalSuffix} ${yearShort}`,
+  }
+
+  return term
+}
+
+export const parseQtryr = (qtryr: string): Term => {
+  // qtryr is in the format of "WIN+2026"
+  // WIN - Winter, SPR - Spring, SUM - Summer, AUT - Autumn
+
+  const parts = qtryr.split("+")
+  const quarterStr = parts[0]
+  const year = Number(parts[1])
+
+  const quarterMap = {
+    "WIN": 1,
+    "SPR": 2,
+    "SUM": 3,
+    "AUT": 4,
+  } as const
+
+  const quarter = quarterMap[quarterStr as keyof typeof quarterMap]
+
+  const quarterLabelMap = {
+    "WIN": "Winter",
+    "SPR": "Spring",
+    "SUM": "Summer",
+    "AUT": "Autumn",
+  } as const
+
+  const quarterLabel = quarterLabelMap[quarterStr as keyof typeof quarterLabelMap]
+  const quarterLabelShort = quarterStr.slice(0, 2)
+  const yearShort = year.toString().slice(-2)
+
+  const term: Term = {
+    year,
+    quarter,
+    label: `${year} ${quarterLabel}`,
+    labelShort: `${quarterLabelShort} ${yearShort}`,
   }
 
   return term

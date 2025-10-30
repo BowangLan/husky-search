@@ -49,11 +49,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         >
           <GlobalLayoutWrapper>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-              <div className="relative flex flex-col min-h-screen">
-                <SiteHeader />
-                <div className="">{children}</div>
-                <Footer />
-              </div>
+              {children}
               <MessageDialogManager />
               {process.env.NODE_ENV === "development" && <TailwindIndicator />}
               <Toaster

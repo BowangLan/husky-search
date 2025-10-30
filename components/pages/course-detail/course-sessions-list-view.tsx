@@ -41,7 +41,8 @@ export const SessionRowDesktop = ({
       <div
         className={cn(
           "px-4 py-4 md:px-6 flex w-full flex-col gap-3 md:grid md:items-center md:gap-6",
-          isScheduled && "bg-gradient-to-r from-primary/40 to-primary/60"
+          isScheduled &&
+            "bg-gradient-to-r dark:from-primary/40 dark:to-primary/60 from-primary/5 to-primary/15"
         )}
         style={{
           gridTemplateColumns:

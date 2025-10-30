@@ -1018,3 +1018,124 @@ export const currentTermStats = internalQuery({
     return Object.fromEntries(currentTermsArray.map((term, index) => [term, currentTermData[index]]));
   }
 })
+
+export const searchCourses = query({
+  args: {
+    query: v.string(),
+    subjectArea: v.optional(v.string()),
+    credits: v.optional(v.array(v.string())),
+    genEdReqs: v.optional(v.array(v.string())),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 50;
+
+    // If query is empty, return popular courses or all courses
+    if (!args.query.trim()) {
+      let coursesQuery = ctx.db.query("myplanCourses");
+
+      // Apply subject area filter if provided
+      if (args.subjectArea) {
+        coursesQuery = coursesQuery.withIndex("by_subject_area", (q) =>
+          q.eq("subjectArea", args.subjectArea)
+        );
+      } else {
+        // Use enrollment index to get popular courses
+        coursesQuery = coursesQuery.withIndex("by_stats_enroll_max");
+      }
+
+      let courses = await coursesQuery
+        .order("desc")
+        .take(limit * 2); // Take more to allow for filtering
+
+      // Apply credit filters
+      if (args.credits && args.credits.length > 0) {
+        const creditsSet = new Set(args.credits);
+        courses = await Promise.all(
+          courses.map(async (course) => {
+            const courseCredits = await ctx.db
+              .query("myplan_course_credits")
+              .withIndex("by_course_id", (q) => q.eq("courseId", course._id))
+              .collect();
+            const hasMatchingCredit = courseCredits.some((c) => creditsSet.has(c.credit));
+            return hasMatchingCredit ? course : null;
+          })
+        ).then((results) => results.filter((c) => c !== null));
+      }
+
+      // Apply gen ed requirement filters
+      if (args.genEdReqs && args.genEdReqs.length > 0) {
+        const genEdReqsSet = new Set(args.genEdReqs);
+        courses = await Promise.all(
+          courses.map(async (course) => {
+            const courseGenEdReqs = await ctx.db
+              .query("myplan_course_gen_ed_reqs")
+              .withIndex("by_course_id", (q) => q.eq("courseId", course._id))
+              .collect();
+            const hasMatchingGenEdReq = courseGenEdReqs.some((req) => genEdReqsSet.has(req.genEduReq));
+            return hasMatchingGenEdReq ? course : null;
+          })
+        ).then((results) => results.filter((c) => c !== null));
+      }
+
+      return courses.slice(0, limit);
+    }
+
+    // Search by course code using the search index
+    const normalized = args.query.replace(/\s+/g, "").toUpperCase();
+
+    let searchResults = await ctx.db
+      .query("myplanCourses")
+      .withSearchIndex("by_course_code_search", (q) => q.search("courseCode", args.query))
+      .take(limit * 2); // Take more to allow for filtering
+
+    // If subject area filter is provided, filter results
+    if (args.subjectArea) {
+      searchResults = searchResults.filter(
+        (course) => course.subjectArea === args.subjectArea
+      );
+    }
+
+    // Apply credit filters
+    if (args.credits && args.credits.length > 0) {
+      const creditsSet = new Set(args.credits);
+      searchResults = await Promise.all(
+        searchResults.map(async (course) => {
+          const courseCredits = await ctx.db
+            .query("myplan_course_credits")
+            .withIndex("by_course_id", (q) => q.eq("courseId", course._id))
+            .collect();
+          const hasMatchingCredit = courseCredits.some((c) => creditsSet.has(c.credit));
+          return hasMatchingCredit ? course : null;
+        })
+      ).then((results) => results.filter((c) => c !== null));
+    }
+
+    // Apply gen ed requirement filters
+    if (args.genEdReqs && args.genEdReqs.length > 0) {
+      const genEdReqsSet = new Set(args.genEdReqs);
+      searchResults = await Promise.all(
+        searchResults.map(async (course) => {
+          const courseGenEdReqs = await ctx.db
+            .query("myplan_course_gen_ed_reqs")
+            .withIndex("by_course_id", (q) => q.eq("courseId", course._id))
+            .collect();
+          const hasMatchingGenEdReq = courseGenEdReqs.some((req) => genEdReqsSet.has(req.genEduReq));
+          return hasMatchingGenEdReq ? course : null;
+        })
+      ).then((results) => results.filter((c) => c !== null));
+    }
+
+    // Also do prefix matching for better results
+    const prefixMatches = searchResults.filter((course) =>
+      course.courseCode.replace(/\s+/g, "").toUpperCase().startsWith(normalized)
+    );
+
+    // Combine and deduplicate results, prioritizing prefix matches
+    const resultMap = new Map();
+    prefixMatches.forEach((course) => resultMap.set(course._id, course));
+    searchResults.forEach((course) => resultMap.set(course._id, course));
+
+    return Array.from(resultMap.values()).slice(0, limit);
+  }
+})
