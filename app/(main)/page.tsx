@@ -7,6 +7,8 @@ import { PopularCourses } from "@/components/pages/home/popular-courses"
 import { PopularMajors } from "@/components/pages/home/popular-majors"
 import { RecentMajorsSection } from "@/components/pages/home/recent-majors-section"
 
+import { Footer } from "../footer"
+
 export const experimental_ppr = true
 
 export const metadata: Metadata = {
@@ -85,10 +87,11 @@ export default function IndexPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
       <Page>
-        <HeroSection />
+        {/* <HeroSection /> */}
         <RecentMajorsSection />
-        <PopularMajors />
+        {/* <PopularMajors /> */}
         <PopularCourses />
+        <Footer />
       </Page>
     </>
   )

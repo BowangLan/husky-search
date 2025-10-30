@@ -12,7 +12,7 @@ export function HeroSection() {
       {/* <div className="pointer-events-none absolute -top-32 right-[-10%] h-80 w-80 rounded-full bg-primary/25 blur-3xl -z-10" />
       <div className="pointer-events-none absolute -bottom-24 left-[-10%] h-72 w-72 rounded-full bg-purple-500/20 blur-3xl -z-10" /> */}
 
-      <div className="container mx-auto px-4 py-24 md:py-32 text-center">
+      <div className="w-full mx-auto px-4 py-24 md:py-32 text-center">
         <div className="mx-auto max-w-4xl">
           <h1 className="mt-6 text-4xl md:text-6xl font-bold tracking-tight leading-tight">
             <span className="bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">

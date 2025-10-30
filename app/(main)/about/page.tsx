@@ -2,6 +2,7 @@ import ReactMarkdown from "react-markdown"
 
 import { DOMAIN } from "@/config/site"
 import { Page, PageTitle } from "@/components/page-wrapper"
+import { Footer } from "@/app/footer"
 
 const AboutText = `
 ## About Me
@@ -44,6 +45,7 @@ export default function AboutPage() {
       <div className="prose prose-sm text-base font-normal leading-relaxed space-y-4 markdown">
         <ReactMarkdown>{AboutText}</ReactMarkdown>
       </div>
+      <Footer />
     </Page>
   )
 }

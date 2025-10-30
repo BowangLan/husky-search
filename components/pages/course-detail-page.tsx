@@ -20,6 +20,7 @@ import CECEvaluations from "./course-detail/cec-evaluations"
 import { CourseDetailHeader } from "./course-detail/course-detail-header"
 import { CourseSessionsSection } from "./course-detail/course-sessions-section"
 import { CourseDetailStatsSection } from "./course-detail/course-stats-section"
+import { StickyCourseHeader } from "./course-detail/sticky-course-header"
 
 const PageTab = ({
   active,
@@ -69,6 +70,7 @@ const CourseDetailPageContent = ({ courseCode }: { courseCode: string }) => {
 
   return (
     <div className="space-y-4 md:space-y-6">
+      <StickyCourseHeader courseCode={courseCode} />
       <CourseDetailHeader courseCode={courseCode} />
       <CourseDetailStatsSection courseCode={courseCode} />
 

@@ -1,6 +1,5 @@
-import { SiteHeader } from "@/components/site-header"
-
 import { Footer } from "../footer"
+import { AppSidebarLayout } from "@/components/app-sidebar-layout"
 
 export default function MainLayout({
   children,
@@ -8,10 +7,11 @@ export default function MainLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="relative flex flex-col min-h-screen">
-      <SiteHeader />
-      <div className="">{children}</div>
-      <Footer />
+    <div className="relative flex min-h-screen w-full overflow-x-hidden">
+      <AppSidebarLayout>
+        {children}
+        {/* <Footer /> */}
+      </AppSidebarLayout>
     </div>
   )
 }

@@ -43,7 +43,7 @@ export type ScheduleState = {
   hasSession: (sessionId?: string, termId?: string) => boolean
 
   // Course operations
-  addCourse: (courseCode: string, options?: { courseTitle?: string; courseCredit?: string | number }) => string
+  addCourse: (courseCode: string, options?: { courseTitle?: string; courseCredit?: string | number; termId?: string }) => string
   removeCourse: (courseId: string) => void
   updateCourseCreditOverwrite: (courseId: string, creditOverwrite?: string | number) => void
   hasCourse: (courseCode: string) => boolean
@@ -198,12 +198,12 @@ function hasTimeConflict(candidate: ScheduleSession, existingCourses: ScheduleCo
 function normalizeSession(raw: any): ScheduleSession {
   const meetingDetailsList: ScheduleMeeting[] = Array.isArray(raw?.meetingDetailsList)
     ? raw.meetingDetailsList.map((m: any) => ({
-        days: m?.days,
-        time: m?.time,
-        building: m?.building,
-        room: m?.room,
-        campus: m?.campus,
-      }))
+      days: m?.days,
+      time: m?.time,
+      building: m?.building,
+      room: m?.room,
+      campus: m?.campus,
+    }))
     : []
 
   return {
@@ -225,9 +225,9 @@ export const scheduleStore = createStore<ScheduleState>()((set, get) => {
 
   return {
     // Course operations
-    addCourse: (courseCode: string, options?: { courseTitle?: string; courseCredit?: string | number }) => {
+    addCourse: (courseCode: string, options?: { courseTitle?: string; courseCredit?: string | number; termId?: string }) => {
       if (!isScheduleFeatureEnabled()) return ""
-      const termId = getOrCreateActiveTerm()
+      const termId = options?.termId ? ensureTermFromMyPlan(options.termId) : getOrCreateActiveTerm()
 
       const existing = coursePlanStore.getState().getCourseByCode(termId, courseCode)
       if (existing) return existing.id
@@ -245,185 +245,232 @@ export const scheduleStore = createStore<ScheduleState>()((set, get) => {
 
     removeCourse: (courseId: string) => {
       if (!isScheduleFeatureEnabled()) return
-      const termId = getOrCreateActiveTerm()
-      coursePlanStore.getState().removeCourse(termId, courseId)
+      // Search all terms to find which one contains this course
+      const allTerms = coursePlanStore.getState().terms
+      for (const term of allTerms) {
+        const plan = coursePlanStore.getState().plansByTerm[term.id]
+        if (plan?.courses.some((c) => c.id === courseId)) {
+          coursePlanStore.getState().removeCourse(term.id, courseId)
+          return
+        }
+      }
     },
 
     updateCourseCreditOverwrite: (courseId: string, creditOverwrite?: string | number) => {
       if (!isScheduleFeatureEnabled()) return
-      const termId = getOrCreateActiveTerm()
-      coursePlanStore.getState().updateCourse(termId, courseId, {
-        customCredits: typeof creditOverwrite === "number" ? creditOverwrite : parseFloat(String(creditOverwrite)),
-      })
+      // Search all terms to find which one contains this course
+      const allTerms = coursePlanStore.getState().terms
+      for (const term of allTerms) {
+        const plan = coursePlanStore.getState().plansByTerm[term.id]
+        if (plan?.courses.some((c) => c.id === courseId)) {
+          coursePlanStore.getState().updateCourse(term.id, courseId, {
+            customCredits: typeof creditOverwrite === "number" ? creditOverwrite : parseFloat(String(creditOverwrite)),
+          })
+          return
+        }
+      }
     },
 
-  hasCourse: (courseCode: string) => {
-    const termId = getOrCreateActiveTerm()
-    return !!coursePlanStore.getState().getCourseByCode(termId, courseCode)
-  },
+    hasCourse: (courseCode: string) => {
+      const termId = getOrCreateActiveTerm()
+      return !!coursePlanStore.getState().getCourseByCode(termId, courseCode)
+    },
 
-  getCourse: (courseCode: string) => {
-    const termId = getOrCreateActiveTerm()
-    const course = coursePlanStore.getState().getCourseByCode(termId, courseCode)
-    if (!course) return undefined
+    getCourse: (courseCode: string) => {
+      const termId = getOrCreateActiveTerm()
+      const course = coursePlanStore.getState().getCourseByCode(termId, courseCode)
+      if (!course) return undefined
 
-    return {
-      id: course.id,
-      courseCode: course.courseCode,
-      courseTitle: course.courseTitle,
-      courseCredit: course.credits,
-      creditOverwrite: course.customCredits,
-      sessions: course.sessions,
-    }
-  },
+      return {
+        id: course.id,
+        courseCode: course.courseCode,
+        courseTitle: course.courseTitle,
+        courseCredit: course.credits,
+        creditOverwrite: course.customCredits,
+        sessions: course.sessions,
+      }
+    },
 
-  // Session operations
-  addSessionToCourse: (courseCode: string, session: any, termId?: string) => {
-    if (!isScheduleFeatureEnabled()) return
-    const finalTermId = termId ? ensureTermFromMyPlan(termId) : getOrCreateActiveTerm()
-    coursePlanStore.getState().addSessionToCourse(finalTermId, courseCode, session)
-  },
+    // Session operations
+    addSessionToCourse: (courseCode: string, session: any, termId?: string) => {
+      if (!isScheduleFeatureEnabled()) return
+      const finalTermId = termId ? ensureTermFromMyPlan(termId) : getOrCreateActiveTerm()
+      coursePlanStore.getState().addSessionToCourse(finalTermId, courseCode, session)
+    },
 
-  removeSessionFromCourse: (courseCode: string, sessionId: string, termId?: string) => {
-    if (!isScheduleFeatureEnabled()) return
-    const finalTermId = termId ? ensureTermFromMyPlan(termId) : getOrCreateActiveTerm()
-    coursePlanStore.getState().removeSessionFromCourse(finalTermId, courseCode, sessionId)
-  },
-
-  toggleSession: (
-    session: any,
-    options?: {
-      courseCode?: string
-      courseTitle?: string
-      courseCredit?: string | number
-      termId?: string
-      onViolation?: (reason: ScheduleViolationReason) => void
-    }
-  ) => {
-    if (!isScheduleFeatureEnabled()) return
-    const termId = options?.termId ? ensureTermFromMyPlan(options.termId) : getOrCreateActiveTerm()
-
-    const courseCode = options?.courseCode
-    if (!courseCode) return
-
-    const id = String(session?.id ?? session?.activityId ?? session?.registrationCode)
-
-    if (get().hasSession(id, options?.termId)) {
-      get().removeSessionFromCourse(courseCode, id, options?.termId)
-    } else {
-      const check = get().canAddSession(session, { courseCode })
-      if (check.ok) {
-        let course = get().getCourse(courseCode)
-        if (!course) {
-          get().addCourse(courseCode, {
-            courseTitle: options?.courseTitle,
-            courseCredit: options?.courseCredit,
-          })
-        } else if (!course.courseTitle && options?.courseTitle) {
-          coursePlanStore.getState().updateCourse(termId, course.id, {
-            courseTitle: options?.courseTitle,
-            credits: options?.courseCredit ?? course.courseCredit,
-          })
-        }
-        get().addSessionToCourse(courseCode, session, options?.termId)
+    removeSessionFromCourse: (courseCode: string, sessionId: string, termId?: string) => {
+      if (!isScheduleFeatureEnabled()) return
+      if (termId) {
+        const finalTermId = ensureTermFromMyPlan(termId)
+        coursePlanStore.getState().removeSessionFromCourse(finalTermId, courseCode, sessionId)
       } else {
-        options?.onViolation?.(check.reason)
-      }
-    }
-  },
-
-  hasSession: (sessionId?: string, termId?: string) => {
-    if (!sessionId) return false
-    const finalTermId = termId ? ensureTermFromMyPlan(termId) : getOrCreateActiveTerm()
-    return coursePlanStore.getState().hasSession(finalTermId, String(sessionId))
-  },
-
-  // Global operations
-  clear: () => {
-    if (!isScheduleFeatureEnabled()) return
-    const termId = getOrCreateActiveTerm()
-    coursePlanStore.getState().clearTerm(termId)
-  },
-
-  getAllCourses: () => {
-    const termId = getOrCreateActiveTerm()
-    const plan = coursePlanStore.getState().plansByTerm[termId]
-    if (!plan) return []
-
-    return plan.courses.map((c) => ({
-      id: c.id,
-      courseCode: c.courseCode,
-      courseTitle: c.courseTitle,
-      courseCredit: c.credits,
-      creditOverwrite: c.customCredits,
-      sessions: c.sessions,
-    }))
-  },
-
-  getAllSessions: () => {
-    const termId = getOrCreateActiveTerm()
-    const plan = coursePlanStore.getState().plansByTerm[termId]
-    if (!plan) return []
-
-    return plan.courses.flatMap((c) =>
-      c.sessions.map((s) => ({
-        ...s,
-        courseCode: c.courseCode,
-        courseTitle: c.courseTitle,
-        courseCredit: c.credits,
-      }))
-    )
-  },
-
-  // Validation
-  canAddSession: (session: any, options?: { courseCode?: string }) => {
-    const termId = getOrCreateActiveTerm()
-
-    const normalized = normalizeSession(session)
-    const courses = get().getAllCourses()
-    const courseCode = options?.courseCode
-
-    // Rule 1: For a given course, only one single-letter code and one double-letter code
-    if (courseCode) {
-      const course = courses.find((c) => c.courseCode === courseCode)
-      if (course) {
-        const currentAlpha = (normalized.code || "").replace(/[^A-Za-z]/g, "")
-        const isSingle = currentAlpha.length === 1
-        const isDouble = currentAlpha.length === 2
-
-        if (isSingle) {
-          const existingSingle = course.sessions.find(
-            (s) => (s.code || "").replace(/[^A-Za-z]/g, "").length === 1
-          )
-          if (existingSingle && existingSingle.id !== normalized.id) {
-            return {
-              ok: false as const,
-              reason: "switch-single-letter" as const,
-              existingSessionId: existingSingle.id,
-            }
-          }
-        }
-        if (isDouble) {
-          const existingDouble = course.sessions.find(
-            (s) => (s.code || "").replace(/[^A-Za-z]/g, "").length === 2
-          )
-          if (existingDouble && existingDouble.id !== normalized.id) {
-            return {
-              ok: false as const,
-              reason: "switch-double-letter" as const,
-              existingSessionId: existingDouble.id,
-            }
+        // Search all terms to find which one contains this session
+        const allTerms = coursePlanStore.getState().terms
+        for (const term of allTerms) {
+          const plan = coursePlanStore.getState().plansByTerm[term.id]
+          if (plan?.courses.some((c) => c.courseCode === courseCode && c.sessions.some((s) => s.id === sessionId))) {
+            coursePlanStore.getState().removeSessionFromCourse(term.id, courseCode, sessionId)
+            return
           }
         }
       }
-    }
+    },
 
-    // Rule 2: Time conflict check
-    const conflicts = hasTimeConflict(normalized, courses)
-    if (conflicts) return { ok: false as const, reason: "time-conflict" as const }
+    toggleSession: (
+      session: any,
+      options?: {
+        courseCode?: string
+        courseTitle?: string
+        courseCredit?: string | number
+        termId?: string
+        onViolation?: (reason: ScheduleViolationReason) => void
+      }
+    ) => {
+      if (!isScheduleFeatureEnabled()) return
+      const termId = options?.termId ? ensureTermFromMyPlan(options.termId) : getOrCreateActiveTerm()
 
-    return { ok: true as const }
-  },
+      const courseCode = options?.courseCode
+      if (!courseCode) return
+
+      const id = String(session?.id ?? session?.activityId ?? session?.registrationCode)
+
+      if (get().hasSession(id, options?.termId)) {
+        get().removeSessionFromCourse(courseCode, id, options?.termId)
+      } else {
+        const check = get().canAddSession(session, { courseCode })
+        if (check.ok) {
+          // Check if course exists in the specific termId (not just active term)
+          let course = coursePlanStore.getState().getCourseByCode(termId, courseCode)
+          if (!course) {
+            get().addCourse(courseCode, {
+              courseTitle: options?.courseTitle,
+              courseCredit: options?.courseCredit,
+              termId: options?.termId,
+            })
+          } else if (!course.courseTitle && options?.courseTitle) {
+            coursePlanStore.getState().updateCourse(termId, course.id, {
+              courseTitle: options?.courseTitle,
+              credits: options?.courseCredit ?? course.credits,
+            })
+          }
+          get().addSessionToCourse(courseCode, session, options?.termId)
+        } else {
+          options?.onViolation?.(check.reason)
+        }
+      }
+    },
+
+    hasSession: (sessionId?: string, termId?: string) => {
+      if (!sessionId) return false
+      const finalTermId = termId ? ensureTermFromMyPlan(termId) : getOrCreateActiveTerm()
+      return coursePlanStore.getState().hasSession(finalTermId, String(sessionId))
+    },
+
+    // Global operations
+    clear: () => {
+      if (!isScheduleFeatureEnabled()) return
+      // Clear all courses from all terms, matching getAllCourses behavior
+      const allTerms = coursePlanStore.getState().terms
+      for (const term of allTerms) {
+        coursePlanStore.getState().clearTerm(term.id)
+      }
+    },
+
+    getAllCourses: () => {
+      // Return courses from all terms, not just active term
+      const allTerms = coursePlanStore.getState().terms
+      const allCourses: ScheduleCourse[] = []
+
+      for (const term of allTerms) {
+        const plan = coursePlanStore.getState().plansByTerm[term.id]
+        if (plan) {
+          const courses = plan.courses.map((c) => ({
+            id: c.id,
+            courseCode: c.courseCode,
+            courseTitle: c.courseTitle,
+            courseCredit: c.credits,
+            creditOverwrite: c.customCredits,
+            sessions: c.sessions,
+          }))
+          allCourses.push(...courses)
+        }
+      }
+
+      return allCourses
+    },
+
+    getAllSessions: () => {
+      // Return sessions from all terms, not just active term
+      const allTerms = coursePlanStore.getState().terms
+      const allSessions: (ScheduleSession & { courseCode: string; courseTitle?: string; courseCredit?: string | number })[] = []
+
+      for (const term of allTerms) {
+        const plan = coursePlanStore.getState().plansByTerm[term.id]
+        if (plan) {
+          const sessions = plan.courses.flatMap((c) =>
+            c.sessions.map((s) => ({
+              ...s,
+              courseCode: c.courseCode,
+              courseTitle: c.courseTitle,
+              courseCredit: c.credits,
+            }))
+          )
+          allSessions.push(...sessions)
+        }
+      }
+
+      return allSessions
+    },
+
+    // Validation
+    canAddSession: (session: any, options?: { courseCode?: string }) => {
+      const termId = getOrCreateActiveTerm()
+
+      const normalized = normalizeSession(session)
+      const courses = get().getAllCourses()
+      const courseCode = options?.courseCode
+
+      // Rule 1: For a given course, only one single-letter code and one double-letter code
+      if (courseCode) {
+        const course = courses.find((c) => c.courseCode === courseCode)
+        if (course) {
+          const currentAlpha = (normalized.code || "").replace(/[^A-Za-z]/g, "")
+          const isSingle = currentAlpha.length === 1
+          const isDouble = currentAlpha.length === 2
+
+          if (isSingle) {
+            const existingSingle = course.sessions.find(
+              (s) => (s.code || "").replace(/[^A-Za-z]/g, "").length === 1
+            )
+            if (existingSingle && existingSingle.id !== normalized.id) {
+              return {
+                ok: false as const,
+                reason: "switch-single-letter" as const,
+                existingSessionId: existingSingle.id,
+              }
+            }
+          }
+          if (isDouble) {
+            const existingDouble = course.sessions.find(
+              (s) => (s.code || "").replace(/[^A-Za-z]/g, "").length === 2
+            )
+            if (existingDouble && existingDouble.id !== normalized.id) {
+              return {
+                ok: false as const,
+                reason: "switch-double-letter" as const,
+                existingSessionId: existingDouble.id,
+              }
+            }
+          }
+        }
+      }
+
+      // Rule 2: Time conflict check
+      const conflicts = hasTimeConflict(normalized, courses)
+      if (conflicts) return { ok: false as const, reason: "time-conflict" as const }
+
+      return { ok: true as const }
+    },
   }
 })
 
@@ -434,14 +481,20 @@ export function useSchedule() {
 
 export function useIsSessionScheduled(sessionId?: string | null) {
   const enabled = isScheduleFeatureEnabled()
-  const activeTermId = useStore(coursePlanStore, (s) => s.activeTermId)
   const plansByTerm = useStore(coursePlanStore, (s) => s.plansByTerm)
   const hydrated = useStore(coursePlanStore, (s) => s.hydrated)
 
   return useMemo(() => {
-    if (!enabled || !sessionId || !hydrated || !activeTermId) return false
-    return coursePlanStore.getState().hasSession(activeTermId, String(sessionId))
-  }, [enabled, sessionId, hydrated, activeTermId, plansByTerm])
+    if (!enabled || !sessionId || !hydrated) return false
+    // Check all terms, not just active term, since sessions can be in any term
+    const allTerms = coursePlanStore.getState().terms
+    for (const term of allTerms) {
+      if (coursePlanStore.getState().hasSession(term.id, String(sessionId))) {
+        return true
+      }
+    }
+    return false
+  }, [enabled, sessionId, hydrated, plansByTerm])
 }
 
 export function useScheduledSessions(): (ScheduleSession & {
@@ -450,86 +503,88 @@ export function useScheduledSessions(): (ScheduleSession & {
   courseCredit?: string | number
 })[] {
   const enabled = isScheduleFeatureEnabled()
-  const activeTermId = useStore(coursePlanStore, (s) => s.activeTermId)
   const plansByTerm = useStore(coursePlanStore, (s) => s.plansByTerm)
   const hydrated = useStore(coursePlanStore, (s) => s.hydrated)
 
   return useMemo(() => {
-    if (!enabled || !hydrated || !activeTermId) return []
+    if (!enabled || !hydrated) return []
     return scheduleStore.getState().getAllSessions()
-  }, [enabled, hydrated, activeTermId, plansByTerm])
+  }, [enabled, hydrated, plansByTerm])
 }
 
 export function useScheduledCourses(): ScheduleCourse[] {
   const enabled = isScheduleFeatureEnabled()
-  const activeTermId = useStore(coursePlanStore, (s) => s.activeTermId)
   const plansByTerm = useStore(coursePlanStore, (s) => s.plansByTerm)
   const hydrated = useStore(coursePlanStore, (s) => s.hydrated)
 
   return useMemo(() => {
-    if (!enabled || !hydrated || !activeTermId) return []
+    if (!enabled || !hydrated) return []
     return scheduleStore.getState().getAllCourses()
-  }, [enabled, hydrated, activeTermId, plansByTerm])
+  }, [enabled, hydrated, plansByTerm])
 }
 
 export function useScheduleCount(): number {
   const enabled = isScheduleFeatureEnabled()
-  const activeTermId = useStore(coursePlanStore, (s) => s.activeTermId)
   const plansByTerm = useStore(coursePlanStore, (s) => s.plansByTerm)
   const hydrated = useStore(coursePlanStore, (s) => s.hydrated)
 
   return useMemo(() => {
-    if (!enabled || !hydrated || !activeTermId) return 0
-    return scheduleStore.getState().getAllSessions().length
-  }, [enabled, hydrated, activeTermId, plansByTerm])
+    if (!enabled || !hydrated) return 0
+    // Count all courses from all terms
+    return scheduleStore.getState().getAllCourses().length
+  }, [enabled, hydrated, plansByTerm])
 }
 
 export function useToggleSchedule(): ScheduleState["toggleSession"] {
   const enabled = isScheduleFeatureEnabled()
+  const hydrated = useStore(coursePlanStore, (s) => s.hydrated)
 
   return useCallback<ScheduleState["toggleSession"]>(
     (session, options) => {
-      if (!enabled) return
+      if (!enabled || !hydrated) return
       scheduleStore.getState().toggleSession(session, options)
     },
-    [enabled]
+    [enabled, hydrated]
   )
 }
 
-export function useRemoveFromSchedule(): (courseCode: string, sessionId: string) => void {
+export function useRemoveFromSchedule(): (courseCode: string, sessionId: string, termId?: string) => void {
   const enabled = isScheduleFeatureEnabled()
-  const activeTermId = useStore(coursePlanStore, (s) => s.activeTermId)
+  const hydrated = useStore(coursePlanStore, (s) => s.hydrated)
 
   return useCallback(
-    (courseCode: string, sessionId: string) => {
-      if (!enabled || !activeTermId) return
-      scheduleStore.getState().removeSessionFromCourse(courseCode, sessionId)
+    (courseCode: string, sessionId: string, termId?: string) => {
+      if (!enabled || !hydrated) return
+      // Store will search all terms if termId not provided
+      scheduleStore.getState().removeSessionFromCourse(courseCode, sessionId, termId)
     },
-    [enabled, activeTermId]
+    [enabled, hydrated]
   )
 }
 
 export function useRemoveCourse(): (courseId: string) => void {
   const enabled = isScheduleFeatureEnabled()
-  const activeTermId = useStore(coursePlanStore, (s) => s.activeTermId)
+  const hydrated = useStore(coursePlanStore, (s) => s.hydrated)
 
   return useCallback(
     (courseId: string) => {
-      if (!enabled || !activeTermId) return
+      if (!enabled || !hydrated) return
+      // Store will search all terms to find the course
       scheduleStore.getState().removeCourse(courseId)
     },
-    [enabled, activeTermId]
+    [enabled, hydrated]
   )
 }
 
 export function useClearSchedule(): () => void {
   const enabled = isScheduleFeatureEnabled()
-  const activeTermId = useStore(coursePlanStore, (s) => s.activeTermId)
+  const hydrated = useStore(coursePlanStore, (s) => s.hydrated)
 
   return useCallback(() => {
-    if (!enabled || !activeTermId) return
+    if (!enabled || !hydrated) return
+    // Store method uses getOrCreateActiveTerm() internally
     scheduleStore.getState().clear()
-  }, [enabled, activeTermId])
+  }, [enabled, hydrated])
 }
 
 export function useCanAddToSchedule(
@@ -549,27 +604,29 @@ export function useCanAddToSchedule(
 
 export function useUpdateCourseCreditOverwrite(): (courseId: string, creditOverwrite?: string | number) => void {
   const enabled = isScheduleFeatureEnabled()
-  const activeTermId = useStore(coursePlanStore, (s) => s.activeTermId)
+  const hydrated = useStore(coursePlanStore, (s) => s.hydrated)
 
   return useCallback(
     (courseId: string, creditOverwrite?: string | number) => {
-      if (!enabled || !activeTermId) return
+      if (!enabled || !hydrated) return
+      // Store will search all terms to find the course
       scheduleStore.getState().updateCourseCreditOverwrite(courseId, creditOverwrite)
     },
-    [enabled, activeTermId]
+    [enabled, hydrated]
   )
 }
 
 // Deprecated: For backward compatibility
 export function useUpdateSessionCreditOverwrite(): (sessionId: string, creditOverwrite?: string | number) => void {
   const enabled = isScheduleFeatureEnabled()
-  const activeTermId = useStore(coursePlanStore, (s) => s.activeTermId)
+  const hydrated = useStore(coursePlanStore, (s) => s.hydrated)
 
   return useCallback(
     (sessionId: string, creditOverwrite?: string | number) => {
-      if (!enabled || !activeTermId) return
+      if (!enabled || !hydrated) return
+      // Store will search all terms to find the course
       scheduleStore.getState().updateCourseCreditOverwrite(sessionId, creditOverwrite)
     },
-    [enabled, activeTermId]
+    [enabled, hydrated]
   )
 }

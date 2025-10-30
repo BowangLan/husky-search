@@ -60,7 +60,7 @@ export default function HeaderUser() {
     return (
       <Button
         variant="ghost"
-        className="relative h-8 w-8 rounded-full"
+        className="relative h-8 w-auto flex-1 rounded-full"
         disabled
       />
     )
@@ -73,8 +73,8 @@ export default function HeaderUser() {
       isSignedIn: false,
     })
     return (
-      <Link href="/sign-in">
-        <Button variant="outline" size="sm">
+      <Link href="/sign-in" className="w-full inline-block">
+        <Button variant="outline" size="default" className="w-full">
           Sign In
         </Button>
       </Link>
@@ -110,8 +110,11 @@ export default function HeaderUser() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-8 w-8">
+        <Button
+          variant="ghost"
+          className="relative w-full justify-start"
+        >
+          <Avatar className="h-7 w-7">
             <AvatarImage
               src={user.imageUrl}
               alt={getUserDisplayName(firstName, lastName, email)}
@@ -120,9 +123,12 @@ export default function HeaderUser() {
               {getUserInitials(firstName, lastName, email)}
             </AvatarFallback>
           </Avatar>
+          <span className="text-sm font-medium leading-none">
+            {getUserDisplayName(firstName, lastName, email)}
+          </span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
+      <DropdownMenuContent className="w-56" align="start" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">

@@ -1,49 +1,16 @@
+"use client"
+
 import { useMemo, useRef, useState } from "react"
 import Link from "next/link"
-import {
-  AlertCircle,
-  CalendarMinus,
-  CalendarPlus,
-  Check,
-  Clock,
-  Copy,
-  Info,
-  KeyRound,
-  MapPin,
-  User,
-} from "lucide-react"
-import { toast } from "sonner"
+import { Clock, MapPin, User } from "lucide-react"
 
-import { MyPlanCourseDetail } from "@/types/myplan"
-import {
-  SessionEnrollState,
-  getEnrollOutlineClasses,
-  getEnrollPrimaryClasses,
-  getSessionEnrollState,
-} from "@/lib/session-utils"
-import {
-  capitalize,
-  cn,
-  expandDays,
-  formatTimeString,
-  weekDays,
-} from "@/lib/utils"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+import { type ScheduleCourse, type ScheduleSession } from "@/store/schedule.store"
+import { expandDays, weekDays } from "@/lib/utils"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Separator } from "@/components/ui/separator"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { CopySLNButton } from "@/components/copy-sln-button"
 import { SessionEnrollProgress } from "@/components/session-enroll-progress"
-
-import { useCourseSessions } from "./course-sessions-context"
-import { SessionScheduleToggleButton } from "./session-schedule-toggle-button"
 
 type Meeting = {
   building?: string
@@ -53,10 +20,21 @@ type Meeting = {
   time?: string
 }
 
+type CalendarEvent = {
+  start: number
+  end: number
+  label: string
+  color: string
+  session: ScheduleSession
+  courseCode: string
+  meeting?: Meeting
+}
+
+type LaidOutEvent = CalendarEvent & { col: number; cols: number }
+
 function parseTimeRangeToMinutes(range?: string): [number, number] | null {
   if (!range) return null
-  // Example: "8:30 AM - 9:50 AM"
-  const [start, end] = range.split("-").map((s) => s.trim())
+  const [start, end] = String(range).split("-").map((s) => s.trim())
   const parse = (t: string): number => {
     const m = t.match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)/i)
     if (!m) return 0
@@ -70,47 +48,14 @@ function parseTimeRangeToMinutes(range?: string): [number, number] | null {
   return [parse(start), parse(end)]
 }
 
-const sessionColors = [
-  "var(--color-red-500)",
-  "var(--color-orange-500)",
-  "var(--color-amber-500)",
-  "var(--color-yellow-500)",
-  "var(--color-lime-500)",
-  "var(--color-green-500)",
-  "var(--color-emerald-500)",
-  "var(--color-teal-500)",
-  "var(--color-cyan-500)",
-  "var(--color-sky-500)",
-  "var(--color-blue-500)",
-  "var(--color-indigo-500)",
-  "var(--color-violet-500)",
-  "var(--color-purple-500)",
-  "var(--color-fuchsia-500)",
-  "var(--color-pink-500)",
-  "var(--color-rose-500)",
-]
-
-type CalendarEvent = {
-  start: number
-  end: number
-  label: string
-  color: string
-  session: any
-  meeting?: Meeting
-}
-
-type LaidOutEvent = CalendarEvent & { col: number; cols: number }
-
 function layoutEventsForDay(events: CalendarEvent[]): LaidOutEvent[] {
   const sorted = [...events].sort((a, b) => {
     if (a.start !== b.start) return a.start - b.start
     return a.end - b.end
   })
   const results: LaidOutEvent[] = []
-
   let cluster: CalendarEvent[] = []
   let clusterEnd = -Infinity
-
   const assignCluster = (clusterEvents: CalendarEvent[]) => {
     const columnEnds: number[] = []
     const assigned: Array<{ ev: CalendarEvent; col: number }> = []
@@ -135,7 +80,6 @@ function layoutEventsForDay(events: CalendarEvent[]): LaidOutEvent[] {
       results.push({ ...a.ev, col: a.col, cols })
     }
   }
-
   for (const ev of sorted) {
     if (cluster.length === 0) {
       cluster.push(ev)
@@ -152,72 +96,51 @@ function layoutEventsForDay(events: CalendarEvent[]): LaidOutEvent[] {
     }
   }
   if (cluster.length > 0) assignCluster(cluster)
-
   return results
 }
 
+const sessionColors = [
+  "var(--color-red-500)",
+  "var(--color-orange-500)",
+  "var(--color-amber-500)",
+  "var(--color-yellow-500)",
+  "var(--color-lime-500)",
+  "var(--color-green-500)",
+  "var(--color-emerald-500)",
+  "var(--color-teal-500)",
+  "var(--color-cyan-500)",
+  "var(--color-sky-500)",
+  "var(--color-blue-500)",
+  "var(--color-indigo-500)",
+  "var(--color-violet-500)",
+  "var(--color-purple-500)",
+  "var(--color-fuchsia-500)",
+  "var(--color-pink-500)",
+  "var(--color-rose-500)",
+]
+
 const SESSION_EVENT_CARD_TYPE = "session-event-card"
 
-const CalendarEventCard = ({
+function CalendarEventCard({
   topPct,
   heightPct,
   leftPct,
   widthPct,
   event,
+  sessionData,
 }: {
   topPct: number
   heightPct: number
   leftPct: number
   widthPct: number
   event: CalendarEvent
-}) => {
-  const { data, getSessionEnrollState } = useCourseSessions()
-  const code: string =
-    typeof event.session?.code === "string" ? event.session.code : ""
-  const alphabetic = code.replace(/[^A-Za-z]/g, "")
-  const isTwoLetters = alphabetic.length === 2
-
-  const baseColor = `${event.color}`
-  const borderColor = isTwoLetters
-    ? `color-mix(in oklab, ${baseColor} 40%, transparent)`
-    : baseColor
-  const backgroundColor = isTwoLetters
-    ? `color-mix(in oklab, ${baseColor} 10%, transparent)`
-    : `color-mix(in oklab, ${baseColor} 60%, transparent)`
-
-  const enrollState = getSessionEnrollState(event.session)
-  const enrollStateClasses = getEnrollOutlineClasses(enrollState)
-  const enrollStatePrimaryClasses = getEnrollPrimaryClasses(enrollState)
-  const [copied, setCopied] = useState(false)
+  sessionData?: any
+}) {
   const [isOpen, setIsOpen] = useState(false)
-  const closeTimerRef = useRef<number | null>(null)
   const openTimerRef = useRef<number | null>(null)
-  const enrollCount = Number((event.session as any).enrollCount ?? 0)
-  const enrollMaximum = Number((event.session as any).enrollMaximum ?? 0)
-  const isClosed = enrollCount >= enrollMaximum
-  const capacityPct = Math.min(
-    100,
-    (enrollCount / Math.max(1, enrollMaximum)) * 100
-  )
-
-  const sessionRaw =
-    data?.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
-      (item: any) => item.activityId === event.session.id
-    ) as MyPlanCourseDetail["courseOfferingInstitutionList"][0]["courseOfferingTermList"][0]["activityOfferingItemList"][0]
-
-  const handleCopy = async (value: string | number) => {
-    try {
-      await navigator.clipboard.writeText(String(value))
-      setCopied(true)
-      toast.success(`Copied SLN ${String(value)}`)
-      setTimeout(() => setCopied(false), 1500)
-    } catch (err) {
-      toast.error("Unable to copy. Clipboard may be blocked.")
-    }
-  }
+  const closeTimerRef = useRef<number | null>(null)
 
   const openNow = () => {
-    // using data-session-id to highlight all sessions with the same id
     Array.from(
       document.querySelectorAll(`[data-type="${SESSION_EVENT_CARD_TYPE}"]`)
     ).forEach((el) => {
@@ -233,13 +156,10 @@ const CalendarEventCard = ({
       closeTimerRef.current = null
     }
 
-    openTimerRef.current = window.setTimeout(() => {
-      setIsOpen(true)
-    }, 500)
+    openTimerRef.current = window.setTimeout(() => setIsOpen(true), 500)
   }
 
   const closeSoon = () => {
-    // remove highlight and unhighlight classes
     Array.from(
       document.querySelectorAll(`[data-type="${SESSION_EVENT_CARD_TYPE}"]`)
     ).forEach((el) => {
@@ -247,129 +167,66 @@ const CalendarEventCard = ({
       el.classList.remove("card-unhighlight")
     })
 
-    if (closeTimerRef.current) {
-      window.clearTimeout(closeTimerRef.current)
-      closeTimerRef.current = null
-    }
-
     if (openTimerRef.current) {
       window.clearTimeout(openTimerRef.current)
       openTimerRef.current = null
     }
-
-    closeTimerRef.current = window.setTimeout(() => {
-      setIsOpen(false)
-    }, 120)
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current)
+      closeTimerRef.current = null
+    }
+    closeTimerRef.current = window.setTimeout(() => setIsOpen(false), 120)
   }
-
-  const addCodeRequired =
-    event.session?.enrollStatus === SessionEnrollState["ADD CODE REQUIRED"]
-  const facultyCodeRequired =
-    event.session?.enrollStatus === SessionEnrollState["FACULTY CODE REQUIRED"]
-  const codeRequired = addCodeRequired || facultyCodeRequired
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <div
-          className={cn(
-            "absolute rounded-md text-[11px] leading-tight shadow-sm border px-1.5 py-1 trans",
-            enrollStateClasses
-          )}
+          className="absolute rounded-md text-[11px] leading-tight shadow-sm border px-1.5 py-1 trans"
           style={{
             top: `${topPct}%`,
             height: `${heightPct}%`,
             left: `calc(${leftPct}% + 1px)`,
             width: `calc(${widthPct}% - 2px)`,
+            background: `color-mix(in oklab, ${event.color} 60%, transparent)`,
+            borderColor: event.color,
           }}
           title={event.label}
-          data-session-id={event.session?.id}
+          data-session-id={event.session.id}
           data-type={SESSION_EVENT_CARD_TYPE}
           onMouseEnter={openNow}
           onMouseLeave={closeSoon}
           onFocus={openNow}
           onBlur={closeSoon}
         >
-          <div className="flex items-center">
-            <div
-              className={cn(
-                "size-1.5 rounded-full mr-1",
-                enrollStatePrimaryClasses
-              )}
-            />
-            {/* <div className="truncate">{event.session.code}</div> */}
-            <div className="truncate">
-              {event.session.code}{" "}
-              {event.meeting?.building
-                ? ` • ${event.meeting.building} ${event.meeting.room}`
-                : ""}
-            </div>
-          </div>
+          <div className="truncate">{event.label}</div>
         </div>
       </PopoverTrigger>
       <PopoverContent
         side="bottom"
         align="start"
-        className="py-3 px-4 w-[380px] md:w-[400px]"
+        className="py-3 px-4 w-[360px] md:w-[400px]"
         onOpenAutoFocus={(e) => e.preventDefault()}
         onMouseEnter={openNow}
         onMouseLeave={closeSoon}
       >
         <div className="space-y-3 mb-2">
-          {/* Header */}
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <div
-                  className={cn(
-                    "size-2 rounded-full flex-none",
-                    enrollStatePrimaryClasses
-                  )}
-                />
                 <h3 className="text-base font-semibold tracking-tight truncate">
                   {event.session.code}
                 </h3>
-                <span className="text-[11px] px-1.5 py-0.5 rounded bg-foreground/5 text-muted-foreground uppercase">
-                  {capitalize(event.session.type)}
-                </span>
-                {addCodeRequired && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <KeyRound className="size-4 opacity-70" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      This session requires an add code.
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-                {facultyCodeRequired && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <KeyRound className="size-4 opacity-70" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      This session requires a faculty code.
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-                {sessionRaw?.sectionComments && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="size-4 opacity-70" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-[288px]">
-                        {sessionRaw.sectionComments}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
+                <Link
+                  href={`/courses/${encodeURIComponent(event.courseCode)}`}
+                  className="text-[12px] underline underline-offset-2 hover:text-purple-500 trans"
+                >
+                  {event.courseCode}
+                </Link>
               </div>
             </div>
-
             <div className="shrink-0 flex items-center gap-2">
-              <SessionScheduleToggleButton session={event.session} />
-              <CopySLNButton session={event.session} />
+              <CopySLNButton session={event.session as any} />
             </div>
           </div>
 
@@ -384,7 +241,6 @@ const CalendarEventCard = ({
 
           <Separator />
 
-          {/* Meetings */}
           <div className="space-y-1">
             {Array.isArray((event.session as any).meetingDetailsList) &&
               (event.session as any).meetingDetailsList.length > 0 &&
@@ -430,9 +286,8 @@ const CalendarEventCard = ({
 
           <Separator />
 
-          {/* Enrollment */}
           <div className="space-y-2">
-            <SessionEnrollProgress session={event.session} />
+            <SessionEnrollProgress session={(sessionData ?? event.session) as any} />
           </div>
         </div>
       </PopoverContent>
@@ -440,8 +295,20 @@ const CalendarEventCard = ({
   )
 }
 
-export const CourseSessionsCalendarView = () => {
-  const { displayedSessions } = useCourseSessions()
+export function ScheduleCalendar({
+  courses,
+  sessionDataMap,
+}: {
+  courses: ScheduleCourse[]
+  sessionDataMap?: Map<string, any>
+}) {
+  const courseColors = useMemo(() => {
+    const colorMap = new Map<string, string>()
+    courses.forEach((c, idx) => {
+      colorMap.set(c.courseCode, sessionColors[idx % sessionColors.length])
+    })
+    return colorMap
+  }, [courses])
 
   const eventsByDay = useMemo(() => {
     const baseMap: Record<string, Array<CalendarEvent>> = {
@@ -453,27 +320,27 @@ export const CourseSessionsCalendarView = () => {
       Sa: [],
       Su: [],
     }
-
-    displayedSessions.forEach((session, idx) => {
-      const color = sessionColors[idx % sessionColors.length]
-      const details: Meeting[] = Array.isArray(session.meetingDetailsList)
-        ? session.meetingDetailsList
-        : []
-      details.forEach((m) => {
-        const range = parseTimeRangeToMinutes(m.time)
-        const days = expandDays(m.days)
-        if (!range || days.length === 0) return
-        const [start, end] = range
-        const label = `${session.code}${m.building ? ` • ${m.building}` : ""}${
-          m.room ? ` ${m.room}` : ""
-        }`
-        days.forEach((d) => {
-          if (!baseMap[d]) return
-          baseMap[d].push({ start, end, label, color, session, meeting: m })
+    courses.forEach((course) => {
+      const color = courseColors.get(course.courseCode) || sessionColors[0]
+      course.sessions.forEach((session) => {
+        const details: Meeting[] = Array.isArray(session.meetingDetailsList)
+          ? session.meetingDetailsList
+          : []
+        details.forEach((m) => {
+          const range = parseTimeRangeToMinutes(m.time)
+          const days = expandDays(m.days)
+          if (!range || days.length === 0) return
+          const [start, end] = range
+          const label = `${course.courseCode} ${session.code}${
+            m.building ? ` • ${m.building}` : ``
+          }${m.room ? ` ${m.room}` : ``}`
+          days.forEach((d) => {
+            if (!baseMap[d]) return
+            baseMap[d].push({ start, end, label, color, session, meeting: m, courseCode: course.courseCode })
+          })
         })
       })
     })
-    // Layout concurrent events into columns per day
     const laidOut: Record<string, Array<LaidOutEvent>> = {
       M: [],
       T: [],
@@ -487,26 +354,41 @@ export const CourseSessionsCalendarView = () => {
       laidOut[d] = layoutEventsForDay(baseMap[d])
     })
     return laidOut
-  }, [displayedSessions])
+  }, [courses, courseColors])
 
-  // Layout window and sizing
-  const startOfDay = 8 * 60 // 8:00 AM
-  const endOfDay = 22 * 60 // 10:00 PM
+  const startOfDay = 8 * 60
+  const endOfDay = 22 * 60
   const totalMinutes = endOfDay - startOfDay
-  const intervals = (endOfDay - startOfDay) / 60 // 12 one-hour blocks
+  const intervals = (endOfDay - startOfDay) / 60
   const rowPx = 64
-  const viewHeight = intervals * rowPx // 576px
-
-  const hourLabels = Array.from({ length: intervals + 1 }, (_, i) => {
-    const minutes = startOfDay + i * 60
-    const hour = Math.floor(minutes / 60)
-    return `${((hour + 11) % 12) + 1} ${hour >= 12 ? "PM" : "AM"}`
-  })
+  const viewHeight = intervals * rowPx
 
   return (
-    <div className="w-full overflow-x-auto">
-      <div className="min-w-[960px]">
-        {/* Header days row */}
+    <div className="flex-1 flex flex-col overflow-hidden px-4 py-4">
+      {courses.length > 0 && (
+        <div className="pb-3 flex flex-wrap gap-x-4 gap-y-2 flex-none">
+          {courses.map((c) => (
+            <div key={`legend-${c.id}`} className="flex items-center gap-2 min-w-0">
+              <div
+                className="size-2 rounded-full"
+                style={{
+                  background: courseColors.get(c.courseCode) || sessionColors[0],
+                }}
+              />
+              <div className="text-xs min-w-0">
+                <Link
+                  href={`/courses/${encodeURIComponent(c.courseCode)}`}
+                  className="underline underline-offset-2 hover:text-purple-500 trans"
+                >
+                  {c.courseCode}
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="overflow-auto flex-1">
         <div className="grid grid-cols-8">
           <div />
           {weekDays.map((d) => (
@@ -520,26 +402,25 @@ export const CourseSessionsCalendarView = () => {
         </div>
 
         <div className="grid grid-cols-8">
-          {/* Time axis */}
           <div className="col-span-1 border-r border-foreground/10">
-            {hourLabels.map((label, i) => (
-              <div
-                key={`t-${i}`}
-                className="text-[11px] text-muted-foreground px-4 flex items-start justify-end"
-                style={{ transform: "translateY(-7px)", height: `${rowPx}px` }}
-              >
-                {label}
-              </div>
-            ))}
+            {Array.from({ length: intervals + 1 }, (_, i) => {
+              const minutes = startOfDay + i * 60
+              const hour = Math.floor(minutes / 60)
+              const label = `${((hour + 11) % 12) + 1} ${hour >= 12 ? "PM" : "AM"}`
+              return (
+                <div
+                  key={`t-${i}`}
+                  className="text-[11px] text-muted-foreground px-2 flex items-start justify-end"
+                  style={{ transform: "translateY(-7px)", height: `${rowPx}px` }}
+                >
+                  {label}
+                </div>
+              )
+            })}
           </div>
 
-          {/* Days columns */}
           <div className="col-span-7">
-            <div
-              className="grid grid-cols-7 relative"
-              style={{ height: `${viewHeight}px` }}
-            >
-              {/* Hour gridlines */}
+            <div className="grid grid-cols-7 relative" style={{ height: `${viewHeight}px` }}>
               {Array.from({ length: intervals + 1 }, (_, i) => (
                 <div
                   key={`hl-${i}`}
@@ -549,16 +430,13 @@ export const CourseSessionsCalendarView = () => {
               ))}
 
               {weekDays.map((d) => (
-                <div
-                  key={`col-${d}`}
-                  className="relative border-r border-foreground/10 last:border-r-0"
-                >
+                <div key={`col-${d}`} className="relative border-r border-foreground/10 last:border-r-0">
                   {eventsByDay[d].map((ev, i) => {
-                    const topPct =
-                      ((ev.start - startOfDay) / totalMinutes) * 100
+                    const topPct = ((ev.start - startOfDay) / totalMinutes) * 100
                     const heightPct = ((ev.end - ev.start) / totalMinutes) * 100
                     const widthPct = 100 / (ev.cols || 1)
                     const leftPct = (ev.col || 0) * widthPct
+                    const sessionData = sessionDataMap?.get(ev.session.id)
                     return (
                       <CalendarEventCard
                         key={`${ev.session.id}-${i}`}
@@ -567,6 +445,7 @@ export const CourseSessionsCalendarView = () => {
                         leftPct={leftPct}
                         widthPct={widthPct}
                         event={ev}
+                        sessionData={sessionData}
                       />
                     )
                   })}
@@ -579,3 +458,7 @@ export const CourseSessionsCalendarView = () => {
     </div>
   )
 }
+
+export default ScheduleCalendar
+
+

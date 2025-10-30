@@ -73,6 +73,7 @@
 
   /* Shadows */
   --shadow-shadow: var(--shadow);
+  --shadow-rich: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
 
   /* Typography */
   --font-weight-base: 500;

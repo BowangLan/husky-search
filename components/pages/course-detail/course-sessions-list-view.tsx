@@ -51,7 +51,7 @@ export const SessionRowDesktop = ({
       >
         <div>
           <div className={cn("flex items-center gap-2")}>
-            {pinned && <Pin className="size-3.5 text-violet-500" />}
+            {pinned && <Pin className="size-3.5 text-primary" />}
             <h3 className="text-sm md:text-base font-medium tracking-tight">
               {session.code}
             </h3>
@@ -193,6 +193,7 @@ export const SessionRowMobile = ({
   pinned?: boolean
 }) => {
   const { data } = useCourseSessions()
+  const isScheduled = useIsSessionScheduled(session.id)
 
   const sessionRaw =
     data?.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
@@ -201,7 +202,13 @@ export const SessionRowMobile = ({
 
   return (
     <div key={session.id} className="group relative lg:hidden">
-      <div className="px-4 py-4 flex flex-col gap-3 w-full">
+      <div
+        className={cn(
+          "px-4 py-4 flex flex-col gap-3 w-full",
+          isScheduled &&
+            "bg-gradient-to-r dark:from-primary/40 dark:to-primary/60 from-primary/5 to-primary/15"
+        )}
+      >
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           {/* Code & Type */}

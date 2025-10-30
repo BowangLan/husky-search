@@ -95,7 +95,7 @@ export const PopularCourses = () => {
         subtitle="Most popular courses at UW by seat count"
         className="pb-0 lg:pb-0"
       />
-      <div className="flex flex-row gap-3 py-4 z-[21] w-full overflow-x-auto isolate sticky top-16 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+      <div className="flex flex-row gap-3 py-4 z-[21] w-full overflow-x-auto isolate sticky top-0 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
         {firstFewMajors.map((major) => (
           <Button
             key={major.code}

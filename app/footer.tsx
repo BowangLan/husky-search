@@ -71,7 +71,7 @@ export function Footer() {
   return (
     <footer className="border-t border-border/50">
       <div className="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
-        <div className="flex justify-center items-center gap-x-6 md:order-2">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-0 justify-center items-center gap-x-6 md:order-2">
           {navigation.map((item) => (
             <a
               key={item.name}

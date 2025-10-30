@@ -13,14 +13,18 @@ export const siteConfig = {
       title: "Majors",
       href: "/majors",
     },
+    {
+      title: "Schedule",
+      href: "/schedule",
+    },
     // {
     //   title: "Plan",
     //   href: "/plan",
     // },
-    {
-      title: "About",
-      href: "/about",
-    },
+    // {
+    //   title: "About",
+    //   href: "/about",
+    // },
   ],
   // links: {
   //   twitter: "https://twitter.com/uw",

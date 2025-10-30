@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 
 import { CopySLNButton } from "../copy-sln-button"
 import { ExternalLink } from "../ui/external-link"
+import { RichButton } from "../ui/rich-button"
 
 type ScheduledSessionCardProps = {
   session: {
@@ -32,6 +33,8 @@ type ScheduledSessionCardProps = {
   sessionData?: MyplanCourseTermSession | null
   isLoading?: boolean
   onRemove: () => void
+  showDetails?: boolean
+  compact?: boolean
 }
 
 const SESSION_INDENT = 40
@@ -41,6 +44,8 @@ export function ScheduledSessionCard({
   sessionData,
   isLoading = false,
   onRemove,
+  showDetails = true,
+  compact = false,
 }: ScheduledSessionCardProps) {
   // Determine the state: loading, loaded with data, or error (no data)
   const hasError = !isLoading && !sessionData
@@ -92,9 +97,9 @@ export function ScheduledSessionCard({
   }
 
   return (
-    <div key={session.id} className="px-3 py-3">
+    <div key={session.id} className={cn(compact ? "px-3 py-0" : "px-3 py-3")}>
       {/* Session header with section and status */}
-      <div className="flex items-center gap-2 mb-2">
+      <div className={cn("flex items-center gap-2", compact ? "" : "mb-2")}>
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="font-semibold text-sm w-6 inline-block">{code}</span>
           {registrationCode ? (
@@ -131,33 +136,34 @@ export function ScheduledSessionCard({
           <Badge variant={statusVariant} size="flat-sm">
             {statusText}
           </Badge>
-          {isLoading ? (
-            <Badge variant="secondary" size="flat-sm">
-              Loading...
-            </Badge>
-          ) : hasError ? (
-            <Badge variant="red" size="flat-sm">
-              Failed to load
-            </Badge>
-          ) : sessionData && enrollMaximum > 0 ? (
-            <Badge variant="secondary" size="flat-sm">
-              {availableSeats} AVAIL OF {enrollMaximum}
-            </Badge>
-          ) : null}
+          {showDetails &&
+            (isLoading ? (
+              <Badge variant="secondary" size="flat-sm">
+                Loading...
+              </Badge>
+            ) : hasError ? (
+              <Badge variant="red" size="flat-sm">
+                Failed to load
+              </Badge>
+            ) : sessionData && enrollMaximum > 0 ? (
+              <Badge variant="secondary" size="flat-sm">
+                {availableSeats} AVAIL OF {enrollMaximum}
+              </Badge>
+            ) : null)}
         </div>
 
-        <Button
-          size="icon"
+        <RichButton
+          tooltip="Remove session"
+          size={compact ? "icon-xs" : "icon-sm"}
           variant="ghost"
-          className="size-7"
           onClick={onRemove}
         >
           <X />
-        </Button>
+        </RichButton>
       </div>
 
       {/* Meeting mode - show if we have meeting details */}
-      {meetingDetailsList && meetingDetailsList.length > 0 && (
+      {showDetails && meetingDetailsList && meetingDetailsList.length > 0 && (
         <div
           className="text-xs text-muted-foreground mb-2"
           style={{ marginLeft: SESSION_INDENT }}
@@ -170,34 +176,39 @@ export function ScheduledSessionCard({
       )}
 
       {/* Meeting details */}
-      <div className="space-y-1.5 mb-3" style={{ marginLeft: SESSION_INDENT }}>
-        {(meetingDetailsList ?? []).map((m, i) => (
-          <div key={i} className="text-xs">
-            <div className="flex items-center gap-1.5 text-foreground">
-              {m.days && m.time ? (
-                <>
-                  <span className="font-medium">{m.days}</span>
-                  <span>{m.time}</span>
-                </>
-              ) : (
-                <span>Meeting time and location: --</span>
-              )}
-              {m.building && m.room && (
-                <>
-                  <span className="ml-auto uppercase font-medium">
-                    {m.building} {m.room}
-                  </span>
-                </>
-              )}
+      {showDetails && (
+        <div
+          className="space-y-1.5 mb-3"
+          style={{ marginLeft: SESSION_INDENT }}
+        >
+          {(meetingDetailsList ?? []).map((m, i) => (
+            <div key={i} className="text-xs">
+              <div className="flex items-center gap-1.5 text-foreground">
+                {m.days && m.time ? (
+                  <>
+                    <span className="font-medium">{m.days}</span>
+                    <span>{m.time}</span>
+                  </>
+                ) : (
+                  <span>Meeting time and location: --</span>
+                )}
+                {m.building && m.room && (
+                  <>
+                    <span className="ml-auto uppercase font-medium">
+                      {m.building} {m.room}
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-        {instructor && instructor !== "--" ? (
-          <div className="text-xs text-foreground">
-            Instructor: {instructor}
-          </div>
-        ) : null}
-      </div>
+          ))}
+          {instructor && instructor !== "--" ? (
+            <div className="text-xs text-foreground">
+              Instructor: {instructor}
+            </div>
+          ) : null}
+        </div>
+      )}
 
       {/* Enrollment restrictions notice */}
       {/* {registrationCode && qtryr && (

@@ -93,7 +93,7 @@ export const Page = ({
   return (
     <div
       className={cn(
-        "bg-gradient-to-br from-background via-background to-muted/20 pb-16",
+        "bg-gradient-to-br pt-6 relative from-background via-background to-muted/20",
         className,
         pagePadding ? "px-page mx-page" : ""
       )}

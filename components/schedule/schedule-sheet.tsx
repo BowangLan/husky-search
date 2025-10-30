@@ -5,6 +5,7 @@ import Link from "next/link"
 import { api } from "@/convex/_generated/api"
 import {
   useClearSchedule,
+  useRemoveCourse,
   useRemoveFromSchedule,
   useScheduledCourses,
   useUpdateCourseCreditOverwrite,
@@ -17,6 +18,7 @@ import {
   Copy,
   Info,
   MoreVertical,
+  Trash2,
   X,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -25,6 +27,13 @@ import { isScheduleFeatureEnabled } from "@/config/features"
 import { expandDays, weekDays } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Sheet,
   SheetContent,
@@ -50,6 +59,7 @@ export function ScheduleSheet({
   if (!isScheduleFeatureEnabled()) return null
   const courses = useScheduledCourses()
   const remove = useRemoveFromSchedule()
+  const removeCourse = useRemoveCourse()
   const clear = useClearSchedule()
   const updateCreditOverwrite = useUpdateCourseCreditOverwrite()
   const [copied, setCopied] = useState(false)
@@ -414,13 +424,31 @@ export function ScheduleSheet({
                           </div>
                         ) : null}
                       </div>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-6 shrink-0"
-                      >
-                        <MoreVertical className="size-3" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="size-6 shrink-0"
+                          >
+                            <MoreVertical className="size-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              removeCourse(c.id)
+                              toast.success(
+                                `Removed ${c.courseCode} from schedule`
+                              )
+                            }}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="text-destructive" />
+                            Remove course
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
 
                     {/* Sessions under course */}

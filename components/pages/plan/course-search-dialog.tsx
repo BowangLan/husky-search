@@ -1,8 +1,13 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
-import { Search, Plus, Check, Loader2 } from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
+import { useAddCourse, useTerms } from "@/store/course-plan.store"
+import { Check, Loader2, Plus, Search } from "lucide-react"
+import { toast } from "sonner"
+
+import { useStaticCourseCodes } from "@/hooks/use-static-course-data"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -11,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Select,
   SelectContent,
@@ -19,10 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useAddCourse, useTerms } from "@/store/course-plan.store"
-import { useStaticCourseCodes } from "@/hooks/use-static-course-data"
-import { toast } from "sonner"
-import { ScrollArea } from "@/components/ui/scroll-area"
 
 type CourseSearchDialogProps = {
   open: boolean
@@ -65,7 +66,9 @@ export function CourseSearchDialog({
     const normalized = searchQuery.replace(/\s+/g, "").toUpperCase()
 
     return allCourseCodes
-      .filter((code) => code.replace(/\s+/g, "").toUpperCase().includes(normalized))
+      .filter((code) =>
+        code.replace(/\s+/g, "").toUpperCase().includes(normalized)
+      )
       .slice(0, 50) // Limit to 50 results
   }, [searchQuery, allCourseCodes])
 
@@ -87,6 +90,7 @@ export function CourseSearchDialog({
       addCourse(targetTermId, {
         courseCode,
         credits: 5, // Default credits, user can edit later
+        sessions: [],
       })
 
       // Add to recently added set
@@ -107,7 +111,8 @@ export function CourseSearchDialog({
         <DialogHeader>
           <DialogTitle>Search Courses</DialogTitle>
           <DialogDescription>
-            Search for courses to add to your plan. Click on a course code to view details.
+            Search for courses to add to your plan. Click on a course code to
+            view details.
           </DialogDescription>
         </DialogHeader>
 
