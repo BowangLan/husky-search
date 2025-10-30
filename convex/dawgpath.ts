@@ -7,10 +7,9 @@ export const dawgpathCourseFields = {
   courseDescription: v.string(),
   coursePrerequisites: v.optional(v.array(v.string())),
   courseCoi: v.optional(v.array(v.string())),
-  detailData: v.optional(v.any()),
+  detailData: v.optional(v.any()), // type: DawgpathCourseDetail
   detailDataLastUpdated: v.optional(v.number()),
 }
-
 
 export type DawgpathCourseDetail = {
   coi_data: {
@@ -20,7 +19,7 @@ export type DawgpathCourseDetail = {
     percent_in_range: number
   }
   concurrent_courses: {
-    [key: string]: {
+    [course_code: string]: { // e.g. "AMATH 353"
       coi_score: number
       is_bottleneck: boolean
       is_gateway: boolean
@@ -45,50 +44,64 @@ export type DawgpathCourseDetail = {
     x: {
       edges: {
         from: {
+          // e.g. "722"
           [key: string]: string
-        }
+        },
         pr_and_or: {
+          // e.g. "722"
           [key: string]: string
-        }
+        },
         pr_concurrency: {
+          // e.g. "722"
           [key: string]: string
-        }
+        },
         pr_cr_s: {
+          // e.g. "722"
           [key: string]: string
-        }
+        },
         pr_grade_min: {
+          // e.g. "722"
           [key: string]: string
-        }
+        },
         pr_group_no: {
+          // e.g. "722"
           [key: string]: number
-        }
+        },
         pr_seq_no: {
+          // e.g. "722"
           [key: string]: number
-        }
+        },
         to: {
+          // e.g. "722"
           [key: string]: string
-        }
+        },
       }
       nodes: {
         "course.level": {
+          // e.g. "0"
           [key: string]: number
-        }
+        },
         course_branch: any
         course_cat_omit: {
+          // e.g. "0"
           [key: string]: boolean
-        }
+        },
         course_college: {
+          // e.g. "0"
           [key: string]: string
-        }
+        },
         course_number: {
+          // e.g. "0"
           [key: string]: number
-        }
+        },
         course_title: {
+          // e.g. "0"
           [key: string]: string
-        }
+        },
         department_abbrev: {
+          // e.g. "0"
           [key: string]: string
-        }
+        },
         diversity_crs: any
         english_comp: any
         indiv_society: any
@@ -140,6 +153,7 @@ export type DawgpathCourseDetail = {
   }
   prereq_string: string
 }
+
 
 
 export const dawgpathCourseObj = v.object(dawgpathCourseFields);
