@@ -7,6 +7,8 @@ import { CourseCardGridView } from "@/components/course-card"
 import { PageWithHeaderLayout } from "@/components/page-wrapper"
 import { Section, SectionContent, SectionHeader } from "@/components/section"
 
+export const dynamic = 'force-dynamic'
+
 export default async function Page({
   params,
   searchParams,

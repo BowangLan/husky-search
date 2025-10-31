@@ -9,8 +9,6 @@ import { RecentMajorsSection } from "@/components/pages/home/recent-majors-secti
 
 import { Footer } from "../footer"
 
-export const experimental_ppr = true
-
 export const metadata: Metadata = {
   title: "Husky Search - Discover University of Washington Courses and Majors",
   description:

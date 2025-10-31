@@ -1,3 +1,6 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import { MessageCircle } from "lucide-react"
 
 import { externalLinks, siteConfig } from "@/config/site"
@@ -64,10 +67,16 @@ const navigation = [
   //       />
   //     </svg>
   //   ),
-  // },
+  //   },
 ]
 
 export function Footer() {
+  const [currentYear, setCurrentYear] = useState<number>(2024)
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear())
+  }, [])
+
   return (
     <footer className="border-t border-border/50">
       <div className="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
@@ -82,7 +91,11 @@ export function Footer() {
               <item.icon aria-hidden="true" className="size-6" />
             </a>
           ))}
-          <a href={externalLinks.feedback} target="_blank" rel="noopener noreferrer">
+          <a
+            href={externalLinks.feedback}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <Button
               variant="outline"
               className="h-9 px-3"
@@ -95,8 +108,7 @@ export function Footer() {
         </div>
         <div className="mt-8 text-center md:text-left text-sm/6 font-normal text-muted-foreground md:order-1 md:mt-0">
           <p className="mb-2">
-            &copy; {new Date().getFullYear()} {siteConfig.name}. All rights
-            reserved.
+            &copy; {currentYear} {siteConfig.name}. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground/80">
             This site is not officially affiliated with the University of

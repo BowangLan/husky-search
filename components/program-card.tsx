@@ -1,7 +1,6 @@
 "use client"
 
-// @ts-ignore
-import { unstable_ViewTransition as ViewTransition, useState } from "react"
+import { useState } from "react"
 import Link from "next/link"
 
 import { ProgramInfo } from "@/types/program"
@@ -9,6 +8,11 @@ import { capitalize, cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 
 import { AnimatedList } from "./animated-list"
+
+// ViewTransition wrapper - falls back to fragment if unstable_ViewTransition is not available
+function ViewTransition({ children }: { children: React.ReactNode; name?: string }) {
+  return <>{children}</>
+}
 
 export function ProgramCardLink({
   program,

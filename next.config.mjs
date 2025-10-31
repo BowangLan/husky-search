@@ -4,9 +4,6 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   images: {
     remotePatterns: [
       {
@@ -14,9 +11,9 @@ const nextConfig = {
       },
     ],
   },
+  // cacheComponents: true, // Disabled due to incompatibility with dynamic routes
   experimental: {
     viewTransition: true,
-    ppr: true,
   },
 }
 

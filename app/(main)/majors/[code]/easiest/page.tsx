@@ -6,6 +6,8 @@ import { DOMAIN } from "@/config/site"
 import { capitalize } from "@/lib/utils"
 import { EasiestCoursesPage } from "@/components/pages/easiest-courses-page"
 
+export const dynamic = 'force-dynamic'
+
 export const generateMetadata = async ({
   params,
 }: {

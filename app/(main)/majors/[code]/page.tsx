@@ -8,6 +8,8 @@ import { ProgramDetailPage } from "@/components/pages/program-detail-page"
 
 const ALL_COURSES_LIMIT = 200
 
+export const dynamic = 'force-dynamic'
+
 export const generateMetadata = async ({
   params,
 }: {
