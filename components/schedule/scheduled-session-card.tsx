@@ -32,7 +32,7 @@ type ScheduledSessionCardProps = {
   }
   sessionData?: MyplanCourseTermSession | null
   isLoading?: boolean
-  onRemove: () => void
+  onRemove?: () => void
   showDetails?: boolean
   compact?: boolean
 }
@@ -152,14 +152,16 @@ export function ScheduledSessionCard({
             ) : null)}
         </div>
 
-        <RichButton
-          tooltip="Remove session"
-          size={compact ? "icon-xs" : "icon-sm"}
-          variant="ghost"
-          onClick={onRemove}
-        >
-          <X />
-        </RichButton>
+        {onRemove && (
+          <RichButton
+            tooltip="Remove session"
+            size={compact ? "icon-xs" : "icon-sm"}
+            variant="ghost"
+            onClick={onRemove}
+          >
+            <X />
+          </RichButton>
+        )}
       </div>
 
       {/* Meeting mode - show if we have meeting details */}

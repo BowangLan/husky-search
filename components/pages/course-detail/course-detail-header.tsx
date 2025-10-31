@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { api } from "@/convex/_generated/api"
 import { useQuery } from "convex/react"
@@ -12,6 +14,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { getQuarterColor } from "@/components/course-modules"
+import { CourseScheduleButton } from "./course-schedule-button"
 
 export const CourseDetailHeader = ({ courseCode }: { courseCode: string }) => {
   const courseData = useQuery(api.courses.getByCourseCode, { courseCode })
@@ -56,6 +59,9 @@ export const CourseDetailHeader = ({ courseCode }: { courseCode: string }) => {
   const offeredQuarterBadges = orderedQuarterMeta.filter((q) =>
     normalizedOfferedTerms.includes(q.key)
   )
+
+  const courseTitle = courseData.myplanCourse?.title
+  const courseCredit = courseData.myplanCourse?.credit
 
   return (
     // my should be the same as page-wrapper
@@ -175,6 +181,12 @@ export const CourseDetailHeader = ({ courseCode }: { courseCode: string }) => {
 
         {/* Desktop */}
         <div className="items-center flex-row gap-6 md:flex hidden">
+          <CourseScheduleButton
+            courseCode={courseCode}
+            courseTitle={courseTitle}
+            courseCredit={courseCredit}
+            variant="desktop"
+          />
           <ExternalLink
             href={`https://myplan.uw.edu/course/#/courses/${courseCode}`}
           >
@@ -190,6 +202,12 @@ export const CourseDetailHeader = ({ courseCode }: { courseCode: string }) => {
 
         {/* Mobile */}
         <div className="gap-2 md:hidden flex w-full flex-row items-center justify-around mt-4">
+          <CourseScheduleButton
+            courseCode={courseCode}
+            courseTitle={courseTitle}
+            courseCredit={courseCredit}
+            variant="mobile"
+          />
           <ExternalLink
             href={`https://myplan.uw.edu/course/#/courses/${courseCode}`}
             className="flex-1 text-center justify-center bg-button-accent-hover-active rounded-md py-2.5 hover:text-foreground"

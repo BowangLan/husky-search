@@ -1,7 +1,9 @@
 "use client"
 
-import { useCanAddToSchedule } from "@/store/schedule.store"
+import * as React from "react"
+import { useCanAddToSchedule, useHasTimeConflict } from "@/store/schedule.store"
 import {
+  AlertTriangle,
   CalendarMinus,
   CalendarPlus,
   Check,
@@ -21,16 +23,21 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { useSchedulePreview } from "@/components/schedule/schedule-preview-context"
 
 import { useScheduleToggleWithToasts } from "./use-schedule-toggle"
 
 export const SessionScheduleToggleButton = ({ session }: { session: any }) => {
   if (!isScheduleFeatureEnabled()) return null
-  const { isScheduled, canAdd, triggerToggle } =
-    useScheduleToggleWithToasts(session)
+  const { isScheduled, canAdd, triggerToggle } = useScheduleToggleWithToasts(session)
+  const hasTimeConflictCheck = useHasTimeConflict(session)
 
-  // Allow switching between sessions
+  // Check for time conflicts independently - prioritize this over switch reasons
+  const hasTimeConflict = !isScheduled && hasTimeConflictCheck
+
+  // Allow switching between sessions (but only if no time conflict)
   const canSwitch =
+    !hasTimeConflict &&
     !canAdd.ok &&
     (canAdd.reason === "switch-single-letter" ||
       canAdd.reason === "switch-double-letter")
@@ -55,7 +62,8 @@ export const SessionScheduleToggleButton = ({ session }: { session: any }) => {
             size="sm"
             className={cn(
               "h-8 px-0 w-8 gap-1 text-xs",
-              isScheduled || (isDisabled && "text-foreground/80")
+              isScheduled || (isDisabled && "text-foreground/80"),
+              hasTimeConflict && "text-orange-500"
             )}
             disabled={isDisabled}
             onClick={triggerToggle}
@@ -68,6 +76,10 @@ export const SessionScheduleToggleButton = ({ session }: { session: any }) => {
                 {/* <Check className="size-4" /> */}
                 <X className="size-4" />
                 {/* Remove */}
+              </>
+            ) : hasTimeConflict ? (
+              <>
+                <AlertTriangle className="size-4" />
               </>
             ) : (
               <>
@@ -83,6 +95,8 @@ export const SessionScheduleToggleButton = ({ session }: { session: any }) => {
       <TooltipContent>
         {isScheduled
           ? "Remove from schedule"
+          : hasTimeConflict
+          ? "Time conflict with your schedule"
           : canAdd.ok
           ? "Add to schedule"
           : canAdd.reason === "switch-single-letter" ||

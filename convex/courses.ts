@@ -50,7 +50,7 @@ export const getByCourseCode = query({
       };
     }
 
-    const currentTermData: MyplanCourseTermData[] = (await Promise.all(currentTerms.map(async (term) => {
+    const currentTermData: MyplanCourseTermData[] = (await Promise.all(currentTerms.map(async (term: string) => {
       const termData = await ctx.db.query("myplanCourseTermData")
         .withIndex("by_course_code_and_term_id", (q) => q.eq("courseCode", args.courseCode).eq("termId", term))
         .first();
@@ -70,7 +70,7 @@ export const getByCourseCode = query({
         sessions: sessions.map((session) => session.sessionData),
       };
     })))
-      .filter((item) => item !== null)
+      .filter((item): item is MyplanCourseTermData => item !== null)
 
     return {
       myplanCourse: {
@@ -327,6 +327,84 @@ export const getSessionsByIds = query({
     // Filter out nulls and return only found sessions
     return sessions.filter((s) => s !== null);
   }
+})
+
+export const getCoursesWithSessions = query({
+  args: {
+    courseCodes: v.array(v.string()),
+  },
+  handler: async (ctx, args): Promise<Array<{
+    courseCode: string
+    courseTitle?: string
+    courseCredit?: string | number
+    sessions: any[]
+  }>> => {
+    const currentTerms: string[] = await ctx.runQuery(api.kvStore.getCurrentTerms);
+    
+    const courses: Array<{
+      courseCode: string
+      courseTitle?: string
+      courseCredit?: string | number
+      sessions: any[]
+    } | null> = await Promise.all(
+      args.courseCodes.map(async (courseCode: string): Promise<{
+        courseCode: string
+        courseTitle?: string
+        courseCredit?: string | number
+        sessions: any[]
+      } | null> => {
+        const myplanCourse = await ctx.db
+          .query("myplanCourses")
+          .withIndex("by_course_code", (q) => q.eq("courseCode", courseCode))
+          .first();
+
+        if (!myplanCourse) {
+          return null;
+        }
+
+        // Get sessions for current terms
+        const sessionsByTerm: Array<{
+          termId: string
+          sessions: any[]
+        }> = await Promise.all(
+          currentTerms.map(async (termId: string): Promise<{
+            termId: string
+            sessions: any[]
+          }> => {
+            const sessions = await ctx.db
+              .query("myplanCourseSessions")
+              .withIndex("by_course_code_and_term_id", (q) =>
+                q.eq("courseCode", courseCode).eq("termId", termId)
+              )
+              .collect();
+
+            return {
+              termId,
+              sessions: sessions.map((s) => s.sessionData),
+            };
+          })
+        );
+
+        // Flatten all sessions across terms
+        const allSessions: any[] = sessionsByTerm.flatMap((term: { termId: string; sessions: any[] }) => term.sessions);
+
+        return {
+          courseCode: myplanCourse.courseCode,
+          courseTitle: myplanCourse.title,
+          courseCredit: myplanCourse.credit,
+          sessions: allSessions,
+        };
+      })
+    );
+
+    // Filter out nulls
+    return courses.filter((c): c is {
+      courseCode: string
+      courseTitle?: string
+      courseCredit?: string | number
+      sessions: any[]
+    } => c !== null);
+  },
 })
 
 export const listOverviewByStatsEnrollMax = query({

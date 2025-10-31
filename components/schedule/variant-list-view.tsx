@@ -1,15 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { api } from "@/convex/_generated/api"
-import {
-  useRemoveCourse,
-  useRemoveFromSchedule,
-  useScheduledCourses,
-} from "@/store/schedule.store"
-import { useQuery } from "convex/react"
 import { Info } from "lucide-react"
-import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -23,11 +15,26 @@ import {
   CourseCardCompact,
   CourseCardDetailed,
 } from "@/components/schedule/schedule-course-card"
+import { type ScheduleCourse } from "@/store/schedule.store"
 
 const RIGHT_SIDEBAR_DETAILS_COOKIE_NAME = "right_sidebar_details"
 const RIGHT_SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 
-export function ScheduledSessionListView() {
+type VariantListViewProps = {
+  courses: ScheduleCourse[]
+  sessionDataMap: Map<string, any>
+  isLoadingSessionData: boolean
+  onRemoveCourse: (courseId: string) => void
+  onRemoveSession: (courseCode: string, sessionId: string) => void
+}
+
+export function VariantListView({
+  courses,
+  sessionDataMap,
+  isLoadingSessionData,
+  onRemoveCourse,
+  onRemoveSession,
+}: VariantListViewProps) {
   // Details on/off state (persist to cookie)
   const [showDetails, setShowDetails] = React.useState<boolean>(() => {
     if (typeof document === "undefined") return true
@@ -44,29 +51,6 @@ export function ScheduledSessionListView() {
       return next
     })
   }, [])
-  const courses = useScheduledCourses()
-  const remove = useRemoveFromSchedule()
-  const removeCourse = useRemoveCourse()
-
-  // Fetch session data from Convex
-  const sessionIds = courses.flatMap((c) => c.sessions.map((s) => s.id))
-  const sessionDataList = useQuery(
-    api.courses.getSessionsByIds,
-    sessionIds.length > 0 ? { sessionIds } : "skip"
-  )
-  const isLoadingSessionData =
-    sessionDataList === undefined && sessionIds.length > 0
-
-  // Create a map of sessionId -> sessionData for quick lookup
-  const sessionDataMap = React.useMemo(() => {
-    const map = new Map()
-    if (sessionDataList) {
-      sessionDataList.forEach((data) => {
-        map.set(data.id, data)
-      })
-    }
-    return map
-  }, [sessionDataList])
 
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -99,12 +83,11 @@ export function ScheduledSessionListView() {
             <div className="h-full overflow-y-auto p-2">
               <div className="space-y-2.5">
                 {courses.map((c) => {
-                  const onRemoveCourse = () => {
-                    removeCourse(c.id)
-                    toast.success(`Removed ${c.courseCode} from schedule`)
+                  const onRemoveCourseHandler = () => {
+                    onRemoveCourse(c.id)
                   }
-                  const onRemoveSession = (sessionId: string) =>
-                    remove(c.courseCode, sessionId)
+                  const onRemoveSessionHandler = (sessionId: string) =>
+                    onRemoveSession(c.courseCode, sessionId)
 
                   return showDetails ? (
                     <CourseCardDetailed
@@ -112,8 +95,8 @@ export function ScheduledSessionListView() {
                       course={c as any}
                       sessionDataMap={sessionDataMap as any}
                       isLoadingSessionData={isLoadingSessionData}
-                      onRemoveCourse={onRemoveCourse}
-                      onRemoveSession={onRemoveSession}
+                      onRemoveCourse={onRemoveCourseHandler}
+                      onRemoveSession={onRemoveSessionHandler}
                     />
                   ) : (
                     <CourseCardCompact
@@ -121,8 +104,8 @@ export function ScheduledSessionListView() {
                       course={c as any}
                       sessionDataMap={sessionDataMap as any}
                       isLoadingSessionData={isLoadingSessionData}
-                      onRemoveCourse={onRemoveCourse}
-                      onRemoveSession={onRemoveSession}
+                      onRemoveCourse={onRemoveCourseHandler}
+                      onRemoveSession={onRemoveSessionHandler}
                     />
                   )
                 })}
@@ -146,3 +129,4 @@ export function ScheduledSessionListView() {
     </div>
   )
 }
+

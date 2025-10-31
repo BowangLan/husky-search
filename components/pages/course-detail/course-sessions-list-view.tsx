@@ -20,6 +20,7 @@ import { SessionEnrollProgress } from "@/components/session-enroll-progress"
 import { useCourseSessions } from "./course-sessions-context"
 import { InstructorHoverCard } from "./instructor-hover-card"
 import { SessionScheduleToggleButton } from "./session-schedule-toggle-button"
+import { useSessionPreview } from "./use-session-preview"
 
 export const SessionRowDesktop = ({
   session,
@@ -30,6 +31,7 @@ export const SessionRowDesktop = ({
 }) => {
   const { data } = useCourseSessions()
   const isScheduled = useIsSessionScheduled(session.id)
+  const { handleMouseEnter, handleMouseLeave } = useSessionPreview(session)
 
   const sessionRaw =
     data?.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
@@ -37,7 +39,12 @@ export const SessionRowDesktop = ({
     ) as MyPlanCourseDetail["courseOfferingInstitutionList"][0]["courseOfferingTermList"][0]["activityOfferingItemList"][0]
 
   return (
-    <div key={session.id} className="group relative hidden lg:block">
+    <div
+      key={session.id}
+      className="group relative hidden lg:block"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <div
         className={cn(
           "px-4 py-4 md:px-6 flex w-full flex-col gap-3 md:grid md:items-center md:gap-6",
@@ -194,6 +201,7 @@ export const SessionRowMobile = ({
 }) => {
   const { data } = useCourseSessions()
   const isScheduled = useIsSessionScheduled(session.id)
+  const { handleMouseEnter, handleMouseLeave } = useSessionPreview(session)
 
   const sessionRaw =
     data?.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
@@ -201,7 +209,12 @@ export const SessionRowMobile = ({
     ) as MyPlanCourseDetail["courseOfferingInstitutionList"][0]["courseOfferingTermList"][0]["activityOfferingItemList"][0]
 
   return (
-    <div key={session.id} className="group relative lg:hidden">
+    <div
+      key={session.id}
+      className="group relative lg:hidden"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <div
         className={cn(
           "px-4 py-4 flex flex-col gap-3 w-full",

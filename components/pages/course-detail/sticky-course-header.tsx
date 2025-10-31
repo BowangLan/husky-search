@@ -9,6 +9,7 @@ import { EASE_OUT_CUBIC } from "@/config/animation"
 import { cn } from "@/lib/utils"
 import { ExternalLink } from "@/components/ui/external-link"
 import { Badge } from "@/components/ui/badge"
+import { CourseScheduleButton } from "./course-schedule-button"
 
 export function StickyCourseHeader({
   courseCode,
@@ -42,6 +43,7 @@ export function StickyCourseHeader({
   const genEds = (courseData?.myplanCourse?.genEdReqs as string[] | undefined) || []
   const shownGenEds = genEds.slice(0, 2)
   const moreGenEdsCount = genEds.length - shownGenEds.length
+
 
   return (
     <AnimatePresence initial={false}>
@@ -87,6 +89,12 @@ export function StickyCourseHeader({
               </div>
 
               <div className="shrink-0 flex items-center gap-4">
+                <CourseScheduleButton
+                  courseCode={courseCode}
+                  courseTitle={title}
+                  courseCredit={credits}
+                  variant="desktop"
+                />
                 <ExternalLink
                   href={`https://myplan.uw.edu/course/#/courses/${courseCode}`}
                 >

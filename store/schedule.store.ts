@@ -26,6 +26,17 @@ export type ScheduleCourse = {
   sessions: ScheduleSession[]
 }
 
+export type GeneratedScheduleVariant = {
+  id: string
+  courseAssignments: Map<string, ScheduleSession>
+  courses: Array<{
+    courseCode: string
+    courseTitle?: string
+    courseCredit?: string | number
+    sessions: ScheduleSession[]
+  }>
+}
+
 export type ScheduleState = {
   // Session operations
   addSessionToCourse: (courseCode: string, session: any, termId?: string) => void
@@ -523,6 +534,36 @@ export function useScheduledCourses(): ScheduleCourse[] {
   }, [enabled, hydrated, plansByTerm])
 }
 
+export function useScheduleCourse(courseCode: string): ScheduleCourse | undefined {
+  const enabled = isScheduleFeatureEnabled()
+  const plansByTerm = useStore(coursePlanStore, (s) => s.plansByTerm)
+  const hydrated = useStore(coursePlanStore, (s) => s.hydrated)
+
+  return useMemo(() => {
+    if (!enabled || !hydrated || !courseCode) return undefined
+    
+    // Search across all terms in plansByTerm, not just active term
+    // This ensures we find courses in any term, not just the active one
+    for (const termId in plansByTerm) {
+      const plan = plansByTerm[termId]
+      if (plan) {
+        const course = plan.courses.find((c) => c.courseCode === courseCode)
+        if (course) {
+          return {
+            id: course.id,
+            courseCode: course.courseCode,
+            courseTitle: course.courseTitle,
+            courseCredit: course.credits,
+            creditOverwrite: course.customCredits,
+            sessions: course.sessions,
+          }
+        }
+      }
+    }
+    return undefined
+  }, [enabled, hydrated, courseCode, plansByTerm])
+}
+
 export function useScheduleCount(): number {
   const enabled = isScheduleFeatureEnabled()
   const plansByTerm = useStore(coursePlanStore, (s) => s.plansByTerm)
@@ -600,6 +641,19 @@ export function useCanAddToSchedule(
     const res = scheduleStore.getState().canAddSession(session, { courseCode: options?.courseCode })
     return res.ok ? { ok: true } : { ok: false, reason: res.reason, existingSessionId: res.existingSessionId }
   }, [enabled, hydrated, session, options?.courseCode, plansByTerm])
+}
+
+export function useHasTimeConflict(session?: any): boolean {
+  const enabled = isScheduleFeatureEnabled()
+  const plansByTerm = useStore(coursePlanStore, (s) => s.plansByTerm)
+  const hydrated = useStore(coursePlanStore, (s) => s.hydrated)
+
+  return useMemo(() => {
+    if (!enabled || !hydrated || !session) return false
+    const normalized = normalizeSession(session)
+    const courses = scheduleStore.getState().getAllCourses()
+    return hasTimeConflict(normalized, courses)
+  }, [enabled, hydrated, session, plansByTerm])
 }
 
 export function useUpdateCourseCreditOverwrite(): (courseId: string, creditOverwrite?: string | number) => void {

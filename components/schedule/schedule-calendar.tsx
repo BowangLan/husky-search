@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Clock, MapPin, User } from "lucide-react"
 
 import { type ScheduleCourse, type ScheduleSession } from "@/store/schedule.store"
-import { expandDays, weekDays } from "@/lib/utils"
+import { cn, expandDays, weekDays } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -28,6 +28,8 @@ type CalendarEvent = {
   session: ScheduleSession
   courseCode: string
   meeting?: Meeting
+  isFixed?: boolean
+  isGrayedOut?: boolean
 }
 
 type LaidOutEvent = CalendarEvent & { col: number; cols: number }
@@ -182,7 +184,10 @@ function CalendarEventCard({
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <div
-          className="absolute rounded-md text-[11px] leading-tight shadow-sm border px-1.5 py-1 trans"
+          className={cn(
+            "absolute rounded-md text-[11px] leading-tight shadow-sm border px-1.5 py-1 trans",
+            event.isGrayedOut && "opacity-40"
+          )}
           style={{
             top: `${topPct}%`,
             height: `${heightPct}%`,
@@ -298,9 +303,21 @@ function CalendarEventCard({
 export function ScheduleCalendar({
   courses,
   sessionDataMap,
+  selectedVariants,
+  variantColors,
 }: {
   courses: ScheduleCourse[]
   sessionDataMap?: Map<string, any>
+  selectedVariants?: Array<{
+    id: string
+    courses: Array<{
+      courseCode: string
+      courseTitle?: string
+      courseCredit?: string | number
+      sessions: ScheduleSession[]
+    }>
+  }>
+  variantColors?: Map<string, string>
 }) {
   const courseColors = useMemo(() => {
     const colorMap = new Map<string, string>()
@@ -309,6 +326,63 @@ export function ScheduleCalendar({
     })
     return colorMap
   }, [courses])
+
+  // Merge variant courses with regular courses for display
+  const allCoursesToDisplay = useMemo(() => {
+    const baseCourses = [...courses]
+    
+    if (selectedVariants && selectedVariants.length > 0) {
+      // Add variant courses with their variant-specific colors
+      selectedVariants.forEach((variant) => {
+        variant.courses.forEach((variantCourse) => {
+          // Check if this course already exists in base courses
+          const existingCourse = baseCourses.find(
+            (c) => c.courseCode === variantCourse.courseCode
+          )
+          
+          if (!existingCourse) {
+            // Course doesn't exist in base, add it with variant color
+            baseCourses.push({
+              id: `${variant.id}-${variantCourse.courseCode}`,
+              courseCode: variantCourse.courseCode,
+              courseTitle: variantCourse.courseTitle,
+              courseCredit: variantCourse.courseCredit,
+              sessions: variantCourse.sessions,
+            })
+          }
+        })
+      })
+    }
+    
+    return baseCourses
+  }, [courses, selectedVariants])
+
+  // Enhanced color mapping that includes variant colors
+  const enhancedCourseColors = useMemo(() => {
+    const colorMap = new Map<string, string>()
+    
+    // First, assign colors to regular courses
+    courses.forEach((c, idx) => {
+      colorMap.set(c.courseCode, sessionColors[idx % sessionColors.length])
+    })
+    
+    // Then, assign variant-specific colors to variant courses
+    if (selectedVariants && variantColors) {
+      selectedVariants.forEach((variant) => {
+        const variantColor = variantColors.get(variant.id)
+        if (variantColor) {
+          variant.courses.forEach((variantCourse) => {
+            // Use variant color for variant courses, but only if not already assigned
+            // We'll use a different key to distinguish variant courses
+            const variantKey = `${variant.id}-${variantCourse.courseCode}`
+            colorMap.set(variantKey, variantColor)
+          })
+        }
+      })
+    }
+    
+    return colorMap
+  }, [courses, selectedVariants, variantColors])
 
   const eventsByDay = useMemo(() => {
     const baseMap: Record<string, Array<CalendarEvent>> = {
@@ -320,8 +394,15 @@ export function ScheduleCalendar({
       Sa: [],
       Su: [],
     }
+    
+    // Add regular courses (grayed out if variants are selected)
+    const hasSelectedVariants = selectedVariants && selectedVariants.length > 0
     courses.forEach((course) => {
-      const color = courseColors.get(course.courseCode) || sessionColors[0]
+      const baseColor = courseColors.get(course.courseCode) || sessionColors[0]
+      // Gray out fixed sessions when variants are selected
+      const color = hasSelectedVariants 
+        ? `color-mix(in oklab, ${baseColor} 30%, gray)`
+        : baseColor
       course.sessions.forEach((session) => {
         const details: Meeting[] = Array.isArray(session.meetingDetailsList)
           ? session.meetingDetailsList
@@ -336,11 +417,58 @@ export function ScheduleCalendar({
           }${m.room ? ` ${m.room}` : ``}`
           days.forEach((d) => {
             if (!baseMap[d]) return
-            baseMap[d].push({ start, end, label, color, session, meeting: m, courseCode: course.courseCode })
+            baseMap[d].push({ 
+              start, 
+              end, 
+              label, 
+              color, 
+              session, 
+              meeting: m, 
+              courseCode: course.courseCode,
+              isFixed: true,
+              isGrayedOut: hasSelectedVariants,
+            })
           })
         })
       })
     })
+    
+    // Add variant courses
+    if (selectedVariants && variantColors) {
+      selectedVariants.forEach((variant) => {
+        const variantColor = variantColors.get(variant.id) || sessionColors[0]
+        variant.courses.forEach((variantCourse) => {
+          variantCourse.sessions.forEach((session) => {
+            const details: Meeting[] = Array.isArray(session.meetingDetailsList)
+              ? session.meetingDetailsList
+              : []
+            details.forEach((m) => {
+              const range = parseTimeRangeToMinutes(m.time)
+              const days = expandDays(m.days)
+              if (!range || days.length === 0) return
+              const [start, end] = range
+              const label = `${variantCourse.courseCode} ${session.code}${
+                m.building ? ` • ${m.building}` : ``
+              }${m.room ? ` ${m.room}` : ``} (Variant)`
+              days.forEach((d) => {
+                if (!baseMap[d]) return
+                baseMap[d].push({ 
+                  start, 
+                  end, 
+                  label, 
+                  color: variantColor, 
+                  session, 
+                  meeting: m, 
+                  courseCode: variantCourse.courseCode,
+                  isFixed: false,
+                  isGrayedOut: false,
+                })
+              })
+            })
+          })
+        })
+      })
+    }
     const laidOut: Record<string, Array<LaidOutEvent>> = {
       M: [],
       T: [],
@@ -354,7 +482,7 @@ export function ScheduleCalendar({
       laidOut[d] = layoutEventsForDay(baseMap[d])
     })
     return laidOut
-  }, [courses, courseColors])
+  }, [courses, courseColors, selectedVariants, variantColors])
 
   const startOfDay = 8 * 60
   const endOfDay = 22 * 60
@@ -365,7 +493,7 @@ export function ScheduleCalendar({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden px-4 py-4">
-      {courses.length > 0 && (
+      {(courses.length > 0 || (selectedVariants && selectedVariants.length > 0)) && (
         <div className="pb-3 flex flex-wrap gap-x-4 gap-y-2 flex-none">
           {courses.map((c) => (
             <div key={`legend-${c.id}`} className="flex items-center gap-2 min-w-0">
@@ -385,6 +513,28 @@ export function ScheduleCalendar({
               </div>
             </div>
           ))}
+          {selectedVariants && variantColors && selectedVariants.map((variant) => {
+            const variantColor = variantColors.get(variant.id)
+            if (!variantColor) return null
+            return variant.courses.map((c) => (
+              <div key={`legend-variant-${variant.id}-${c.courseCode}`} className="flex items-center gap-2 min-w-0">
+                <div
+                  className="size-2 rounded-full"
+                  style={{
+                    background: variantColor,
+                  }}
+                />
+                <div className="text-xs min-w-0">
+                  <Link
+                    href={`/courses/${encodeURIComponent(c.courseCode)}`}
+                    className="underline underline-offset-2 hover:text-purple-500 trans"
+                  >
+                    {c.courseCode} (Variant)
+                  </Link>
+                </div>
+              </div>
+            ))
+          })}
         </div>
       )}
 

@@ -35,6 +35,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable"
+import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -55,9 +60,11 @@ import { AppMainHeader } from "@/components/app-main-header"
 import {
   RightSidebar,
   RightSidebarProvider,
+  useRightSidebar,
 } from "@/components/app-right-sidebar"
 import { CourseSearchCommand } from "@/components/course-search-command"
 import { Icons } from "@/components/icons"
+import { SchedulePreviewProvider } from "@/components/schedule/schedule-preview-context"
 
 function isPathActive(pathname: string, href: string) {
   if (href === "/") return pathname === href
@@ -110,13 +117,73 @@ function ScheduleBadge({ count }: { count: number }) {
       size="sm"
       className={cn(
         "absolute leading-none shadow-lg z-20 pointer-events-none",
-        "top-1.5 right-1 h-5 min-w-4 px-1 text-[10px]",
+        "top-1.5 right-1 h-5 min-w-4 px-1 text-[10px]"
         // isCollapsed &&
         //   "top-0 right-0 translate-x-1/2 -translate-y-1/2 h-4 min-w-1 px-0.5 text-[8px]"
       )}
     >
       {count}
     </Badge>
+  )
+}
+
+function MainContentWithRightSidebar({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const { open } = useRightSidebar()
+  const isMobile = useIsMobile()
+
+  // On mobile, use the existing Sheet-based sidebar (no resizable)
+  if (isMobile) {
+    return (
+      <div className="flex flex-1 min-w-0">
+        <SidebarInset className="flex flex-col h-screen flex-1 min-w-0">
+          <AppMainHeader />
+          <main
+            className={cn("flex-1 min-h-0 w-full overflow-x-hidden px-2 pb-2")}
+          >
+            <div
+              id="app-main-content"
+              className="w-full h-full rounded-lg bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm dark:shadow-lg dark:shadow-black/20 border overflow-hidden flex flex-col overflow-y-auto"
+            >
+              {children}
+            </div>
+          </main>
+        </SidebarInset>
+        <RightSidebar />
+      </div>
+    )
+  }
+
+  // On desktop, use resizable panels
+  return (
+    <ResizablePanelGroup direction="horizontal" className="flex-1 min-w-0">
+      <ResizablePanel defaultSize={100} minSize={50}>
+        <SidebarInset className="flex flex-col h-screen flex-1 min-w-0">
+          <AppMainHeader />
+          <main
+            className={cn("flex-1 min-h-0 w-full overflow-x-hidden px-2 pb-2")}
+          >
+            <div
+              id="app-main-content"
+              className="w-full h-full rounded-lg bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm dark:shadow-lg dark:shadow-black/20 border overflow-hidden flex flex-col overflow-y-auto"
+            >
+              {children}
+            </div>
+          </main>
+        </SidebarInset>
+      </ResizablePanel>
+      {open && (
+        <>
+          <ResizableHandle />
+          <ResizablePanel defaultSize={35} minSize={15} maxSize={40}>
+            <RightSidebar />
+          </ResizablePanel>
+        </>
+      )}
+    </ResizablePanelGroup>
   )
 }
 
@@ -203,158 +270,151 @@ export function AppSidebarLayout({ children }: { children: React.ReactNode }) {
   const displayName = getUserDisplayName(firstName, lastName, email)
 
   return (
-    <RightSidebarProvider>
-      <SidebarProvider>
-        <Sidebar
-          collapsible="icon"
-          className="!bg-transparent !border-r-0 [&_[data-slot=sidebar-inner]]:!bg-transparent"
-        >
-          <SidebarHeader className="px-2 flex-row items-center h-14 !bg-transparent">
-            <Link href="/" className="flex items-center justify-center size-8">
-              <Icons.logo className="size-4" />
-            </Link>
-          </SidebarHeader>
-          <SidebarContent className="!bg-transparent">
-            <SidebarGroup>
-              <SidebarGroupContent>
-                <SidebarSearchInput onSearchClick={() => setSearchOpen(true)} />
-              </SidebarGroupContent>
-            </SidebarGroup>
-            <SidebarGroup>
-              <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {navWithIcons.map((item) => {
-                    const isActive = isPathActive(pathname, item.href!)
-                    const isScheduleItem = item.href?.includes("schedule")
-                    return (
-                      <SidebarMenuItem key={item.href}>
-                        <SidebarMenuButton asChild isActive={isActive}>
-                          <Link
-                            href={item.href!}
-                            className={cn(
-                              "flex items-center gap-2",
-                              !isActive && "opacity-50 hover:opacity-100"
-                            )}
-                          >
-                            <item.IconComp className="size-4" />
-                            <span>{item.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                        {isScheduleItem && (
-                          <ScheduleBadge count={scheduleCount} />
-                        )}
-                      </SidebarMenuItem>
-                    )
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-          <SidebarFooter className="!bg-transparent">
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={handleThemeToggle}
-                  tooltip="Toggle theme"
-                >
-                  <Sun className="size-4 dark:hidden" />
-                  <Moon className="hidden size-4 dark:block" />
-                  <span>Theme</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="About">
-                  <Link href="/about">
-                    <Info className="size-4" />
-                    <span>About</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Feedback">
-                  <a
-                    href={externalLinks.feedback}
-                    target="_blank"
-                    rel="noopener noreferrer"
+    <SchedulePreviewProvider>
+      <RightSidebarProvider>
+        <SidebarProvider>
+          <Sidebar
+            collapsible="icon"
+            className="!bg-transparent !border-r-0 [&_[data-slot=sidebar-inner]]:!bg-transparent"
+          >
+            <SidebarHeader className="px-2 flex-row items-center h-14 !bg-transparent">
+              <Link
+                href="/"
+                className="flex items-center justify-center size-8"
+              >
+                <Icons.logo className="size-4" />
+              </Link>
+            </SidebarHeader>
+            <SidebarContent className="!bg-transparent">
+              <SidebarGroup>
+                <SidebarGroupContent>
+                  <SidebarSearchInput
+                    onSearchClick={() => setSearchOpen(true)}
+                  />
+                </SidebarGroupContent>
+              </SidebarGroup>
+              <SidebarGroup>
+                <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {navWithIcons.map((item) => {
+                      const isActive = isPathActive(pathname, item.href!)
+                      const isScheduleItem = item.href?.includes("schedule")
+                      return (
+                        <SidebarMenuItem key={item.href}>
+                          <SidebarMenuButton asChild isActive={isActive}>
+                            <Link
+                              href={item.href!}
+                              className={cn(
+                                "flex items-center gap-2",
+                                !isActive && "opacity-50 hover:opacity-100"
+                              )}
+                            >
+                              <item.IconComp className="size-4" />
+                              <span>{item.title}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                          {isScheduleItem && (
+                            <ScheduleBadge count={scheduleCount} />
+                          )}
+                        </SidebarMenuItem>
+                      )
+                    })}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            </SidebarContent>
+            <SidebarFooter className="!bg-transparent">
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={handleThemeToggle}
+                    tooltip="Toggle theme"
                   >
-                    <MessageSquare className="size-4" />
-                    <span>Feedback</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              {isLoaded && isSignedIn && user ? (
-                <SidebarMenuItem>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <SidebarMenuButton size="lg">
-                        <User2 className="size-4 mx-1" />
-                        <div>
-                          <span>{displayName}</span>
-                          {email && (
-                            <p className="text-xs leading-none text-muted-foreground">
-                              {email}
-                            </p>
-                          )}
-                        </div>
-                        <ChevronUp className="ml-auto size-4" />
-                      </SidebarMenuButton>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      className="w-64"
-                      align="start"
-                      forceMount
-                    >
-                      <DropdownMenuLabel className="font-normal">
-                        <div className="flex flex-col space-y-1">
-                          <p className="text-sm font-medium leading-none">
-                            {getUserDisplayName(firstName, lastName, email)}
-                          </p>
-                          {email && (
-                            <p className="text-xs leading-none text-muted-foreground">
-                              {email}
-                            </p>
-                          )}
-                        </div>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onSelect={handleSignOut}>
-                        <LogOut />
-                        <span>Sign out</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                    <Sun className="size-4 dark:hidden" />
+                    <Moon className="hidden size-4 dark:block" />
+                    <span>Theme</span>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
-              ) : (
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Link href="/sign-in">
-                      <span>Sign In</span>
+                  <SidebarMenuButton asChild tooltip="About">
+                    <Link href="/about">
+                      <Info className="size-4" />
+                      <span>About</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              )}
-            </SidebarMenu>
-          </SidebarFooter>
-        </Sidebar>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Feedback">
+                    <a
+                      href={externalLinks.feedback}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <MessageSquare className="size-4" />
+                      <span>Feedback</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                {isLoaded && isSignedIn && user ? (
+                  <SidebarMenuItem>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <SidebarMenuButton size="lg">
+                          <User2 className="size-4 mx-1" />
+                          <div>
+                            <span>{displayName}</span>
+                            {email && (
+                              <p className="text-xs leading-none text-muted-foreground">
+                                {email}
+                              </p>
+                            )}
+                          </div>
+                          <ChevronUp className="ml-auto size-4" />
+                        </SidebarMenuButton>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        className="w-64"
+                        align="start"
+                        forceMount
+                      >
+                        <DropdownMenuLabel className="font-normal">
+                          <div className="flex flex-col space-y-1">
+                            <p className="text-sm font-medium leading-none">
+                              {getUserDisplayName(firstName, lastName, email)}
+                            </p>
+                            {email && (
+                              <p className="text-xs leading-none text-muted-foreground">
+                                {email}
+                              </p>
+                            )}
+                          </div>
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onSelect={handleSignOut}>
+                          <LogOut />
+                          <span>Sign out</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </SidebarMenuItem>
+                ) : (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <Link href="/sign-in">
+                        <span>Sign In</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
+              </SidebarMenu>
+            </SidebarFooter>
+          </Sidebar>
 
-        <div className="flex flex-1 min-w-0">
-          <SidebarInset className="flex flex-col h-screen flex-1 min-w-0">
-            <AppMainHeader />
-            <main
-              className={cn(
-                "flex-1 min-h-0 w-full overflow-x-hidden px-2 pb-2"
-              )}
-            >
-              <div id="app-main-content" className="w-full h-full rounded-lg bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm dark:shadow-lg dark:shadow-black/20 border overflow-hidden flex flex-col overflow-y-auto">
-                {children}
-              </div>
-            </main>
-          </SidebarInset>
-          <RightSidebar />
-        </div>
-        <CourseSearchCommand open={searchOpen} onOpenChange={setSearchOpen} />
-      </SidebarProvider>
-    </RightSidebarProvider>
+          <MainContentWithRightSidebar>{children}</MainContentWithRightSidebar>
+          <CourseSearchCommand open={searchOpen} onOpenChange={setSearchOpen} />
+        </SidebarProvider>
+      </RightSidebarProvider>
+    </SchedulePreviewProvider>
   )
 }

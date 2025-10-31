@@ -166,5 +166,5 @@ export function useScheduleToggleWithToasts(session: any) {
     })
   }
 
-  return { isScheduled, canAdd, triggerToggle }
+  return { isScheduled, canAdd, triggerToggle, courseCode }
 }

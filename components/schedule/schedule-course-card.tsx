@@ -32,8 +32,8 @@ type BaseProps = {
   course: ScheduledCourse
   sessionDataMap: Map<string, MyplanCourseTermSession | null>
   isLoadingSessionData: boolean
-  onRemoveCourse: () => void
-  onRemoveSession: (sessionId: string) => void
+  onRemoveCourse?: () => void
+  onRemoveSession?: (sessionId: string) => void
 }
 
 export function CourseCardDetailed({
@@ -66,31 +66,35 @@ export function CourseCardDetailed({
             </div>
           ) : null}
         </div>
-        <RichButton
-          tooltip="Remove course"
-          variant="ghost"
-          size="icon-sm"
-          className="size-6 shrink-0"
-          onClick={onRemoveCourse}
-        >
-          <X />
-        </RichButton>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size="icon-sm" variant="ghost" className="size-6 shrink-0">
-              <MoreVertical />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
+        {onRemoveCourse && (
+          <>
+            <RichButton
+              tooltip="Remove course"
+              variant="ghost"
+              size="icon-sm"
+              className="size-6 shrink-0"
               onClick={onRemoveCourse}
-              className="text-destructive focus:text-destructive"
             >
-              <Trash2 className="text-destructive" />
-              Remove course
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <X />
+            </RichButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon-sm" variant="ghost" className="size-6 shrink-0">
+                  <MoreVertical />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={onRemoveCourse}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="text-destructive" />
+                  Remove course
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        )}
       </div>
 
       {course.sessions.length > 0 ? (
@@ -101,7 +105,7 @@ export function CourseCardDetailed({
               session={s as any}
               sessionData={sessionDataMap.get(s.id)}
               isLoading={isLoadingSessionData}
-              onRemove={() => onRemoveSession(s.id)}
+              onRemove={() => onRemoveSession?.(s.id)}
               showDetails={true}
             />
           ))}
@@ -132,31 +136,35 @@ export function CourseCardCompact({
           {course.courseCode}
         </Link>
         <div className="flex-1" />
-        <RichButton
-          tooltip="Remove course"
-          variant="ghost"
-          size="icon-xs"
-          className="size-6 shrink-0"
-          onClick={onRemoveCourse}
-        >
-          <X />
-        </RichButton>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size="icon-xs" variant="ghost" className="size-6 shrink-0">
-              <MoreVertical className="size-3" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
+        {onRemoveCourse && (
+          <>
+            <RichButton
+              tooltip="Remove course"
+              variant="ghost"
+              size="icon-xs"
+              className="size-6 shrink-0"
               onClick={onRemoveCourse}
-              className="text-destructive focus:text-destructive"
             >
-              <Trash2 className="text-destructive" />
-              Remove course
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <X />
+            </RichButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon-xs" variant="ghost" className="size-6 shrink-0">
+                  <MoreVertical className="size-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={onRemoveCourse}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="text-destructive" />
+                  Remove course
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        )}
       </div>
 
       {course.sessions.length > 0 ? (
@@ -167,7 +175,7 @@ export function CourseCardCompact({
               session={s as any}
               sessionData={sessionDataMap.get(s.id)}
               isLoading={isLoadingSessionData}
-              onRemove={() => onRemoveSession(s.id)}
+              onRemove={() => onRemoveSession?.(s.id)}
               showDetails={false}
               compact
             />

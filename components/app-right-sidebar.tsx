@@ -1,12 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { Calendar, ChevronDown, Info, PanelRight } from "lucide-react"
+import { Calendar, ChevronDown, PanelRight } from "lucide-react"
 
 import { isScheduleFeatureEnabled } from "@/config/features"
 import { cn } from "@/lib/utils"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -14,18 +13,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-} from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet"
 import { ScheduledSessionListView } from "@/components/schedule/scheduled-session-list-view"
 
 import { RichButton } from "./ui/rich-button"
 
 const RIGHT_SIDEBAR_COOKIE_NAME = "right_sidebar_state"
 const RIGHT_SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
-const RIGHT_SIDEBAR_DETAILS_COOKIE_NAME = "right_sidebar_details"
 const RIGHT_SIDEBAR_VIEW_COOKIE_NAME = "right_sidebar_view"
 const RIGHT_SIDEBAR_WIDTH = "24rem"
 const RIGHT_SIDEBAR_WIDTH_MOBILE = "18rem"
@@ -40,9 +34,6 @@ type RightSidebarContextProps = {
   open: boolean
   setOpen: (open: boolean) => void
   toggleSidebar: () => void
-  showDetails: boolean
-  setShowDetails: (value: boolean | ((value: boolean) => boolean)) => void
-  toggleDetails: () => void
   view: ViewType
   setView: (view: ViewType) => void
 }
@@ -90,35 +81,6 @@ export function RightSidebarProvider({
     setOpen((open) => !open)
   }, [setOpen])
 
-  // Details on/off state (persist to cookie)
-  const [showDetailsState, _setShowDetailsState] = React.useState<boolean>(
-    () => {
-      if (typeof document === "undefined") return true
-      const match = document.cookie.match(
-        new RegExp(`(?:^|; )${RIGHT_SIDEBAR_DETAILS_COOKIE_NAME}=([^;]*)`)
-      )
-      return match ? match[1] === "true" : true
-    }
-  )
-
-  const showDetails = showDetailsState
-
-  const setShowDetails = React.useCallback(
-    (value: boolean | ((value: boolean) => boolean)) => {
-      const next =
-        typeof value === "function"
-          ? (value as (v: boolean) => boolean)(showDetailsState)
-          : value
-      _setShowDetailsState(next)
-      document.cookie = `${RIGHT_SIDEBAR_DETAILS_COOKIE_NAME}=${next}; path=/; max-age=${RIGHT_SIDEBAR_COOKIE_MAX_AGE}`
-    },
-    [showDetailsState]
-  )
-
-  const toggleDetails = React.useCallback(() => {
-    setShowDetails((v) => !v)
-  }, [setShowDetails])
-
   // View state (persist to cookie)
   const [viewState, _setViewState] = React.useState<ViewType>(() => {
     if (typeof document === "undefined") return "scheduled-session-list"
@@ -130,13 +92,10 @@ export function RightSidebarProvider({
 
   const view = viewState
 
-  const setView = React.useCallback(
-    (value: ViewType) => {
-      _setViewState(value)
-      document.cookie = `${RIGHT_SIDEBAR_VIEW_COOKIE_NAME}=${value}; path=/; max-age=${RIGHT_SIDEBAR_COOKIE_MAX_AGE}`
-    },
-    []
-  )
+  const setView = React.useCallback((value: ViewType) => {
+    _setViewState(value)
+    document.cookie = `${RIGHT_SIDEBAR_VIEW_COOKIE_NAME}=${value}; path=/; max-age=${RIGHT_SIDEBAR_COOKIE_MAX_AGE}`
+  }, [])
 
   // Keyboard shortcut: "/" to toggle right sidebar (ignores inputs/editable elements)
   React.useEffect(() => {
@@ -167,22 +126,10 @@ export function RightSidebarProvider({
       open,
       setOpen,
       toggleSidebar,
-      showDetails,
-      setShowDetails,
-      toggleDetails,
       view,
       setView,
     }),
-    [
-      open,
-      setOpen,
-      toggleSidebar,
-      showDetails,
-      setShowDetails,
-      toggleDetails,
-      view,
-      setView,
-    ]
+    [open, setOpen, toggleSidebar, view, setView]
   )
 
   return (
@@ -195,13 +142,13 @@ export function RightSidebarProvider({
 function RightSidebarContent() {
   if (!isScheduleFeatureEnabled()) return null
 
-  const { view, showDetails } = useRightSidebar()
+  const { view } = useRightSidebar()
 
   switch (view) {
     case "scheduled-session-list":
-      return <ScheduledSessionListView showDetails={showDetails} />
+      return <ScheduledSessionListView />
     default:
-      return <ScheduledSessionListView showDetails={showDetails} />
+      return <ScheduledSessionListView />
   }
 }
 
@@ -235,16 +182,16 @@ export function RightSidebar() {
   return (
     <div
       className={cn(
-        "hidden md:flex flex-col h-screen min-h-0 overflow-hidden transition-all duration-200 ease-in-out"
+        "hidden md:flex flex-col h-screen min-h-0 overflow-hidden",
+        open ? "w-full" : "w-0 transition-all duration-200 ease-in-out"
       )}
       style={
         {
           "--right-sidebar-width": RIGHT_SIDEBAR_WIDTH,
-          width: open ? RIGHT_SIDEBAR_WIDTH : "0",
         } as React.CSSProperties
       }
     >
-      <div className="bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex h-full min-h-0 w-[--right-sidebar-width] flex-col flex-shrink-0 pb-2 pr-2">
+      <div className="bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex h-full min-h-0 w-full flex-col flex-shrink-0 pb-2">
         <div className="px-4 py-3 flex-row items-center h-14 bg-background/80 backdrop-blur flex">
           <ViewSelector />
         </div>
@@ -306,9 +253,7 @@ function ViewSelector() {
         <DropdownMenuContent align="start">
           <DropdownMenuItem
             onClick={() => setView("scheduled-session-list")}
-            className={cn(
-              view === "scheduled-session-list" && "bg-accent"
-            )}
+            className={cn(view === "scheduled-session-list" && "bg-accent")}
           >
             {VIEW_LABELS["scheduled-session-list"]}
           </DropdownMenuItem>
@@ -338,29 +283,5 @@ function ViewSelector() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
-}
-
-export function DetailsToggleButton() {
-  const { showDetails, toggleDetails } = useRightSidebar()
-  return (
-    <Button
-      size="sm"
-      variant="ghost"
-      className="h-7 px-2"
-      onClick={toggleDetails}
-      aria-pressed={showDetails}
-      aria-label="Toggle details"
-    >
-      <Info className="size-4 mr-1" />
-      <span className="text-xs">Details</span>
-      <Badge
-        variant={showDetails ? "green" : "secondary"}
-        size="flat-sm"
-        className="ml-2"
-      >
-        {showDetails ? "On" : "Off"}
-      </Badge>
-    </Button>
   )
 }
