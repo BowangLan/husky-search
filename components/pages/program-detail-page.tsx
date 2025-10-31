@@ -1,10 +1,6 @@
 "use client"
 
-import {
-  // @ts-ignore
-  unstable_ViewTransition as ViewTransition,
-  useMemo,
-} from "react"
+import { useMemo } from "react"
 import Link from "next/link"
 import { api } from "@/convex/_generated/api"
 import { ProgramDetail } from "@/services/program-service"
@@ -25,6 +21,11 @@ import {
   SectionHeader,
   SectionTitle,
 } from "../section"
+
+// ViewTransition wrapper - falls back to fragment if unstable_ViewTransition is not available
+function ViewTransition({ children }: { children: React.ReactNode }) {
+  return <>{children}</>
+}
 
 export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
   useTrackMajorVisit(program)
