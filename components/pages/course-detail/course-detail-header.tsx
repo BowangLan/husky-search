@@ -181,12 +181,14 @@ export const CourseDetailHeader = ({ courseCode }: { courseCode: string }) => {
 
         {/* Desktop */}
         <div className="items-center flex-row gap-6 md:flex hidden">
-          <CourseScheduleButton
-            courseCode={courseCode}
-            courseTitle={courseTitle}
-            courseCredit={courseCredit}
-            variant="desktop"
-          />
+          {hasCurrentTermData && (
+            <CourseScheduleButton
+              courseCode={courseCode}
+              courseTitle={courseTitle}
+              courseCredit={courseCredit}
+              variant="desktop"
+            />
+          )}
           <ExternalLink
             href={`https://myplan.uw.edu/course/#/courses/${courseCode}`}
           >
@@ -202,12 +204,14 @@ export const CourseDetailHeader = ({ courseCode }: { courseCode: string }) => {
 
         {/* Mobile */}
         <div className="gap-2 md:hidden flex w-full flex-row items-center justify-around mt-4">
-          <CourseScheduleButton
-            courseCode={courseCode}
-            courseTitle={courseTitle}
-            courseCredit={courseCredit}
-            variant="mobile"
-          />
+          {hasCurrentTermData && (
+            <CourseScheduleButton
+              courseCode={courseCode}
+              courseTitle={courseTitle}
+              courseCredit={courseCredit}
+              variant="mobile"
+            />
+          )}
           <ExternalLink
             href={`https://myplan.uw.edu/course/#/courses/${courseCode}`}
             className="flex-1 text-center justify-center bg-button-accent-hover-active rounded-md py-2.5 hover:text-foreground"
