@@ -47,13 +47,13 @@ export const SessionRowDesktop = ({
     >
       <div
         className={cn(
-          "px-4 py-4 md:px-6 flex w-full flex-col gap-3 md:grid md:items-center md:gap-6",
+          "px-4 py-4 md:px-6 flex w-full flex-col gap-3 md:grid md:items-center md:gap-4",
           isScheduled &&
             "bg-gradient-to-r dark:from-primary/40 dark:to-primary/60 from-primary/5 to-primary/15"
         )}
         style={{
           gridTemplateColumns:
-            "minmax(96px,108px) minmax(96px,160px) 1.5fr auto minmax(200px,240px) auto",
+            "minmax(50px, 50px) minmax(96px,120px) minmax(160px,220px) auto minmax(180px,210px) auto",
         }}
       >
         <div>
@@ -97,7 +97,7 @@ export const SessionRowDesktop = ({
           >
             <div
               className={cn(
-                `truncate whitespace-nowrap transition-colors flex items-center gap-1.5`,
+                `transition-colors flex items-center gap-1.5 min-w-0`,
                 data?.cecCourse?.some(
                   (item) => item.professor === session.instructor
                 )
@@ -112,7 +112,9 @@ export const SessionRowDesktop = ({
                   : 0.7,
               }}
             >
-              {session.instructor}
+              <span className="truncate whitespace-nowrap min-w-0">
+                {session.instructor}
+              </span>
               {data?.cecCourse?.some(
                 (item) => item.professor === session.instructor
               ) && (
@@ -274,7 +276,7 @@ export const SessionRowMobile = ({
             cecData={data?.cecCourse || []}
           >
             <div
-              className={`truncate whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+              className={`transition-colors flex items-center gap-1.5 min-w-0 ${
                 data?.cecCourse?.some(
                   (item) => item.professor === session.instructor
                 )
@@ -289,7 +291,9 @@ export const SessionRowMobile = ({
                   : 0.7,
               }}
             >
-              {session.instructor}
+              <span className="truncate whitespace-nowrap min-w-0">
+                {session.instructor}
+              </span>
               {data?.cecCourse?.some(
                 (item) => item.professor === session.instructor
               ) && (

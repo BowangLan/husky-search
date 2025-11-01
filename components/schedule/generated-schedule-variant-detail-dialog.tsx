@@ -1,16 +1,18 @@
 "use client"
 
 import { useMemo } from "react"
-import { type GeneratedScheduleVariant } from "@/store/schedule.store"
 import { api } from "@/convex/_generated/api"
+import { type GeneratedScheduleVariant } from "@/store/schedule.store"
 import { useQuery } from "convex/react"
+
 import {
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { CourseCardDetailed } from "./schedule-course-card"
 import { ScrollArea } from "@/components/ui/scroll-area"
+
+import { CourseCardDetailed } from "./schedule-course-card"
 
 type GeneratedScheduleVariantDetailDialogProps = {
   variant: GeneratedScheduleVariant
@@ -33,7 +35,8 @@ export function GeneratedScheduleVariantDetailDialog({
     api.courses.getSessionsByIds,
     sessionIds.length > 0 ? { sessionIds } : "skip"
   )
-  const isLoadingSessionData = sessionDataList === undefined && sessionIds.length > 0
+  const isLoadingSessionData =
+    sessionDataList === undefined && sessionIds.length > 0
 
   // Create a map of sessionId -> sessionData for quick lookup
   const sessionDataMap = useMemo(() => {
@@ -78,12 +81,6 @@ export function GeneratedScheduleVariantDetailDialog({
                 course={scheduledCourse}
                 sessionDataMap={sessionDataMap}
                 isLoadingSessionData={isLoadingSessionData}
-                onRemoveCourse={() => {
-                  // No-op for view-only dialog
-                }}
-                onRemoveSession={() => {
-                  // No-op for view-only dialog
-                }}
               />
             )
           })}
@@ -92,4 +89,3 @@ export function GeneratedScheduleVariantDetailDialog({
     </DialogContent>
   )
 }
-

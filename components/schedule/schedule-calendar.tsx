@@ -204,7 +204,16 @@ function CalendarEventCard({
           onFocus={openNow}
           onBlur={closeSoon}
         >
-          <div className="truncate">{event.label}</div>
+          <div className="flex flex-col gap-0.5">
+            <div className="truncate">{event.courseCode} {event.session.code}</div>
+            {(event.meeting?.building || event.meeting?.room) && (
+              <div className="truncate text-[10px] opacity-90">
+                {event.meeting?.building || ""}
+                {event.meeting?.building && event.meeting?.room ? " " : ""}
+                {event.meeting?.room || ""}
+              </div>
+            )}
+          </div>
         </div>
       </PopoverTrigger>
       <PopoverContent

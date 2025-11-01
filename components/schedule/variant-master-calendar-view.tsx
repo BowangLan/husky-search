@@ -10,11 +10,13 @@ import { useQuery } from "convex/react"
 
 import { cn, expandDays, weekDays } from "@/lib/utils"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { CourseCardDetailed } from "./schedule-course-card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { useSchedule } from "@/store/schedule.store"
 import { toast } from "sonner"
+import { CourseSessionsProvider } from "@/components/pages/course-detail/course-sessions-context"
+import { SessionRowDesktop, SessionRowMobile } from "@/components/pages/course-detail/course-sessions-list-view"
+import { Separator } from "@/components/ui/separator"
 
 type Meeting = {
   building?: string
@@ -167,7 +169,16 @@ function CalendarEventCard({
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
     >
-      <div className="truncate font-medium">{event.label}</div>
+      <div className="flex flex-col gap-0.5">
+        <div className="truncate font-medium">{event.courseCode} {event.session.code}</div>
+        {(event.meeting?.building || event.meeting?.room) && (
+          <div className="truncate text-[9px] opacity-90">
+            {event.meeting?.building || ""}
+            {event.meeting?.building && event.meeting?.room ? " " : ""}
+            {event.meeting?.room || ""}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -482,7 +493,10 @@ export function VariantMasterCalendarView({
           setSelectedVariantId(null)
         }
       }}>
-        <DialogContent className="max-w-2xl max-h-[80vh]">
+        <DialogContent 
+          className="max-w-2xl sm:max-w-4xl max-h-[80vh]"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>
               {selectedCourseData?.courseCode}
@@ -492,19 +506,27 @@ export function VariantMasterCalendarView({
 
           <ScrollArea className="max-h-[calc(80vh-180px)] pr-4">
             {selectedCourseData && (
-              <div className="space-y-3">
-                <CourseCardDetailed
-                  course={{
-                    id: `dialog-${selectedCourseData.courseCode}`,
-                    courseCode: selectedCourseData.courseCode,
-                    courseTitle: selectedCourseData.courseTitle,
-                    courseCredit: selectedCourseData.courseCredit,
-                    sessions: selectedCourseData.sessions,
-                  }}
-                  sessionDataMap={selectedCourseSessionDataMap}
-                  isLoadingSessionData={isLoadingSelectedCourseData}
-                />
-              </div>
+              <CourseSessionsProvider courseCode={selectedCourseData.courseCode}>
+                {isLoadingSelectedCourseData ? (
+                  <div className="flex items-center justify-center py-8">
+                    <p className="text-sm text-muted-foreground">Loading sessions...</p>
+                  </div>
+                ) : selectedCourseSessionDataList && selectedCourseSessionDataList.length > 0 ? (
+                  <div>
+                    {selectedCourseSessionDataList.map((session, index) => (
+                      <div key={session.id}>
+                        <SessionRowDesktop session={session} />
+                        <SessionRowMobile session={session} />
+                        {index !== selectedCourseSessionDataList.length - 1 && <Separator />}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center py-8">
+                    <p className="text-sm text-muted-foreground">No sessions available</p>
+                  </div>
+                )}
+              </CourseSessionsProvider>
             )}
           </ScrollArea>
 

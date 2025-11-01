@@ -146,10 +146,10 @@ export function useScheduleGeneration() {
 
       try {
         // Generate schedule variants using latest values
+        // Generates ALL valid combinations (no limit)
         const generatedVariants = generateScheduleVariants(
           latestCourses,
-          latestCoursesWithSessionsData,
-          20
+          latestCoursesWithSessionsData
         )
 
         // Check cancellation again before state update

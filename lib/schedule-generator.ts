@@ -158,11 +158,11 @@ function isValidSchedule(
 
 /**
  * Generates valid schedule combinations for courses without selected sessions
+ * Generates ALL possible valid combinations (no limit)
  */
 export function generateScheduleVariants(
   scheduledCourses: ScheduleCourse[],
-  coursesWithSessions: CourseWithSessions[],
-  maxVariants: number = 20
+  coursesWithSessions: CourseWithSessions[]
 ): Array<{
   id: string
   courseAssignments: Map<string, ScheduleSession>
@@ -246,8 +246,6 @@ export function generateScheduleVariants(
     index: number,
     currentAssignments: Map<string, ScheduleSession[]>
   ) {
-    if (variants.length >= maxVariants) return
-    
     if (index === courseCodes.length) {
       // Check if this is a valid schedule
       if (isValidSchedule(currentAssignments, coursesWithoutSessions)) {
@@ -323,8 +321,6 @@ export function generateScheduleVariants(
             currentAssignments.set(courseCode, [...courseSessions])
             backtrack(index + 1, currentAssignments)
             currentAssignments.delete(courseCode)
-            
-            if (variants.length >= maxVariants) return
           }
           
           // Remove double-letter session for next iteration
@@ -343,8 +339,6 @@ export function generateScheduleVariants(
           currentAssignments.set(courseCode, [...courseSessions])
           backtrack(index + 1, currentAssignments)
           currentAssignments.delete(courseCode)
-          
-          if (variants.length >= maxVariants) return
         }
       }
     }

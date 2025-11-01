@@ -191,7 +191,7 @@ export function RightSidebar() {
         } as React.CSSProperties
       }
     >
-      <div className="bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex h-full min-h-0 w-full flex-col flex-shrink-0 pb-2">
+      <div className="bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex h-full min-h-0 w-full flex-col flex-shrink-0 pb-2 pr-2">
         <div className="px-4 py-3 flex-row items-center h-14 bg-background/80 backdrop-blur flex">
           <ViewSelector />
         </div>

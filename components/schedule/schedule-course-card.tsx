@@ -79,7 +79,11 @@ export function CourseCardDetailed({
             </RichButton>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="icon-sm" variant="ghost" className="size-6 shrink-0">
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  className="size-6 shrink-0"
+                >
                   <MoreVertical />
                 </Button>
               </DropdownMenuTrigger>
@@ -105,7 +109,9 @@ export function CourseCardDetailed({
               session={s as any}
               sessionData={sessionDataMap.get(s.id)}
               isLoading={isLoadingSessionData}
-              onRemove={() => onRemoveSession?.(s.id)}
+              onRemove={
+                onRemoveSession ? () => onRemoveSession(s.id) : undefined
+              }
               showDetails={true}
             />
           ))}
@@ -149,7 +155,11 @@ export function CourseCardCompact({
             </RichButton>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="icon-xs" variant="ghost" className="size-6 shrink-0">
+                <Button
+                  size="icon-xs"
+                  variant="ghost"
+                  className="size-6 shrink-0"
+                >
                   <MoreVertical className="size-3" />
                 </Button>
               </DropdownMenuTrigger>
