@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internalAction, mutation, query } from "./_generated/server";
+import { internalAction, mutation, query, QueryCtx } from "./_generated/server";
 import { FunctionReturnType } from "convex/server";
 import { api } from "./_generated/api";
 import { isStudentHelper } from "./auth";
@@ -137,7 +137,37 @@ export const getByCourseCodeDev = query({
 })
 
 
-const convertCourseToOverview = (c: Doc<"myplanCourses">): ConvexCourseOverview => ({
+const fetchCurrentTermData = async (
+  ctx: QueryCtx,
+  courseCode: string,
+  currentTerms: string[]
+): Promise<MyplanCourseTermData[]> => {
+  const currentTermData: MyplanCourseTermData[] = (await Promise.all(currentTerms.map(async (term: string) => {
+    const termData = await ctx.db.query("myplanCourseTermData")
+      .withIndex("by_course_code_and_term_id", (q: any) => q.eq("courseCode", courseCode).eq("termId", term))
+      .first();
+
+    if (!termData) {
+      return null;
+    }
+
+    const sessions = await ctx.db.query("myplanCourseSessions")
+      .withIndex("by_course_code_and_term_id", (q: any) => q.eq("courseCode", courseCode).eq("termId", term))
+      .collect();
+
+    return {
+      termId: termData.termId,
+      enrollCount: termData.enrollCount,
+      enrollMax: termData.enrollMax,
+      sessions: sessions.map((session: any) => session.sessionData),
+    };
+  })))
+    .filter((item): item is MyplanCourseTermData => item !== null);
+
+  return currentTermData;
+}
+
+const convertCourseToOverview = (c: Doc<"myplanCourses"> & { currentTermData?: MyplanCourseTermData[] }): ConvexCourseOverview => ({
   courseCode: c.courseCode,
   title: c.title,
   description: c.description,
@@ -163,6 +193,8 @@ export const listOverviewBySubjectArea = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const currentTerms = await ctx.runQuery(api.kvStore.getCurrentTerms);
+    
     const results = await ctx.db
       .query("myplanCourses")
       .withIndex("by_subject_area", (q) => q.eq("subjectArea", args.subjectArea))
@@ -173,7 +205,18 @@ export const listOverviewBySubjectArea = query({
     );
     const limited = sorted.slice(0, args.limit ?? 200);
 
-    return limited.map(convertCourseToOverview);
+    // Fetch currentTermData for all courses
+    const coursesWithTermData = await Promise.all(
+      limited.map(async (course) => {
+        const currentTermData = await fetchCurrentTermData(ctx, course.courseCode, currentTerms);
+        return {
+          ...course,
+          currentTermData,
+        };
+      })
+    );
+
+    return coursesWithTermData.map(convertCourseToOverview);
   },
 })
 
@@ -185,6 +228,8 @@ export const listOverviewByCredit = query({
     cursor: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const currentTerms = await ctx.runQuery(api.kvStore.getCurrentTerms);
+    
     const results = await ctx.db
       .query("myplanCourses")
       .withIndex("by_credit", (q) => q.eq("credit", args.credit))
@@ -193,12 +238,18 @@ export const listOverviewByCredit = query({
         cursor: args.cursor ?? null,
       });
 
-    // const sorted = results.page.toSorted(
-    //   (a, b) => (b.statsEnrollMax ?? 0) - (a.statsEnrollMax ?? 0)
-    // );
-    // const limited = sorted.slice(0, args.limit ?? 200);
+    // Fetch currentTermData for all courses
+    const coursesWithTermData = await Promise.all(
+      results.page.map(async (course) => {
+        const currentTermData = await fetchCurrentTermData(ctx, course.courseCode, currentTerms);
+        return {
+          ...course,
+          currentTermData,
+        };
+      })
+    );
 
-    const mapped = results.page.map(convertCourseToOverview);
+    const mapped = coursesWithTermData.map(convertCourseToOverview);
 
     return {
       data: mapped,
@@ -414,6 +465,7 @@ export const listOverviewByStatsEnrollMax = query({
     subjectArea: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const currentTerms = await ctx.runQuery(api.kvStore.getCurrentTerms);
     const subjectArea = args.subjectArea;
 
     if (subjectArea) {
@@ -425,8 +477,22 @@ export const listOverviewByStatsEnrollMax = query({
           cursor: args.cursor ?? null,
         });
 
+      // Fetch currentTermData for all courses
+      const coursesWithTermData = await Promise.all(
+        courses.page.map(async (course) => {
+          const currentTermData = await fetchCurrentTermData(ctx, course.courseCode, currentTerms);
+          return {
+            ...course,
+            currentTermData,
+          };
+        })
+      );
+
+      // Filter to only include courses with at least one active term data
+      const filtered = coursesWithTermData.filter((course) => course.currentTermData && course.currentTermData.length > 0);
+
       return {
-        data: courses.page.map(convertCourseToOverview),
+        data: filtered.map(convertCourseToOverview),
         continueCursor: courses.continueCursor,
         isDone: courses.isDone,
       };
@@ -442,8 +508,22 @@ export const listOverviewByStatsEnrollMax = query({
         cursor: args.cursor ?? null,
       });
 
+    // Fetch currentTermData for all courses
+    const coursesWithTermData = await Promise.all(
+      courses.page.map(async (course) => {
+        const currentTermData = await fetchCurrentTermData(ctx, course.courseCode, currentTerms);
+        return {
+          ...course,
+          currentTermData,
+        };
+      })
+    );
+
+    // Filter to only include courses with at least one active term data
+    const filtered = coursesWithTermData.filter((course) => course.currentTermData && course.currentTermData.length > 0);
+
     return {
-      data: courses.page.map(convertCourseToOverview),
+      data: filtered.map(convertCourseToOverview),
       continueCursor: courses.continueCursor,
       isDone: courses.isDone,
     };
