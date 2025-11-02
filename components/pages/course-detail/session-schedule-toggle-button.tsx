@@ -29,7 +29,8 @@ import { useScheduleToggleWithToasts } from "./use-schedule-toggle"
 
 export const SessionScheduleToggleButton = ({ session }: { session: any }) => {
   if (!isScheduleFeatureEnabled()) return null
-  const { isScheduled, canAdd, triggerToggle } = useScheduleToggleWithToasts(session)
+  const { isScheduled, canAdd, triggerToggle } =
+    useScheduleToggleWithToasts(session)
   const hasTimeConflictCheck = useHasTimeConflict(session)
 
   // Check for time conflicts independently - prioritize this over switch reasons

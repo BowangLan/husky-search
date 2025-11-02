@@ -52,13 +52,13 @@ export type CoursePlanState = {
   hydrated: boolean
   terms: Term[] // list of planned terms in chronological order
   plansByTerm: Record<string, TermPlan> // termId -> courses in that term
-  activeTermId: string | null // the current active term for scheduling
+  activeTermIds: string[] // list of active term IDs from convex kvStore
 
   // Term management
   addTerm: (year: number, quarter: Quarter) => void
   removeTerm: (termId: string) => void
   reorderTerms: (termIds: string[]) => void
-  setActiveTerm: (termId: string | null) => void
+  setActiveTermIds: (termIds: string[]) => void
 
   // Course management (basic)
   addCourse: (termId: string, course: Omit<PlannedCourse, "id">) => void
@@ -81,7 +81,6 @@ export type CoursePlanState = {
   getTermPlan: (termId: string) => TermPlan | undefined
   getAllCourses: () => PlannedCourse[]
   getTotalCredits: (termId?: string) => number
-  getActiveTermPlan: () => TermPlan | undefined
 }
 
 const quarterOrder: Record<Quarter, number> = {
@@ -151,7 +150,7 @@ export const coursePlanStore = createStore<CoursePlanState>()(
       hydrated: false,
       terms: [],
       plansByTerm: {},
-      activeTermId: null,
+      activeTermIds: [],
 
       addTerm: (year: number, quarter: Quarter) => {
         set((state) => {
@@ -205,8 +204,8 @@ export const coursePlanStore = createStore<CoursePlanState>()(
         })
       },
 
-      setActiveTerm: (termId: string | null) => {
-        set({ activeTermId: termId })
+      setActiveTermIds: (termIds: string[]) => {
+        set({ activeTermIds: termIds })
       },
 
       addCourse: (termId: string, course: Omit<PlannedCourse, "id">) => {
@@ -444,20 +443,15 @@ export const coursePlanStore = createStore<CoursePlanState>()(
         }, 0)
       },
 
-      getActiveTermPlan: () => {
-        const state = get()
-        if (!state.activeTermId) return undefined
-        return state.plansByTerm[state.activeTermId]
-      },
     }),
     {
       name: "course-plan-store",
-      version: 2, // Increment version for migration
+      version: 3, // Increment version for migration
       storage: ssrSafeStorage,
       partialize: (state) => ({
         terms: state.terms,
         plansByTerm: state.plansByTerm,
-        activeTermId: state.activeTermId,
+        activeTermIds: state.activeTermIds,
       }),
       onRehydrateStorage: () => (state) => {
         if (!state) return
@@ -479,6 +473,11 @@ export const coursePlanStore = createStore<CoursePlanState>()(
             })
           }
           state.activeTermId = null
+        }
+        if (version < 3) {
+          // Migration from v2 to v3: remove activeTermId
+          const state = persistedState as any
+          delete state.activeTermId
         }
         return persistedState as CoursePlanState
       },
@@ -567,4 +566,23 @@ export function useUpdateCourse() {
     },
     [hydrated, updateCourse]
   )
+}
+
+export function useSetActiveTermIds() {
+  const setActiveTermIds = useStore(coursePlanStore, (s) => s.setActiveTermIds)
+  const hydrated = useStore(coursePlanStore, (s) => s.hydrated)
+
+  return useCallback(
+    (termIds: string[]) => {
+      if (!hydrated) return
+      setActiveTermIds(termIds)
+    },
+    [hydrated, setActiveTermIds]
+  )
+}
+
+export function useActiveTermIds() {
+  const activeTermIds = useStore(coursePlanStore, (s) => s.activeTermIds)
+  const hydrated = useStore(coursePlanStore, (s) => s.hydrated)
+  return useMemo(() => (hydrated ? activeTermIds : []), [hydrated, activeTermIds])
 }

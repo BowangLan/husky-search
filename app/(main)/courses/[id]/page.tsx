@@ -1,13 +1,11 @@
+import { Suspense } from "react"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { Suspense } from "react"
 import { api } from "@/convex/_generated/api"
 import { fetchQuery } from "convex/nextjs"
 
 import { DOMAIN } from "@/config/site"
 import { CourseDetailPage } from "@/components/pages/course-detail-page"
-
-export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({
   params,

@@ -6,6 +6,7 @@ import {
   useRemoveCourse,
   useRemoveFromSchedule,
   useScheduledCourses,
+  useScheduledCoursesByActiveTerm,
 } from "@/store/schedule.store"
 import { useQuery } from "convex/react"
 import { Info } from "lucide-react"
@@ -27,7 +28,7 @@ import {
 const RIGHT_SIDEBAR_DETAILS_COOKIE_NAME = "right_sidebar_details"
 const RIGHT_SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 
-export function ScheduledSessionListView() {
+export function ScheduledSessionListView({ termId }: { termId?: string }) {
   // Details on/off state (persist to cookie)
   const [showDetails, setShowDetails] = React.useState<boolean>(() => {
     if (typeof document === "undefined") return true
@@ -44,7 +45,17 @@ export function ScheduledSessionListView() {
       return next
     })
   }, [])
-  const courses = useScheduledCourses()
+
+  // Get courses - filter by termId if provided
+  const allCourses = useScheduledCourses()
+  const coursesByActiveTerm = useScheduledCoursesByActiveTerm()
+  const courses = React.useMemo(() => {
+    if (termId) {
+      return coursesByActiveTerm.get(termId) || []
+    }
+    return allCourses
+  }, [termId, allCourses, coursesByActiveTerm])
+
   const remove = useRemoveFromSchedule()
   const removeCourse = useRemoveCourse()
 

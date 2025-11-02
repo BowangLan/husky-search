@@ -8,11 +8,21 @@ import { useQuery } from "convex/react"
 import { Loader2 } from "lucide-react"
 
 import { generateScheduleVariants } from "@/lib/schedule-generator"
+import {
+  type ScheduleGenerationOptions,
+  DEFAULT_GENERATION_OPTIONS,
+} from "@/config/schedule-generation"
 
-export function useScheduleGeneration() {
+export function useScheduleGeneration(options?: ScheduleGenerationOptions) {
   const courses = useScheduledCourses()
   const { setVariants } = useGeneratedSchedules()
   const [isGenerating, setIsGenerating] = useState(false)
+  
+  // Use provided options or defaults
+  const generationOptions = useMemo(
+    () => options ?? DEFAULT_GENERATION_OPTIONS,
+    [options]
+  )
 
   // Instance-level refs for tracking state and cancellation
   const generationKeyRef = useRef("")
@@ -25,6 +35,7 @@ export function useScheduleGeneration() {
     sessions: any[]
   }> | undefined>(undefined)
   const currentGenerationKeyRef = useRef("")
+  const optionsRef = useRef(generationOptions)
 
   // Check if there are courses without sessions
   const coursesWithoutSessions = useMemo(() => {
@@ -35,7 +46,7 @@ export function useScheduleGeneration() {
     return coursesWithoutSessions.map((c) => c.courseCode)
   }, [coursesWithoutSessions])
 
-  // Create a stable key for the current generation state
+  // Create a stable key for the current generation state (including options)
   const currentGenerationKey = useMemo(() => {
     return JSON.stringify({
       coursesWithoutSessions: courseCodesToFetch.sort(),
@@ -45,8 +56,9 @@ export function useScheduleGeneration() {
           code: c.courseCode,
           sessions: c.sessions.map((s) => s.id).sort(),
         })),
+      options: generationOptions,
     })
-  }, [courseCodesToFetch, courses])
+  }, [courseCodesToFetch, courses, generationOptions])
 
   const coursesWithSessionsData = useQuery(
     api.courses.getCoursesWithSessions,
@@ -65,6 +77,10 @@ export function useScheduleGeneration() {
   useEffect(() => {
     currentGenerationKeyRef.current = currentGenerationKey
   }, [currentGenerationKey])
+
+  useEffect(() => {
+    optionsRef.current = generationOptions
+  }, [generationOptions])
 
   // Auto-generate schedules when courses or course data changes
   useEffect(() => {
@@ -145,11 +161,12 @@ export function useScheduleGeneration() {
       }
 
       try {
-        // Generate schedule variants using latest values
+        // Generate schedule variants using latest values and options
         // Generates ALL valid combinations (no limit)
         const generatedVariants = generateScheduleVariants(
           latestCourses,
-          latestCoursesWithSessionsData
+          latestCoursesWithSessionsData,
+          optionsRef.current
         )
 
         // Check cancellation again before state update
@@ -188,6 +205,7 @@ export function useScheduleGeneration() {
     coursesWithSessionsData,
     currentGenerationKey,
     setVariants,
+    generationOptions,
   ])
 
   const reload = () => {

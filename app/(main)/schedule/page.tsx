@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { api } from "@/convex/_generated/api"
-import { useScheduledCourses } from "@/store/schedule.store"
+import { useScheduledCoursesByActiveTerm, type ScheduleCourse, type ScheduleSession } from "@/store/schedule.store"
 import { useQuery } from "convex/react"
 
 import { isScheduleFeatureEnabled } from "@/config/features"
@@ -26,11 +26,21 @@ export default function SchedulePage() {
     )
   }
 
-  const courses = useScheduledCourses()
+  const coursesByActiveTerm = useScheduledCoursesByActiveTerm()
+  
+  // Flatten courses from all active terms for the calendar view
+  const courses = useMemo(() => {
+    const allCourses: ScheduleCourse[] = []
+    coursesByActiveTerm.forEach((termCourses) => {
+      allCourses.push(...termCourses)
+    })
+    return allCourses
+  }, [coursesByActiveTerm])
+  
   const [activeTab, setActiveTab] = useState<"schedule" | "generation">("schedule")
 
   // Fetch session data from Convex
-  const sessionIds = courses.flatMap((c) => c.sessions.map((s) => s.id))
+  const sessionIds = courses.flatMap((c) => c.sessions.map((s: ScheduleSession) => s.id))
   const sessionDataList = useQuery(
     api.courses.getSessionsByIds,
     sessionIds.length > 0 ? { sessionIds } : "skip"
@@ -59,7 +69,7 @@ export default function SchedulePage() {
 
       <TabsContent value="schedule" className="flex-1 min-h-0 overflow-hidden mt-0">
         <ResizablePanelGroup direction="horizontal" className="h-full">
-          <ResizablePanel defaultSize={30} minSize={20} maxSize={50}>
+          <ResizablePanel defaultSize={40} minSize={20} maxSize={50}>
             <ScheduleCoursesList
               sessionDataMap={sessionDataMap}
               isLoadingSessionData={isLoadingSessionData}

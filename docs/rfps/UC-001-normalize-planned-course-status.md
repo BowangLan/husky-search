@@ -1,4 +1,4 @@
-# RFP: UC-001 - Normalize PlannedCourse with Status Field
+# RFP: UC-001 - Normalize PlannedCourse Status Derivation
 
 **Phase:** Phase 1: Foundations  
 **Status:** Open  
@@ -10,83 +10,66 @@
 
 ## Overview
 
-Add status tracking to `PlannedCourse` entities to distinguish between completed, current, and planned courses. This enables the system to visualize past progress and distinguish between different course states in the planning UI.
+Derive course status from term metadata so the planning UI can distinguish between completed, current, and planned courses without persisting an explicit status flag. This enables the system to visualize past progress while keeping course data normalized.
 
 ## Background
 
-Currently, all courses in the plan are treated equally with no distinction between past, current, and future courses. This prevents users from seeing their academic progress and makes it difficult to track completion status.
+Currently, all courses in the plan are treated equally with no distinction between past, current, and future courses. While Convex stores an ordered list of active term ids, the UI does not consume this metadata to highlight course progress.
 
 **Current State:**
-- `PlannedCourse` type has no status field
-- All courses treated equally regardless of term
+- `PlannedCourse` type has no derived status helper
+- All courses treated equally regardless of term ordering
 - No visual distinction for completed courses
+- Convex plan documents expose `activeTermIds` that identify the in-progress term(s)
 
 **Target State:**
-- `PlannedCourse` includes `status?: "completed" | "current" | "planned"`
+- Status is derived by comparing a course's term with the active term window
 - Course cards display status badges
-- Status can be updated via UI
+- UI recalculates status as term data changes, no per-course overrides needed
 
 ## Files to Modify
 
-- `store/course-plan.store.ts` - Extend `PlannedCourse` type, add migration logic
-- `components/pages/plan/planned-course-card.tsx` - Display status badge
-- `components/pages/plan/term-card.tsx` - Show status indicators
+- `store/course-plan.store.ts` (or equivalent) - Ensure active term ids and course term metadata are available to consumers
+- `lib/plan/get-course-status.ts` (new helper) - Derive status from course term relative to active terms
+- `components/pages/plan/planned-course-card.tsx` - Display derived status badge
+- `components/pages/plan/term-card.tsx` - Surface visual indicators that leverage derived status
 
 ## Acceptance Criteria
 
-1. **Type Extension**
-   - `PlannedCourse` type includes `status?: "completed" | "current" | "planned"`
-   - Type is properly exported and used throughout codebase
+1. **Status Derivation**
+   - A shared helper derives `"completed" | "current" | "planned"` using course term order and `activeTermIds`
+   - Helper handles plans with one or two active terms
 
-2. **Migration Logic**
-   - Migration from v2 to v3 handles existing courses
-   - Default all existing courses to `status: "planned"`
-   - Migration preserves all existing course data
+2. **Data Availability**
+   - Client state exposes the active term ids and term ordering necessary for derivation
+   - No additional persistence or migration is required
 
 3. **UI Display**
    - Course cards display status badge (visual indicator)
    - Badge colors: green (completed), blue (current), gray (planned)
    - Badge is visible but not intrusive
 
-4. **Status Updates**
-   - Status can be updated via dropdown menu on course card
-   - Updates persist to localStorage
-   - Status changes trigger UI updates
+4. **Status Reactivity**
+   - Derived status updates automatically when active term ids change
+   - Local state persists the minimal data necessary (no explicit status override)
 
 5. **Testing**
-   - Unit tests for migration logic
-   - Unit tests for status update actions
+   - Unit tests for status derivation helper (including plans with dual active terms)
    - Integration tests for status badge display
 
 ## Implementation Details
 
-### Type Definition
+### Status Derivation Helper
 
-```typescript
-type PlannedCourse = {
-  id: string
-  courseCode: string
-  courseTitle?: string
-  credits: number | string
-  customCredits?: number
-  sessions: ScheduleSession[]
-  notes?: string
-  color?: string
-  status?: "completed" | "current" | "planned"  // NEW
-}
-```
-
-### Migration Strategy
-
-- Increment store version from v2 to v3
-- In migration function, iterate through all courses
-- Set `status: "planned"` for all existing courses
-- Preserve all other fields unchanged
+- Accepts course term identifier and the ordered term catalog
+- Receives `activeTermIds` (one or two terms in progress)
+- Returns `"completed"` when course term precedes the first active term, `"current"` when it matches one of the active terms, otherwise `"planned"`
+- Handles missing or unknown terms gracefully by defaulting to `"planned"`
 
 ### UI Components
 
 - Status badge component: Small colored badge with icon
-- Status dropdown: Menu item to change status
+- Term and card components call the helper to select styles
 - Visual indicators: Different styling for each status
 
 ## Risks & Dependencies
@@ -97,18 +80,17 @@ type PlannedCourse = {
 
 ## Testing Requirements
 
-- Migration preserves existing data
-- Status updates persist correctly
+- Status derivation handles edge cases (dual active terms, missing term metadata)
 - UI displays status badges correctly
-- Status dropdown functions properly
+- Active term changes propagate to the UI correctly
 - No breaking changes to existing functionality
 
 ## Success Metrics
 
-- All existing courses migrate successfully
+- Status derivation works for all courses without additional persistence
 - Status badges display correctly on course cards
-- Users can update course status via UI
-- Zero data loss during migration
+- Users see accurate progress indicators without manual status maintenance
+- Zero data loss or regressions in stored plan data
 
 ## Related Documentation
 

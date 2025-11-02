@@ -14,7 +14,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScheduledSessionListView } from "@/components/schedule/scheduled-session-list-view"
+import { useActiveTermIds, useTerms } from "@/store/course-plan.store"
 
 import { RichButton } from "./ui/rich-button"
 
@@ -143,10 +145,73 @@ function RightSidebarContent() {
   if (!isScheduleFeatureEnabled()) return null
 
   const { view } = useRightSidebar()
+  const activeTermIds = useActiveTermIds()
+  const terms = useTerms()
+  const [selectedTermId, setSelectedTermId] = React.useState<string | null>(null)
+
+  // Create available terms from active term IDs
+  const availableTerms = React.useMemo(() => {
+    return activeTermIds
+      .map((termId) => {
+        // Try to find term in store first
+        const term = terms.find((t) => t.id === termId)
+        if (term) {
+          return {
+            termId: term.id,
+            label: term.label,
+          }
+        }
+        // Fallback: parse termId if it's in format like "2025-Winter"
+        const [year, quarter] = termId.split("-")
+        if (year && quarter) {
+          return {
+            termId,
+            label: `${quarter} ${year}`,
+          }
+        }
+        // Last resort: use termId as label
+        return {
+          termId,
+          label: termId,
+        }
+      })
+      .filter((term) => term.termId)
+  }, [activeTermIds, terms])
+
+  // Set default selected term
+  React.useEffect(() => {
+    if (availableTerms.length > 0 && !selectedTermId) {
+      setSelectedTermId(availableTerms[0].termId)
+    }
+  }, [availableTerms, selectedTermId])
 
   switch (view) {
     case "scheduled-session-list":
-      return <ScheduledSessionListView />
+      if (availableTerms.length === 0) {
+        return <ScheduledSessionListView />
+      }
+      return (
+        <Tabs value={selectedTermId || undefined} onValueChange={setSelectedTermId} className="flex flex-col h-full min-h-0 gap-0">
+          <div className="px-3 py-2 border-b flex-shrink-0">
+            <TabsList className="w-full">
+              {availableTerms.map((term) => (
+                <TabsTrigger key={term.termId} value={term.termId} className="flex-1">
+                  {term.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+          {availableTerms.map((term) => (
+            <TabsContent 
+              key={term.termId} 
+              value={term.termId} 
+              className="m-0 mt-0 data-[state=active]:flex data-[state=active]:flex-col data-[state=active]:flex-1 data-[state=active]:min-h-0"
+            >
+              <ScheduledSessionListView termId={term.termId} />
+            </TabsContent>
+          ))}
+        </Tabs>
+      )
     default:
       return <ScheduledSessionListView />
   }

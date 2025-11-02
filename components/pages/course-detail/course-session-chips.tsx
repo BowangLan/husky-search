@@ -108,7 +108,7 @@ const SessionChip = ({
 
 export const SessionChips = () => {
   const {
-    data,
+    sessions,
     selectedSessionIds,
     setSelectedSessionIds,
     showOpenOnly,
@@ -116,11 +116,11 @@ export const SessionChips = () => {
     pinnedSessionIds,
     setPinnedSessionIds,
   } = useCourseSessions()
-  const termData = data?.myplanCourse?.currentTermData?.[0]
-  let sessions = termData?.sessions
+  
+  let filteredSessions = sessions || []
 
   if (selectedWeekDaySet.size > 0) {
-    sessions = sessions?.filter((session) =>
+    filteredSessions = filteredSessions.filter((session) =>
       session.meetingDetailsList.some((m) =>
         expandDays(m.days).some((d) => selectedWeekDaySet.has(d))
       )
@@ -128,23 +128,23 @@ export const SessionChips = () => {
   }
 
   if (showOpenOnly) {
-    sessions = sessions?.filter(
+    filteredSessions = filteredSessions.filter(
       (session) =>
         session.stateKey === "active" &&
         session.enrollCount < session.enrollMaximum
     )
   }
 
-  if (typeof sessions === "undefined") return null
+  if (filteredSessions.length === 0) return null
 
-  const hasDoubleLetterCode = sessions.some(
+  const hasDoubleLetterCode = filteredSessions.some(
     (session) => session.code.length > 1
   )
 
   if (!hasDoubleLetterCode) {
     return (
       <div className="flex flex-row items-center flex-wrap gap-2">
-        {sessions.map((session) => {
+        {filteredSessions.map((session) => {
           return <SessionChip key={session.id} session={session} />
         })}
       </div>
@@ -152,7 +152,7 @@ export const SessionChips = () => {
   }
 
   // Group sessions by first letter
-  const groupedSessions = sessions
+  const groupedSessions = filteredSessions
     .toSorted((a, b) => a.code.localeCompare(b.code))
     .reduce(
       (acc, session) => {

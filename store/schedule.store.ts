@@ -73,8 +73,9 @@ export type ScheduleState = {
 }
 
 // Helper functions
-function getActiveTermId(): string | null {
-  return coursePlanStore.getState().activeTermId
+function getFirstActiveTermId(): string | null {
+  const activeTermIds = coursePlanStore.getState().activeTermIds
+  return activeTermIds.length > 0 ? activeTermIds[0] : null
 }
 
 // Helper to convert MyPlan termId (e.g. "20254" or "WIN 2025") to internal format
@@ -114,7 +115,7 @@ function parseMyPlanTermId(myplanTermId: string): { year: number; quarter: "Wint
 
 // Helper to get or create active term (for backward compatibility with old schedule behavior)
 function getOrCreateActiveTerm(): string {
-  let termId = getActiveTermId()
+  let termId = getFirstActiveTermId()
 
   if (!termId) {
     // Auto-create a default "Schedule" term for the current quarter
@@ -133,8 +134,11 @@ function getOrCreateActiveTerm(): string {
     coursePlanStore.getState().addTerm(year, quarter)
     termId = `${year}-${quarter}`
 
-    // Set it as active
-    coursePlanStore.getState().setActiveTerm(termId)
+    // Add it to active term IDs
+    const currentActiveTermIds = coursePlanStore.getState().activeTermIds
+    if (!currentActiveTermIds.includes(termId)) {
+      coursePlanStore.getState().setActiveTermIds([...currentActiveTermIds, termId])
+    }
   }
 
   return termId
@@ -156,10 +160,12 @@ function ensureTermFromMyPlan(myplanTermId: string): string {
     coursePlanStore.getState().addTerm(parsed.year, parsed.quarter)
   }
 
-  // Set as active term if no active term is set
-  const activeTermId = getActiveTermId()
-  if (!activeTermId) {
-    coursePlanStore.getState().setActiveTerm(internalTermId)
+  // Add to active term IDs if no active terms are set
+  const activeTermIds = coursePlanStore.getState().activeTermIds
+  if (activeTermIds.length === 0) {
+    coursePlanStore.getState().setActiveTermIds([internalTermId])
+  } else if (!activeTermIds.includes(internalTermId)) {
+    coursePlanStore.getState().setActiveTermIds([...activeTermIds, internalTermId])
   }
 
   return internalTermId
@@ -532,6 +538,38 @@ export function useScheduledCourses(): ScheduleCourse[] {
     if (!enabled || !hydrated) return []
     return scheduleStore.getState().getAllCourses()
   }, [enabled, hydrated, plansByTerm])
+}
+
+export function useScheduledCoursesByActiveTerm(): Map<string, ScheduleCourse[]> {
+  const enabled = isScheduleFeatureEnabled()
+  const plansByTerm = useStore(coursePlanStore, (s) => s.plansByTerm)
+  const activeTermIds = useStore(coursePlanStore, (s) => s.activeTermIds)
+  const hydrated = useStore(coursePlanStore, (s) => s.hydrated)
+
+  return useMemo(() => {
+    const result = new Map<string, ScheduleCourse[]>()
+    if (!enabled || !hydrated) return result
+
+    // Only include courses from active terms
+    for (const termId of activeTermIds) {
+      const plan = plansByTerm[termId]
+      if (plan) {
+        const courses = plan.courses.map((c) => ({
+          id: c.id,
+          courseCode: c.courseCode,
+          courseTitle: c.courseTitle,
+          courseCredit: c.credits,
+          creditOverwrite: c.customCredits,
+          sessions: c.sessions,
+        }))
+        result.set(termId, courses)
+      } else {
+        result.set(termId, [])
+      }
+    }
+
+    return result
+  }, [enabled, hydrated, plansByTerm, activeTermIds])
 }
 
 export function useScheduleCourse(courseCode: string): ScheduleCourse | undefined {

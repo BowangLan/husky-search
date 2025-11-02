@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Check, Plus, X } from "lucide-react"
 import { toast } from "sonner"
 
@@ -11,6 +12,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { ChooseTermDialog } from "./choose-term-dialog"
 
 interface CourseScheduleButtonProps {
   courseCode: string
@@ -30,6 +32,7 @@ export function CourseScheduleButton({
   const scheduleEnabled = isScheduleFeatureEnabled()
   const scheduledCourse = useScheduleCourse(courseCode)
   const schedule = useSchedule()
+  const [dialogOpen, setDialogOpen] = useState(false)
   
   const isCourseInSchedule = !!scheduledCourse
   const hasSessions = scheduledCourse?.sessions && scheduledCourse.sessions.length > 0
@@ -37,13 +40,22 @@ export function CourseScheduleButton({
 
   const handleAddToSchedule = () => {
     if (!scheduleEnabled) return
+    setDialogOpen(true)
+  }
+
+  const handleSelectTerm = (termId: string) => {
+    if (!scheduleEnabled) return
     
     const wasAlreadyAdded = schedule.hasCourse(courseCode)
-    if (wasAlreadyAdded) return
+    if (wasAlreadyAdded) {
+      toast.info(`${courseCode} is already in your schedule`)
+      return
+    }
 
     schedule.addCourse(courseCode, {
       courseTitle,
       courseCredit,
+      termId,
     })
     
     toast.success(`Added ${courseCode} to your schedule`)
@@ -97,19 +109,26 @@ export function CourseScheduleButton({
     ? "Remove course from schedule"
     : "Add course to schedule without selecting sessions"
 
-  if (variant === "mobile") {
-    return buttonContent
-  }
-
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        {buttonContent}
-      </TooltipTrigger>
-      <TooltipContent>
-        {tooltipContent}
-      </TooltipContent>
-    </Tooltip>
+    <>
+      {variant === "mobile" ? (
+        buttonContent
+      ) : (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {buttonContent}
+          </TooltipTrigger>
+          <TooltipContent>
+            {tooltipContent}
+          </TooltipContent>
+        </Tooltip>
+      )}
+      <ChooseTermDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onSelectTerm={handleSelectTerm}
+      />
+    </>
   )
 }
 

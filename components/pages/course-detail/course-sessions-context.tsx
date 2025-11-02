@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -11,6 +12,7 @@ import { MyplanCourseTermSession } from "@/convex/schema"
 import { useQuery } from "convex/react"
 
 import { MyPlanCourseDetail } from "@/types/myplan"
+import { parseTermId } from "@/lib/course-utils"
 import { expandDays } from "@/lib/utils"
 
 export type CourseSessionsContextValue = {
@@ -19,6 +21,11 @@ export type CourseSessionsContextValue = {
   displayedSessions: MyplanCourseTermSession[]
   pinnedSessions: MyplanCourseTermSession[]
   isLoading: boolean
+
+  // Term management
+  availableTerms: Array<{ termId: string; label: string }>
+  selectedTermId: string | null
+  setSelectedTermId: (termId: string | null) => void
 
   selectedWeekDaySet: Set<string>
   setSelectedWeekDaySet: (set: Set<string>) => void
@@ -65,14 +72,53 @@ export const CourseSessionsProvider = ({
     new Set()
   )
   const [viewType, setViewType] = useState<"list" | "calendar">("list")
+  const [selectedTermId, setSelectedTermId] = useState<string | null>(null)
 
   const data = useQuery(api.courses.getByCourseCode, {
     courseCode,
   })
 
   const isLoading = data === undefined
-  const termData = data?.myplanCourse?.currentTermData?.[0]
-  const sessions = Array.isArray(termData?.sessions) ? termData!.sessions : []
+
+  // Get available terms from currentTermData
+  const availableTerms = useMemo(() => {
+    if (!data?.myplanCourse?.currentTermData) return []
+
+    return data.myplanCourse.currentTermData
+      .map((termData) => {
+        try {
+          const parsed = parseTermId(termData.termId)
+          return {
+            termId: termData.termId,
+            label: parsed.label,
+          }
+        } catch {
+          return {
+            termId: termData.termId,
+            label: termData.termId,
+          }
+        }
+      })
+      .filter((term) => term.termId) // Filter out any invalid terms
+  }, [data?.myplanCourse?.currentTermData])
+
+  // Set default selected term to first available term
+  useEffect(() => {
+    if (availableTerms.length > 0 && !selectedTermId) {
+      setSelectedTermId(availableTerms[0].termId)
+    }
+  }, [availableTerms, selectedTermId])
+
+  // Get sessions from selected term
+  const sessions = useMemo(() => {
+    if (!data?.myplanCourse?.currentTermData || !selectedTermId) return []
+
+    const termData = data.myplanCourse.currentTermData.find(
+      (td) => td.termId === selectedTermId
+    )
+
+    return Array.isArray(termData?.sessions) ? termData.sessions : []
+  }, [data?.myplanCourse?.currentTermData, selectedTermId])
 
   const displayedSessions = useMemo(() => {
     let list = sessions
@@ -138,6 +184,9 @@ export const CourseSessionsProvider = ({
       displayedSessions,
       pinnedSessions,
       isLoading,
+      availableTerms,
+      selectedTermId,
+      setSelectedTermId,
       selectedWeekDaySet,
       setSelectedWeekDaySet,
       selectedSessionIds,
@@ -157,6 +206,8 @@ export const CourseSessionsProvider = ({
       displayedSessions,
       pinnedSessions,
       isLoading,
+      availableTerms,
+      selectedTermId,
       selectedWeekDaySet,
       selectedSessionIds,
       pinnedSessionIds,

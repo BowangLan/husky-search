@@ -97,7 +97,7 @@ export function ScheduledSessionCard({
   }
 
   return (
-    <div key={session.id} className={cn(compact ? "px-3 py-0" : "px-3 py-3")}>
+    <div key={session.id} className={cn(compact ? "px-3 py-0" : "px-4 py-3")}>
       {/* Session header with section and status */}
       <div className={cn("flex items-center gap-2", compact ? "" : "mb-2")}>
         <div className="flex items-center gap-1.5 flex-wrap">

@@ -1,5 +1,10 @@
 import { type ScheduleCourse, type ScheduleSession } from "@/store/schedule.store"
 import { expandDays } from "./utils"
+import {
+  type ScheduleGenerationOptions,
+  DEFAULT_GENERATION_OPTIONS,
+  filterSessionsByOptions,
+} from "@/config/schedule-generation"
 
 type Meeting = {
   days?: string
@@ -162,7 +167,8 @@ function isValidSchedule(
  */
 export function generateScheduleVariants(
   scheduledCourses: ScheduleCourse[],
-  coursesWithSessions: CourseWithSessions[]
+  coursesWithSessions: CourseWithSessions[],
+  options: ScheduleGenerationOptions = DEFAULT_GENERATION_OPTIONS
 ): Array<{
   id: string
   courseAssignments: Map<string, ScheduleSession>
@@ -180,11 +186,20 @@ export function generateScheduleVariants(
     return []
   }
   
-  // Get available sessions for courses without sessions
+  // Get available sessions for courses without sessions and filter by options
   const courseCodeToSessions = new Map<string, CourseWithSessions>()
   for (const course of coursesWithSessions) {
     if (coursesWithoutSessions.some((c) => c.courseCode === course.courseCode)) {
-      courseCodeToSessions.set(course.courseCode, course)
+      // Filter sessions based on generation options
+      const filteredSessions = filterSessionsByOptions(course.sessions, options)
+      
+      // Only include course if it has sessions after filtering
+      if (filteredSessions.length > 0) {
+        courseCodeToSessions.set(course.courseCode, {
+          ...course,
+          sessions: filteredSessions,
+        })
+      }
     }
   }
   
