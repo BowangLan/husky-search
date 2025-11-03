@@ -33,10 +33,10 @@ export const SessionRowDesktop = ({
   const isScheduled = useIsSessionScheduled(session.id)
   const { handleMouseEnter, handleMouseLeave } = useSessionPreview(session)
 
-  const sessionRaw =
-    data?.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
-      (item: any) => item.activityId === session.id
-    ) as MyPlanCourseDetail["courseOfferingInstitutionList"][0]["courseOfferingTermList"][0]["activityOfferingItemList"][0]
+  // const sessionRaw =
+  //   data?.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
+  //     (item: any) => item.activityId === session.id
+  //   ) as MyPlanCourseDetail["courseOfferingInstitutionList"][0]["courseOfferingTermList"][0]["activityOfferingItemList"][0]
 
   return (
     <div
@@ -72,13 +72,13 @@ export const SessionRowDesktop = ({
                 </TooltipContent>
               </Tooltip>
             )}
-            {sessionRaw?.sectionComments && (
+            {session.sectionComments && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Info className="size-3.5 opacity-70" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="max-w-[360px]">{sessionRaw.sectionComments}</p>
+                  <p className="max-w-[360px]">{session.sectionComments}</p>
                 </TooltipContent>
               </Tooltip>
             )}
@@ -205,10 +205,10 @@ export const SessionRowMobile = ({
   const isScheduled = useIsSessionScheduled(session.id)
   const { handleMouseEnter, handleMouseLeave } = useSessionPreview(session)
 
-  const sessionRaw =
-    data?.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
-      (item: any) => item.activityId === session.id
-    ) as MyPlanCourseDetail["courseOfferingInstitutionList"][0]["courseOfferingTermList"][0]["activityOfferingItemList"][0]
+  // const sessionRaw =
+  //   data?.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
+  //     (item: any) => item.activityId === session.id
+  //   ) as MyPlanCourseDetail["courseOfferingInstitutionList"][0]["courseOfferingTermList"][0]["activityOfferingItemList"][0]
 
   return (
     <div
@@ -243,15 +243,13 @@ export const SessionRowMobile = ({
                   </TooltipContent>
                 </Tooltip>
               )}
-              {sessionRaw?.sectionComments && (
+              {session.sectionComments && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Info className="size-3.5 opacity-70" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="max-w-[360px]">
-                      {sessionRaw.sectionComments}
-                    </p>
+                    <p className="max-w-[360px]">{session.sectionComments}</p>
                   </TooltipContent>
                 </Tooltip>
               )}
