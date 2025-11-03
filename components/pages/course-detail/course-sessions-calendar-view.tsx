@@ -200,10 +200,10 @@ const CalendarEventCard = ({
     (enrollCount / Math.max(1, enrollMaximum)) * 100
   )
 
-  const sessionRaw =
-    data?.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
-      (item: any) => item.activityId === event.session.id
-    ) as MyPlanCourseDetail["courseOfferingInstitutionList"][0]["courseOfferingTermList"][0]["activityOfferingItemList"][0]
+  // const sessionRaw =
+  //   data?.myplanCourse?.detailData?.courseOfferingInstitutionList[0].courseOfferingTermList[0].activityOfferingItemList.find(
+  //     (item: any) => item.activityId === event.session.id
+  //   ) as MyPlanCourseDetail["courseOfferingInstitutionList"][0]["courseOfferingTermList"][0]["activityOfferingItemList"][0]
 
   const handleCopy = async (value: string | number) => {
     try {
@@ -352,14 +352,14 @@ const CalendarEventCard = ({
                     </TooltipContent>
                   </Tooltip>
                 )}
-                {sessionRaw?.sectionComments && (
+                {event.session.sectionComments && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Info className="size-4 opacity-70" />
                     </TooltipTrigger>
                     <TooltipContent>
                       <p className="max-w-[288px]">
-                        {sessionRaw.sectionComments}
+                        {event.session.sectionComments}
                       </p>
                     </TooltipContent>
                   </Tooltip>
