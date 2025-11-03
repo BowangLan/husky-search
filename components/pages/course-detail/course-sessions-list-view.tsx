@@ -53,7 +53,7 @@ export const SessionRowDesktop = ({
         )}
         style={{
           gridTemplateColumns:
-            "60px minmax(96px,200px) minmax(160px,380px) 100px minmax(180px,210px) auto",
+            "60px minmax(96px,200px) auto 100px minmax(180px,240px) 36px",
         }}
       >
         <div>

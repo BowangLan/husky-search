@@ -263,3 +263,20 @@ export function getCourseLatestEnrollCount(courseDetail: MyPlanCourseDetail): {
     enrollCount,
   }
 }
+
+export const isRequisitesEmpty = (requisites: any): boolean => {
+  if (typeof requisites === "string") {
+    if (requisites.toLowerCase() === "null" || requisites === "") {
+      return true
+    }
+    return false
+  }
+  if (Array.isArray(requisites)) {
+    if (requisites[0]?.toLowerCase() === "null" || requisites[0] === "") {
+      return true
+    }
+    return false
+  }
+  return true
+
+}

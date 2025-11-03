@@ -9,6 +9,7 @@ import { KV_STORE_KEYS } from "./kvStore";
 import { Doc } from "./_generated/dataModel";
 import { ConvexCourseOverview } from "@/types/convex-courses";
 import { MyplanCourseTermData } from "./schema";
+import { DawgpathCourseDetail } from "./dawgpath";
 
 export const getByCourseCode = query({
   args: {
@@ -167,7 +168,7 @@ const fetchCurrentTermData = async (
   return currentTermData;
 }
 
-const convertCourseToOverview = (c: Doc<"myplanCourses"> & { currentTermData?: MyplanCourseTermData[] }): ConvexCourseOverview => ({
+const convertCourseToOverview = (c: Doc<"myplanCourses"> & { currentTermData?: MyplanCourseTermData[] }, dawgpathData?: DawgpathCourseDetail): ConvexCourseOverview => ({
   courseCode: c.courseCode,
   title: c.title,
   description: c.description,
@@ -185,6 +186,10 @@ const convertCourseToOverview = (c: Doc<"myplanCourses"> & { currentTermData?: M
   })),
   prereqs: c.prereqs,
   lastUpdated: c.lastUpdated,
+  prereqMap: dawgpathData?.prereq_graph?.x ? {
+    edges: dawgpathData.prereq_graph.x.edges,
+    nodes: dawgpathData.prereq_graph.x.nodes,
+  } : undefined,
 })
 
 export const listOverviewBySubjectArea = query({
@@ -194,30 +199,119 @@ export const listOverviewBySubjectArea = query({
   },
   handler: async (ctx, args) => {
     const currentTerms = await ctx.runQuery(api.kvStore.getCurrentTerms);
-    
+
     const results = await ctx.db
       .query("myplanCourses")
       .withIndex("by_subject_area", (q) => q.eq("subjectArea", args.subjectArea))
       .collect();
 
-    const sorted = results.toSorted(
-      (a, b) => (b.statsEnrollMax ?? 0) - (a.statsEnrollMax ?? 0)
-    );
-    const limited = sorted.slice(0, args.limit ?? 200);
-
-    // Fetch currentTermData for all courses
-    const coursesWithTermData = await Promise.all(
-      limited.map(async (course) => {
-        const currentTermData = await fetchCurrentTermData(ctx, course.courseCode, currentTerms);
-        return {
+    // Fetch currentTermData and dawgpathData for all courses
+    const coursesWithTermData: Array<ConvexCourseOverview> = await Promise.all(
+      results.map(async (course) => {
+        const [currentTermData, dawgpathCourse] = await Promise.all([
+          fetchCurrentTermData(ctx, course.courseCode, currentTerms),
+          ctx.db.query("dawgpathCourses")
+            .withIndex("by_course_code", (q) => q.eq("courseCode", course.courseCode))
+            .first(),
+        ]);
+        // console.log("dawgpathCourse", dawgpathCourse)
+        return convertCourseToOverview({
           ...course,
           currentTermData,
-        };
+        }, dawgpathCourse?.detailData);
       })
     );
 
-    return coursesWithTermData.map(convertCourseToOverview);
+    return coursesWithTermData
   },
+})
+
+export const listOverviewByCourseCodes = query({
+  args: {
+    courseCodes: v.array(v.string()),
+    prereqLevel: v.optional(v.number()), // default to 1
+  },
+  handler: async (ctx, args) => {
+    const currentTerms = await ctx.runQuery(api.kvStore.getCurrentTerms);
+
+    let prereqLevel: number = args.prereqLevel ?? 1;
+    if (prereqLevel < 1) {
+      prereqLevel = 1;
+    }
+
+    const primaryCourseCodes: Set<string> = new Set();
+    args.courseCodes.forEach((courseCode) => {
+      primaryCourseCodes.add(courseCode);
+    });
+
+    const courses = await Promise.all(args.courseCodes.map(async (courseCode) => {
+      const [myplanCourse, currentTermData, dawgpathCourse] = await Promise.all([
+        ctx.db.query("myplanCourses")
+          .withIndex("by_course_code", (q) => q.eq("courseCode", courseCode))
+          .first(),
+        fetchCurrentTermData(ctx, courseCode, currentTerms),
+        ctx.db.query("dawgpathCourses")
+          .withIndex("by_course_code", (q) => q.eq("courseCode", courseCode))
+          .first(),
+      ]);
+
+      if (!myplanCourse) {
+        return null;
+      }
+
+      return convertCourseToOverview({
+        ...myplanCourse,
+        currentTermData,
+      }, dawgpathCourse?.detailData);
+    }));
+
+    const filtered: Array<ConvexCourseOverview> = courses.filter(c => c !== null);
+    const mapped: Record<string, ConvexCourseOverview> = Object.fromEntries(filtered.map((c) => [c.courseCode, c]))
+
+    const secondaryCourseCodes: Set<string> = new Set();
+    courses.forEach((c) => {
+      if (!c?.prereqMap) {
+        return;
+      }
+
+      Object.entries(c.prereqMap.nodes.department_abbrev).forEach(([nodeId, departmentAbbrev]) => {
+        const courseNumber = c?.prereqMap?.nodes.course_number[nodeId];
+        if (!courseNumber) {
+          return;
+        }
+        const courseCode = `${departmentAbbrev} ${courseNumber}`;
+        if (primaryCourseCodes.has(courseCode)) {
+          return;
+        }
+
+        secondaryCourseCodes.add(courseCode);
+      });
+    });
+
+    await Promise.all(Array.from(secondaryCourseCodes).map(async (courseCode) => {
+      const [myplanCourse, currentTermData, dawgpathCourse] = await Promise.all([
+        ctx.db.query("myplanCourses")
+          .withIndex("by_course_code", (q) => q.eq("courseCode", courseCode))
+          .first(),
+        fetchCurrentTermData(ctx, courseCode, currentTerms),
+        ctx.db.query("dawgpathCourses")
+          .withIndex("by_course_code", (q) => q.eq("courseCode", courseCode))
+          .first(),
+      ]);
+
+      if (!myplanCourse) {
+        return;
+      }
+
+      mapped[courseCode] = convertCourseToOverview({
+        ...myplanCourse,
+        currentTermData,
+      }, dawgpathCourse?.detailData);
+    }));
+
+    return mapped;
+
+  }
 })
 
 
@@ -229,7 +323,7 @@ export const listOverviewByCredit = query({
   },
   handler: async (ctx, args) => {
     const currentTerms = await ctx.runQuery(api.kvStore.getCurrentTerms);
-    
+
     const results = await ctx.db
       .query("myplanCourses")
       .withIndex("by_credit", (q) => q.eq("credit", args.credit))
@@ -238,18 +332,24 @@ export const listOverviewByCredit = query({
         cursor: args.cursor ?? null,
       });
 
-    // Fetch currentTermData for all courses
-    const coursesWithTermData = await Promise.all(
+    // Fetch currentTermData and dawgpathData for all courses
+    const coursesWithTermData: Array<Doc<"myplanCourses"> & { currentTermData: MyplanCourseTermData[]; dawgpathData?: DawgpathCourseDetail }> = await Promise.all(
       results.page.map(async (course) => {
-        const currentTermData = await fetchCurrentTermData(ctx, course.courseCode, currentTerms);
+        const [currentTermData, dawgpathCourse] = await Promise.all([
+          fetchCurrentTermData(ctx, course.courseCode, currentTerms),
+          ctx.db.query("dawgpathCourses")
+            .withIndex("by_course_code", (q) => q.eq("courseCode", course.courseCode))
+            .first(),
+        ]);
         return {
           ...course,
           currentTermData,
+          dawgpathData: dawgpathCourse?.detailData,
         };
       })
     );
 
-    const mapped = coursesWithTermData.map(convertCourseToOverview);
+    const mapped = coursesWithTermData.map((course) => convertCourseToOverview(course, course.dawgpathData));
 
     return {
       data: mapped,
@@ -391,7 +491,7 @@ export const getCoursesWithSessions = query({
     sessions: any[]
   }>> => {
     const currentTerms: string[] = await ctx.runQuery(api.kvStore.getCurrentTerms);
-    
+
     const courses: Array<{
       courseCode: string
       courseTitle?: string
@@ -477,13 +577,19 @@ export const listOverviewByStatsEnrollMax = query({
           cursor: args.cursor ?? null,
         });
 
-      // Fetch currentTermData for all courses
-      const coursesWithTermData = await Promise.all(
+      // Fetch currentTermData and dawgpathData for all courses
+      const coursesWithTermData: Array<Doc<"myplanCourses"> & { currentTermData: MyplanCourseTermData[]; dawgpathData?: DawgpathCourseDetail }> = await Promise.all(
         courses.page.map(async (course) => {
-          const currentTermData = await fetchCurrentTermData(ctx, course.courseCode, currentTerms);
+          const [currentTermData, dawgpathCourse] = await Promise.all([
+            fetchCurrentTermData(ctx, course.courseCode, currentTerms),
+            ctx.db.query("dawgpathCourses")
+              .withIndex("by_course_code", (q) => q.eq("courseCode", course.courseCode))
+              .first(),
+          ]);
           return {
             ...course,
             currentTermData,
+            dawgpathData: dawgpathCourse?.detailData,
           };
         })
       );
@@ -492,7 +598,7 @@ export const listOverviewByStatsEnrollMax = query({
       const filtered = coursesWithTermData.filter((course) => course.currentTermData && course.currentTermData.length > 0);
 
       return {
-        data: filtered.map(convertCourseToOverview),
+        data: filtered.map((course) => convertCourseToOverview(course, course.dawgpathData)),
         continueCursor: courses.continueCursor,
         isDone: courses.isDone,
       };
@@ -508,13 +614,19 @@ export const listOverviewByStatsEnrollMax = query({
         cursor: args.cursor ?? null,
       });
 
-    // Fetch currentTermData for all courses
-    const coursesWithTermData = await Promise.all(
+    // Fetch currentTermData and dawgpathData for all courses
+    const coursesWithTermData: Array<Doc<"myplanCourses"> & { currentTermData: MyplanCourseTermData[]; dawgpathData?: DawgpathCourseDetail }> = await Promise.all(
       courses.page.map(async (course) => {
-        const currentTermData = await fetchCurrentTermData(ctx, course.courseCode, currentTerms);
+        const [currentTermData, dawgpathCourse] = await Promise.all([
+          fetchCurrentTermData(ctx, course.courseCode, currentTerms),
+          ctx.db.query("dawgpathCourses")
+            .withIndex("by_course_code", (q) => q.eq("courseCode", course.courseCode))
+            .first(),
+        ]);
         return {
           ...course,
           currentTermData,
+          dawgpathData: dawgpathCourse?.detailData,
         };
       })
     );
@@ -523,7 +635,7 @@ export const listOverviewByStatsEnrollMax = query({
     const filtered = coursesWithTermData.filter((course) => course.currentTermData && course.currentTermData.length > 0);
 
     return {
-      data: filtered.map(convertCourseToOverview),
+      data: filtered.map((course) => convertCourseToOverview(course, course.dawgpathData)),
       continueCursor: courses.continueCursor,
       isDone: courses.isDone,
     };

@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { MyplanCourseTermSession } from "@/convex/schema"
 import { useCanAddToSchedule, useHasTimeConflict } from "@/store/schedule.store"
 import {
   AlertTriangle,
@@ -27,7 +28,11 @@ import { useSchedulePreview } from "@/components/schedule/schedule-preview-conte
 
 import { useScheduleToggleWithToasts } from "./use-schedule-toggle"
 
-export const SessionScheduleToggleButton = ({ session }: { session: any }) => {
+export const SessionScheduleToggleButton = ({
+  session,
+}: {
+  session: MyplanCourseTermSession
+}) => {
   if (!isScheduleFeatureEnabled()) return null
   const { isScheduled, canAdd, triggerToggle } =
     useScheduleToggleWithToasts(session)
@@ -48,6 +53,8 @@ export const SessionScheduleToggleButton = ({ session }: { session: any }) => {
   if (canSwitch) {
     variant = "secondary"
   } else if (isDisabled) {
+    variant = "ghost"
+  } else if (isScheduled) {
     variant = "ghost"
   }
 

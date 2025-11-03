@@ -1,3 +1,5 @@
+import { DawgpathCourseDetail } from "@/convex/dawgpath"
+
 export type ConvexCourseOverviewEnroll = {
   termId: string
   enrollMax: number
@@ -18,6 +20,7 @@ export type ConvexCourseOverview = {
   genEdReqs?: string[]
   prereqs?: string[]
   lastUpdated?: number
+  prereqMap?: Pick<DawgpathCourseDetail["prereq_graph"]["x"], "edges" | "nodes">
 }
 
 

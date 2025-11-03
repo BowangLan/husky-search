@@ -11,6 +11,7 @@ import {
 import { useQuery } from "convex/react"
 
 import { cn } from "@/lib/utils"
+import { PrereqGraph } from "@/components/prereq-graph/prereq-graph"
 
 import { Page } from "../page-wrapper"
 import { Button } from "../ui/button"
@@ -64,9 +65,11 @@ const CourseDetailPageContent = ({ courseCode }: { courseCode: string }) => {
     c.myplanCourse.currentTermData[0]?.sessions &&
     c.myplanCourse.currentTermData[0].sessions.length > 0
 
-  const [tab, setTab] = useState<"sessions" | "cec">(
+  const [tab, setTab] = useState<"sessions" | "cec" | "prereqs">(
     hasCurrentTermData ? "sessions" : "cec"
   )
+
+  const prereqGraph = c?.dp?.prereq_graph
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -86,12 +89,33 @@ const CourseDetailPageContent = ({ courseCode }: { courseCode: string }) => {
         <PageTab active={tab === "cec"} onClick={() => setTab("cec")}>
           CEC Evaluations
         </PageTab>
+        {!!prereqGraph?.x && (
+          <PageTab active={tab === "prereqs"} onClick={() => setTab("prereqs")}>
+            Prerequisites
+          </PageTab>
+        )}
       </div>
 
       {tab === "sessions" && hasCurrentTermData && (
         <CourseSessionsSection courseCode={courseCode} />
       )}
       {tab === "cec" && <CECEvaluations courseCode={courseCode} />}
+      {tab === "prereqs" && prereqGraph && (
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-2xl font-semibold mb-4">Prerequisite Graph</h2>
+            <p className="text-muted-foreground mb-4">
+              Visualize the prerequisite chain for this course. Click on any
+              course node to view its details.
+            </p>
+          </div>
+          <PrereqGraph
+            prereqGraph={prereqGraph}
+            currentCourseCode={courseCode}
+            isLoading={false}
+          />
+        </section>
+      )}
 
       {/* {gpaDistro && gpaDistro.length > 0 ? (
         <EasinessPieChart data={gpaDistro} />
@@ -233,7 +257,7 @@ export function CourseDetailPage({ courseCode }: { courseCode: string }) {
 
   const isLoading = c === undefined
 
-  // console.log(c)
+  console.log(c)
 
   if (c?.myplanCourse === null) {
     // should be detected by generateMetadata

@@ -255,14 +255,7 @@ export function AppSidebarLayout({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [])
 
-  const navWithIcons = siteConfig.mainNav.map((item) => {
-    let IconComp: React.ComponentType<{ className?: string }>
-    if (item.href === "/") IconComp = Home
-    else if (item.href?.includes("majors")) IconComp = Layers
-    else if (item.href?.includes("schedule")) IconComp = Calendar
-    else IconComp = Info
-    return { ...item, IconComp }
-  })
+  const navWithIcons = siteConfig.mainNav
 
   const firstName = user?.firstName ?? null
   const lastName = user?.lastName ?? null

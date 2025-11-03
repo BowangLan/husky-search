@@ -19,7 +19,7 @@ const formatPrereqs = (prereqs: string[] | undefined) => {
   return prereqs.join(", ")
 }
 
-const formatRawPrereqs = (prereqs: string[] | undefined) => {
+export const formatRawPrereqs = (prereqs: string[] | undefined) => {
   // [
   //   "A minimum grade of 2.0 in <span class=\"linkified\" data-id=\"df39e383-5abc-4454-9cf5-8aed65f05a48\" data-subject=\"PHYS\" data-number=\"321\"  data-title=\"Electromagnetism I\" data-text=\"PHYS 321\" />."
   // ]

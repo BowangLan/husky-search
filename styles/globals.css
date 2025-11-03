@@ -391,3 +391,10 @@ html {
 ::-webkit-scrollbar-corner {
   background: transparent;
 }
+
+
+/* React Flow Styles */
+.highlighted-edge path {
+  stroke: var(--primary);
+  /* stroke-width: 3; */
+}

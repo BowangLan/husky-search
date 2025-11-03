@@ -12,7 +12,7 @@ import { SiteHeader } from "@/components/site-header"
 import { TailwindIndicator } from "@/components/tailwind-indicator"
 import { ThemeProvider } from "@/components/theme-provider"
 
-import { Footer } from "./footer"
+import "@xyflow/react/dist/style.css"
 
 export const metadata: Metadata = {
   title: {

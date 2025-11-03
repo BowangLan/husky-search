@@ -6,7 +6,7 @@ import { api } from "@/convex/_generated/api"
 import { ProgramDetail } from "@/services/program-service"
 import { useTrackMajorVisit } from "@/store/visit-cache.store"
 import { useQuery } from "convex/react"
-import { Loader, TrendingDown, TrendingUp } from "lucide-react"
+import { Loader, Network, TrendingDown, TrendingUp } from "lucide-react"
 
 import { ConvexCourseOverview } from "@/types/convex-courses"
 import { capitalize } from "@/lib/utils"
@@ -21,6 +21,7 @@ import {
   SectionHeader,
   SectionTitle,
 } from "../section"
+import { ProgramPrereqGraphs } from "./program-prereq-graphs"
 
 // ViewTransition wrapper - falls back to fragment if unstable_ViewTransition is not available
 function ViewTransition({ children }: { children: React.ReactNode }) {
@@ -33,7 +34,6 @@ export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
   const subjectArea = program.code
   const convexCourses = useQuery(api.courses.listOverviewBySubjectArea, {
     subjectArea: subjectArea ?? "",
-    limit: 200,
   })
 
   const groupedCoursesByLevel = useMemo(() => {
@@ -93,7 +93,16 @@ export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
       }
       title={
         <ViewTransition>
-          <PageTitle>{capitalize(program.title)}</PageTitle>
+          <div className="flex items-center gap-2">
+            <PageTitle>{capitalize(program.title)}</PageTitle>
+            <div className="flex-1"></div>
+            <Link href={`/prereq-graph?subjectArea=${program.code}`}>
+              <Button variant="outline">
+                <Network className="h-4 w-4" />
+                View Prerequisite Graph
+              </Button>
+            </Link>
+          </div>
         </ViewTransition>
       }
       subtitle={
@@ -214,6 +223,14 @@ export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
                   />
                 </SectionContent>
               </Section>
+
+              {/* Prerequisite Graphs */}
+              {/* {convexCourses && convexCourses.length > 0 && (
+                <ProgramPrereqGraphs
+                  courses={convexCourses}
+                  subjectArea={subjectArea ?? ""}
+                />
+              )} */}
 
               {Object.entries(groupedCoursesByLevel).map(([level, courses]) => {
                 const sortedCourses = courses.sort((a, b) => {

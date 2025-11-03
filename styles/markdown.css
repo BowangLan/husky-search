@@ -93,3 +93,17 @@
 .markdown del {
   @apply line-through;
 }
+
+.markdown>p:last-child,
+.markdown>ul:last-child,
+.markdown>ol:last-child,
+.markdown>blockquote:last-child,
+.markdown>pre:last-child,
+.markdown>table:last-child,
+.markdown>img:last-child,
+.markdown>hr:last-child,
+.markdown>strong:last-child,
+.markdown>em:last-child,
+.markdown>del:last-child {
+  @apply mb-0;
+}

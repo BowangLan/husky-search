@@ -1,3 +1,5 @@
+import { Calendar, Home, Layers, LucideIcon, Network } from "lucide-react";
+
 export type SiteConfig = typeof siteConfig
 
 export const siteConfig = {
@@ -8,15 +10,23 @@ export const siteConfig = {
     {
       title: "Courses",
       href: "/",
+      IconComp: Home,
     },
     {
       title: "Majors",
       href: "/majors",
+      IconComp: Layers
     },
     {
       title: "Schedule",
       href: "/schedule",
+      IconComp: Calendar
     },
+    {
+      title: "Prereq Graph",
+      href: "/prereq-graph",
+      IconComp: Network
+    }
     // {
     //   title: "Plan",
     //   href: "/plan",
@@ -25,7 +35,11 @@ export const siteConfig = {
     //   title: "About",
     //   href: "/about",
     // },
-  ],
+  ] as Array<{
+    title: string
+    href: string
+    IconComp: LucideIcon
+  }>,
   // links: {
   //   twitter: "https://twitter.com/uw",
   //   github: "https://github.com/uw",
