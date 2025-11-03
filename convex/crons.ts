@@ -31,14 +31,14 @@ const crons = cronJobs();
 // );
 
 
-// crons.cron(
-//   "scrape latest course details every 15 minutes",
-//   "*/15 * * * *",
-//   internal.myplanScrapers.runCourseDetailCronJob,
-//   {
-//     intervalSeconds: 15 * 60,
-//   }
-// );
+crons.cron(
+  "scrape latest course details every 15 minutes",
+  "*/15 * * * *",
+  internal.myplanScrapers.runCourseDetailCronJob,
+  {
+    intervalSeconds: 15 * 60,
+  }
+);
 
 // crons.cron(
 //   "scrape latest course details every 30 minutes",
@@ -60,14 +60,14 @@ const crons = cronJobs();
 // );
 
 
-// crons.cron(
-//   "scrape latest course details every 2 hours",
-//   "0 */2 * * *",
-//   internal.myplanScrapers.runCourseDetailCronJob,
-//   {
-//     intervalSeconds: 2 * 60 * 60,
-//   }
-// );
+crons.cron(
+  "scrape latest course details every 2 hours",
+  "0 */2 * * *",
+  internal.myplanScrapers.runCourseDetailCronJob,
+  {
+    intervalSeconds: 2 * 60 * 60,
+  }
+);
 
 
 // crons.cron(
@@ -90,13 +90,13 @@ const crons = cronJobs();
 // );
 
 
-// crons.cron(
-//   "scrape latest course details every 24 hours",
-//   "0 0 * * *",
-//   internal.myplanScrapers.runCourseDetailCronJob,
-//   {
-//     intervalSeconds: 24 * 60 * 60,
-//   }
-// );
+crons.cron(
+  "scrape latest course details every 24 hours",
+  "0 0 * * *",
+  internal.myplanScrapers.runCourseDetailCronJob,
+  {
+    intervalSeconds: 24 * 60 * 60,
+  }
+);
 
 export default crons;
