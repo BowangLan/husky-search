@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo } from "react"
+import { Suspense, useEffect, useMemo } from "react"
 import { useSearchParams } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import { useCourseDataStore } from "@/store/course-data.store"
@@ -10,7 +10,7 @@ import { useQuery } from "convex/react"
 import { ConvexCourseOverview } from "@/types/convex-courses"
 import { InteractivePrereqGraph } from "@/components/prereq-graph/full-size-prereq-graph"
 
-export default function PrereqGraphPage() {
+function PrereqGraphPageClient() {
   const searchParams = useSearchParams()
   const subjectArea = searchParams.get("subjectArea")
   const courseCodesParam = searchParams.get("courseCodes")
@@ -143,5 +143,13 @@ export default function PrereqGraphPage() {
         </>
       )}
     </div>
+  )
+}
+
+export default function PrereqGraphPage() {
+  return (
+    <Suspense>
+      <PrereqGraphPageClient />
+    </Suspense>
   )
 }
