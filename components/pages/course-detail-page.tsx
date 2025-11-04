@@ -22,6 +22,7 @@ import { CourseDetailHeader } from "./course-detail/course-detail-header"
 import { CourseSessionsSection } from "./course-detail/course-sessions-section"
 import { CourseDetailStatsSection } from "./course-detail/course-stats-section"
 import { StickyCourseHeader } from "./course-detail/sticky-course-header"
+import { CourseDetailRecommendations } from "./course-detail/course-detail-recommendations"
 
 const PageTab = ({
   active,
@@ -65,11 +66,12 @@ const CourseDetailPageContent = ({ courseCode }: { courseCode: string }) => {
     c.myplanCourse.currentTermData[0]?.sessions &&
     c.myplanCourse.currentTermData[0].sessions.length > 0
 
-  const [tab, setTab] = useState<"sessions" | "cec" | "prereqs">(
+  const [tab, setTab] = useState<"sessions" | "recommendations" | "cec" | "prereqs">(
     hasCurrentTermData ? "sessions" : "cec"
   )
 
   const prereqGraph = c?.dp?.prereq_graph
+  const hasRecommendationsTab = !!c?.dp
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -86,6 +88,14 @@ const CourseDetailPageContent = ({ courseCode }: { courseCode: string }) => {
             Sessions
           </PageTab>
         )}
+        {/* {hasRecommendationsTab && (
+          <PageTab
+            active={tab === "recommendations"}
+            onClick={() => setTab("recommendations")}
+          >
+            Recommendations
+          </PageTab>
+        )} */}
         <PageTab active={tab === "cec"} onClick={() => setTab("cec")}>
           CEC Evaluations
         </PageTab>
@@ -99,6 +109,17 @@ const CourseDetailPageContent = ({ courseCode }: { courseCode: string }) => {
       {tab === "sessions" && hasCurrentTermData && (
         <CourseSessionsSection courseCode={courseCode} />
       )}
+      {/* {tab === "recommendations" && hasRecommendationsTab && (
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-2xl font-semibold mb-4">Course Recommendations</h2>
+            <p className="text-muted-foreground mb-4">
+              Suggestions generated from DawgPath prerequisite and co-enrollment data.
+            </p>
+          </div>
+          <CourseDetailRecommendations courseCode={courseCode} courseDetail={c} />
+        </section>
+      )} */}
       {tab === "cec" && <CECEvaluations courseCode={courseCode} />}
       {tab === "prereqs" && prereqGraph && (
         <section className="space-y-4">
