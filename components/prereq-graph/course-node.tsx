@@ -11,7 +11,7 @@ import {
   type Node,
   type NodeProps,
 } from "@xyflow/react"
-import { ArrowRightIcon, EyeIcon } from "lucide-react"
+import { ArrowRightIcon, EyeIcon, Plus, X } from "lucide-react"
 
 import {
   NODE_HEIGHT,
@@ -19,6 +19,7 @@ import {
   type PrereqGraphCourseNodeData,
 } from "@/lib/prereq-graph-utils"
 import { cn } from "@/lib/utils"
+import { usePrereqGraphUrlParams } from "@/hooks/use-prereq-graph-url-params"
 
 import { Button, buttonVariants } from "../ui/button"
 import { RichButton } from "../ui/rich-button"
@@ -65,6 +66,44 @@ const SelectedCoursePrereqPanelLeft = ({
         </div>
       </div>
     </div>
+  )
+}
+
+const AddCourseButton = ({ courseCode }: { courseCode: string }) => {
+  const { isCourseAdded, addCourse, removeCourse } = usePrereqGraphUrlParams()
+
+  const isAdded = isCourseAdded(courseCode)
+
+  if (isAdded) {
+    return (
+      <RichButton
+        tooltip="Remove course from graph"
+        variant="ghost"
+        size="icon-xs"
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          removeCourse(courseCode)
+        }}
+      >
+        <X className="size-4" />
+      </RichButton>
+    )
+  }
+
+  return (
+    <RichButton
+      tooltip="Add course to graph"
+      variant="ghost"
+      size="icon-xs"
+      onClick={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        addCourse(courseCode)
+      }}
+    >
+      <Plus className="size-4" />
+    </RichButton>
   )
 }
 
@@ -117,9 +156,9 @@ export const CourseNode = memo(function CourseNode({
   const courseData = useCourseDataStore((state) =>
     state.getCourseData(courseCode)
   )
-  // const richNodeData = useNode(courseCode)
-  const nodeMap = useNodeMap((state) => state.nodeMap)
-  const richNodeData = nodeMap.get(courseCode)
+  const { isCourseAdded } = usePrereqGraphUrlParams()
+
+  const isAdded = isCourseAdded(courseCode)
 
   if (!courseData) {
     return null
@@ -136,7 +175,9 @@ export const CourseNode = memo(function CourseNode({
   return (
     <PrereqGraphNodeWrapper
       styleVariant={data.styleVariant}
-      className={selected ? "border-primary shadow-lg" : undefined}
+      className={cn(
+        isAdded && "border-primary ring-primary bg-primary/50 shadow-lg"
+      )}
       style={{ width: `${NODE_WIDTH}px`, height: `${NODE_HEIGHT}px` }}
       nodeProps={props}
     >
@@ -144,6 +185,7 @@ export const CourseNode = memo(function CourseNode({
 
       <div className="w-full px-2 py-2 gap-1.5 flex flex-row items-center group-hover/node:opacity-100 opacity-0 transition-opacity absolute top-0 right-0">
         <div className="flex-1"></div>
+        <AddCourseButton courseCode={courseCode} />
         <Link href={`/courses/${courseCode}`}>
           <RichButton
             tooltip="Go to course page"

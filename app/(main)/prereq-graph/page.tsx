@@ -17,13 +17,14 @@ export default function PrereqGraphPage() {
   const nodes = useInteractivePrereqGraphState((state) => state.nodes)
   const edges = useInteractivePrereqGraphState((state) => state.edges)
 
-  // Parse courseCodes from query param (comma-separated string)
+  // Parse courseCodes from query param (comma-separated string with + for spaces)
   const courseCodes = useMemo(() => {
     if (!courseCodesParam) return null
     // Split by comma and filter out empty strings
+    // Replace "+" with " " since API expects spaces
     const codes = courseCodesParam
       .split(",")
-      .map((c) => c.trim())
+      .map((c) => c.trim().replace(/\+/g, " "))
       .filter((c) => c.length > 0)
     return codes.length > 0 ? codes : null
   }, [courseCodesParam])
@@ -139,10 +140,6 @@ export default function PrereqGraphPage() {
       ) : (
         <>
           <InteractivePrereqGraph nodes={nodes} edges={edges} />
-          <div>
-            <h1>Prereq Graph</h1>
-          </div>
-          {`Nodes: ${nodes.length}, Edges: ${edges.length}`}
         </>
       )}
     </div>

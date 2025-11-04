@@ -16,6 +16,7 @@ import {
   CommandList,
 } from "@/components/ui/command"
 
+import { RIGHT_PANEL_WIDTH } from "./prereq-graph-config"
 import { useNodeSelectAndCenter } from "./use-node-select-and-center"
 
 interface CourseSearchPanelProps {
@@ -87,7 +88,7 @@ export function CourseSearchPanel({ nodes }: CourseSearchPanelProps) {
 
   return (
     <Panel position="top-center" className="pointer-events-auto">
-      <div className="w-[360px] max-w-[90vw]">
+      <div style={{ width: RIGHT_PANEL_WIDTH }}>
         <Command
           shouldFilter={false}
           className="rounded-lg border shadow-md bg-background/95 backdrop-blur-sm"

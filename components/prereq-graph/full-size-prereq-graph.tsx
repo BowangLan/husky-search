@@ -79,19 +79,6 @@ export function InteractivePrereqGraph({
   }
 
   // Custom panel content for full-size graph
-  const panelContent = (
-    <div className="space-y-1">
-      <div className="flex items-center gap-2">
-        <div className="w-3 h-3 rounded-full bg-green-500" />
-        <span>Subject area group</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="w-3 h-3 rounded-full bg-gray-500" />
-        <span>Course</span>
-      </div>
-    </div>
-  )
-
   return (
     <div className="h-full w-full">
       <GraphContent
@@ -104,7 +91,7 @@ export function InteractivePrereqGraph({
         onInitCallback={onInit}
         currentCourseCode=""
         // miniMapNodeColor={miniMapNodeColor}
-        panelContent={panelContent}
+        panelContent={null}
       />
     </div>
   )

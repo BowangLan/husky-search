@@ -38,13 +38,14 @@ import {
   type PrereqGraphCourseNodeData,
   type PrereqGraphNodeUnion,
 } from "@/lib/prereq-graph-utils"
+import { usePrereqGraphUrlParams } from "@/hooks/use-prereq-graph-url-params"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 
-import { CourseSearchPanel } from "./course-search-panel"
 import { edgeTypes, nodeTypes } from "./prereq-graph-config"
+import { PrereqGraphSearchPanel } from "./prereq-graph-search-panel"
 import { SelectedCoursePanel } from "./selected-course-panel"
 import { useAutoLayout } from "./use-auto-layout"
 
@@ -162,6 +163,8 @@ export function GraphContent({
 
   const { theme } = useTheme()
 
+  const { isCourseAdded } = usePrereqGraphUrlParams()
+
   const handleEdgesChangeCombined = useCallback<OnEdgesChange<Edge>>(
     (changes) => {
       console.log("Handling edge changes in GraphContent", changes)
@@ -177,7 +180,11 @@ export function GraphContent({
       | PrereqGraphCourseNodeData
       | { subjectArea?: string; courses?: string[] }
     if (node.type === "courseNode") {
-      if (node.data.courseCode === currentCourseCode) {
+      if (
+        node.data.courseCode === currentCourseCode ||
+        (typeof node.data.courseCode === "string" &&
+          isCourseAdded(node.data.courseCode))
+      ) {
         return "var(--color-primary)"
       } else if (node.data.isOfferedNow) {
         return "var(--color-emerald-500)"
@@ -226,22 +233,22 @@ export function GraphContent({
   )
 
   // Default panel content
-  const defaultPanelContent = (
-    <div className="space-y-1">
-      <div className="flex items-center gap-2">
-        <div className="w-3 h-3 rounded-full bg-purple-500" />
-        <span>Current course</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="w-3 h-3 rounded-full bg-green-500" />
-        <span>Subject area group</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="w-3 h-3 rounded-full bg-gray-500" />
-        <span>Prerequisite course</span>
-      </div>
-    </div>
-  )
+  // const defaultPanelContent = (
+  //   <div className="space-y-1">
+  //     <div className="flex items-center gap-2">
+  //       <div className="w-3 h-3 rounded-full bg-purple-500" />
+  //       <span>Current course</span>
+  //     </div>
+  //     <div className="flex items-center gap-2">
+  //       <div className="w-3 h-3 rounded-full bg-green-500" />
+  //       <span>Subject area group</span>
+  //     </div>
+  //     <div className="flex items-center gap-2">
+  //       <div className="w-3 h-3 rounded-full bg-gray-500" />
+  //       <span>Prerequisite course</span>
+  //     </div>
+  //   </div>
+  // )
 
   return (
     <ReactFlow
@@ -277,13 +284,13 @@ export function GraphContent({
         maskColor="rgba(0, 0, 0, 0.1)"
         pannable
       />
-      <Panel
+      {/* <Panel
         position="top-left"
         className="text-xs text-muted-foreground bg-background/80 backdrop-blur-sm p-2 rounded"
       >
         {panelContent ?? defaultPanelContent}
-      </Panel>
-      <CourseSearchPanel nodes={nodes} />
+      </Panel> */}
+      <PrereqGraphSearchPanel nodes={nodes} />
       <SelectedCoursePanel />
     </ReactFlow>
   )
