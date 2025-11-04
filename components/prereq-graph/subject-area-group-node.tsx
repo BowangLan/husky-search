@@ -112,7 +112,7 @@ function ToggleHandle({
       {type === "source" && (
         <button
           onClick={onHandleClick}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-6 h-6 rounded-full bg-background border border-border hover:border-primary hover:bg-accent transition-colors flex items-center justify-center cursor-pointer z-10"
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 size-5 rounded-full bg-background border border-border hover:border-primary hover:bg-accent transition-colors flex items-center justify-center cursor-pointer z-10"
           aria-label={isExpanded ? "Collapse group" : "Expand group"}
           type="button"
         >

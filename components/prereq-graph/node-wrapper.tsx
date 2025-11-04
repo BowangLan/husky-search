@@ -29,10 +29,10 @@ export function PrereqGraphNodeWrapper({
     <div
       className={cn(
         "rounded-lg border-2 shadow-md bg-card text-card-foreground transition-all group/node",
-        "border border-border",
+        "border border-border backdrop-blur-md",
         styleVariant === "current" && "border-primary shadow-lg bg-primary/10",
         nodeProps.selected &&
-          "border-primary shadow-lg bg-primary/20 border backdrop-blur-md ring ring-primary/50",
+          "border-primary shadow-lg bg-primary/20 border ring ring-primary/50",
         styleVariant === "secondary-selected" &&
           "border-secondary shadow-lg bg-secondary/20 border",
         shouldApplyHighlight && "ring ring-primary/50 border-primary/60",
