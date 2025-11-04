@@ -11,7 +11,7 @@ import {
 import { useQuery } from "convex/react"
 
 import { cn } from "@/lib/utils"
-import { PrereqGraph } from "@/components/prereq-graph/prereq-graph"
+import { CourseDetailPrereqGraph } from "@/components/pages/course-detail/course-detail-prereq-graph-section"
 
 import { Page } from "../page-wrapper"
 import { Button } from "../ui/button"
@@ -109,7 +109,7 @@ const CourseDetailPageContent = ({ courseCode }: { courseCode: string }) => {
               course node to view its details.
             </p>
           </div>
-          <PrereqGraph
+          <CourseDetailPrereqGraph
             prereqGraph={prereqGraph}
             currentCourseCode={courseCode}
             isLoading={false}

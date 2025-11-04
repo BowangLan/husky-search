@@ -48,12 +48,6 @@ import { edgeTypes, nodeTypes } from "./prereq-graph-config"
 import { SelectedCoursePanel } from "./selected-course-panel"
 import { useAutoLayout } from "./use-auto-layout"
 
-interface PrereqGraphProps {
-  prereqGraph: DawgpathCourseDetail["prereq_graph"] | null | undefined
-  currentCourseCode: string
-  isLoading?: boolean
-}
-
 export interface GraphContentProps {
   nodes: PrereqGraphNodeUnion[]
   edges: Edge[]
@@ -65,7 +59,6 @@ export interface GraphContentProps {
     instance: ReactFlowInstance<PrereqGraphNodeUnion, Edge>
   ) => void
   currentCourseCode?: string
-  theme: string | undefined
   miniMapNodeColor?: (node: Node) => string
   panelContent?: React.ReactNode
 }
@@ -150,7 +143,6 @@ export function GraphContent({
   onEdgesChange,
   onInitCallback,
   currentCourseCode = "",
-  theme,
   miniMapNodeColor,
   panelContent,
 }: GraphContentProps) {
@@ -167,6 +159,8 @@ export function GraphContent({
     },
     [onNodesChangeBase, nodes, edges]
   )
+
+  const { theme } = useTheme()
 
   const handleEdgesChangeCombined = useCallback<OnEdgesChange<Edge>>(
     (changes) => {
@@ -292,147 +286,5 @@ export function GraphContent({
       <CourseSearchPanel nodes={nodes} />
       <SelectedCoursePanel />
     </ReactFlow>
-  )
-}
-
-export function PrereqGraph({
-  prereqGraph,
-  currentCourseCode,
-  isLoading = false,
-}: PrereqGraphProps) {
-  const initialNodes = prereqGraph
-    ? convertPrereqGraphToReactFlow(prereqGraph, currentCourseCode).nodes
-    : []
-  const initialEdges = prereqGraph
-    ? convertPrereqGraphToReactFlow(prereqGraph, currentCourseCode).edges
-    : []
-
-  const [nodes, setNodes, onNodesChangeBase] = useNodesState(initialNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
-
-  // Update nodes and edges when prereqGraph or currentCourseCode changes
-  useEffect(() => {
-    if (!prereqGraph) {
-      setNodes([])
-      setEdges([])
-      return
-    }
-    const { nodes: newNodes, edges: newEdges } = convertPrereqGraphToReactFlow(
-      prereqGraph,
-      currentCourseCode
-    )
-    setNodes(newNodes)
-    setEdges(newEdges)
-  }, [prereqGraph, currentCourseCode, setNodes, setEdges])
-
-  const reactFlowInstance = useRef<ReactFlowInstance<
-    PrereqGraphNodeUnion,
-    Edge
-  > | null>(null)
-  const fullscreenReactFlowInstance = useRef<ReactFlowInstance<
-    PrereqGraphNodeUnion,
-    Edge
-  > | null>(null)
-  const { theme } = useTheme()
-  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
-
-  const onInit = useCallback(
-    (instance: ReactFlowInstance<PrereqGraphNodeUnion, Edge>) => {
-      reactFlowInstance.current = instance
-    },
-    []
-  )
-
-  const onFullscreenInit = useCallback(
-    (instance: ReactFlowInstance<PrereqGraphNodeUnion, Edge>) => {
-      fullscreenReactFlowInstance.current = instance
-    },
-    []
-  )
-
-  const onNodeClick = useCallback(
-    (_event: React.MouseEvent, node: Node) => {
-      // Type guard for node data (following guide: type safety)
-      const nodeData = node.data as unknown as
-        | PrereqGraphCourseNodeData
-        | undefined
-      const courseCode = nodeData?.courseCode
-
-      // if (courseCode && courseCode !== currentCourseCode) {
-      //   window.open(`/courses/${encodeURIComponent(courseCode)}`, "_blank")
-      // }
-    },
-    [currentCourseCode]
-  )
-
-  if (isLoading) {
-    return (
-      <Card className="p-6">
-        <Skeleton className="h-[400px] w-full" />
-      </Card>
-    )
-  }
-
-  if (!prereqGraph || nodes.length === 0) {
-    return (
-      <Card className="p-6">
-        <div className="text-center py-12 text-muted-foreground">
-          <p className="text-lg font-medium mb-2">
-            No Prerequisite Graph Available
-          </p>
-          <p className="text-sm">
-            Prerequisite information is not available for this course.
-          </p>
-        </div>
-      </Card>
-    )
-  }
-
-  return (
-    <Card className="p-4 overflow-hidden relative" hoverInteraction={false}>
-      <Dialog open={isFullscreenOpen} onOpenChange={setIsFullscreenOpen}>
-        <DialogTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="absolute top-6 right-6 z-10 h-8 w-8"
-            onClick={(e) => {
-              e.stopPropagation()
-            }}
-          >
-            <Maximize2 className="h-4 w-4" />
-            <span className="sr-only">View fullscreen</span>
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[95vw] max-h-[95vh] w-full h-full p-0">
-          <div className="h-full w-full">
-            <GraphContent
-              nodes={nodes}
-              edges={edges}
-              setEdges={setEdges}
-              setNodes={setNodes}
-              onNodesChangeBase={onNodesChangeBase}
-              onEdgesChange={onEdgesChange}
-              onInitCallback={onFullscreenInit}
-              currentCourseCode={currentCourseCode}
-              theme={theme}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
-      <div className="h-[500px] w-full">
-        <GraphContent
-          nodes={nodes}
-          edges={edges}
-          setEdges={setEdges}
-          setNodes={setNodes}
-          onNodesChangeBase={onNodesChangeBase}
-          onEdgesChange={onEdgesChange}
-          onInitCallback={onInit}
-          currentCourseCode={currentCourseCode}
-          theme={theme}
-        />
-      </div>
-    </Card>
   )
 }

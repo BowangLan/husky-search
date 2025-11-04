@@ -60,8 +60,6 @@ export function InteractivePrereqGraph({
     Edge
   > | null>(null)
 
-  const { theme } = useTheme()
-
   const onInit = useCallback(
     (instance: ReactFlowInstance<PrereqGraphNodeUnion, Edge>) => {
       reactFlowInstance.current = instance
@@ -105,7 +103,6 @@ export function InteractivePrereqGraph({
         onEdgesChange={onEdgesChange}
         onInitCallback={onInit}
         currentCourseCode=""
-        theme={theme}
         // miniMapNodeColor={miniMapNodeColor}
         panelContent={panelContent}
       />
