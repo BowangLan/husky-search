@@ -1,12 +1,15 @@
 import {
+  Book,
+  Layers,
   LucideProps,
   Moon,
+  Network,
   SunMedium,
   Twitter,
   type Icon as LucideIcon,
 } from "lucide-react"
 
-export type Icon = LucideIcon
+export type Icon = typeof LucideIcon
 
 export const Icons = {
   sun: SunMedium,
@@ -55,4 +58,7 @@ export const Icons = {
       ></path>
     </svg>
   ),
+  subjectArea: Layers,
+  course: Book,
+  graph: Network,
 }

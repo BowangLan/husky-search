@@ -32,10 +32,11 @@ export function PrereqGraphNodeWrapper({
         "border border-border backdrop-blur-md",
         styleVariant === "current" && "border-primary shadow-lg bg-primary/10",
         nodeProps.selected &&
-          "border-primary shadow-lg bg-primary/20 border ring ring-primary/50",
+          "border-primary shadow-lg bg-primary border ring backdrop-blur-lg ring-primary/50",
         styleVariant === "secondary-selected" &&
           "border-secondary shadow-lg bg-secondary/20 border",
-        shouldApplyHighlight && "ring ring-primary/50 border-primary/60",
+        shouldApplyHighlight &&
+          "ring dark:ring-primary/50 ring-primary/60 dark:border-primary/60 border-primary/60",
         className
       )}
       {...rest}

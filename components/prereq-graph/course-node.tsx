@@ -3,6 +3,7 @@
 import { memo } from "react"
 import Link from "next/link"
 import { useCourseDataStore } from "@/store/course-data.store"
+import { useInteractivePrereqGraphState } from "@/store/interactive-prereq-graph-state"
 import { useNode, useNodeMap } from "@/store/prereq-graph-node-map.store"
 import {
   Handle,
@@ -19,7 +20,10 @@ import {
   type PrereqGraphCourseNodeData,
 } from "@/lib/prereq-graph-utils"
 import { cn } from "@/lib/utils"
-import { usePrereqGraphUrlParams } from "@/hooks/use-prereq-graph-url-params"
+import {
+  usePrereqGraphAddCourse,
+  usePrereqGraphRemoveCourse,
+} from "@/hooks/use-prereq-graph-course-operations"
 
 import { Button, buttonVariants } from "../ui/button"
 import { RichButton } from "../ui/rich-button"
@@ -69,12 +73,20 @@ const SelectedCoursePrereqPanelLeft = ({
   )
 }
 
-const AddCourseButton = ({ courseCode }: { courseCode: string }) => {
-  const { isCourseAdded, addCourse, removeCourse } = usePrereqGraphUrlParams()
+const AddCourseButton = ({
+  courseCode,
+  selected = false,
+}: {
+  courseCode: string
+  selected?: boolean
+}) => {
+  const { addCourse } = usePrereqGraphAddCourse()
+  const { removeCourse } = usePrereqGraphRemoveCourse()
+  const isPrimaryCourse = useInteractivePrereqGraphState((state) =>
+    state.primaryCourseCodes.has(courseCode)
+  )
 
-  const isAdded = isCourseAdded(courseCode)
-
-  if (isAdded) {
+  if (isPrimaryCourse) {
     return (
       <RichButton
         tooltip="Remove course from graph"
@@ -86,7 +98,7 @@ const AddCourseButton = ({ courseCode }: { courseCode: string }) => {
           removeCourse(courseCode)
         }}
       >
-        <X className="size-4" />
+        <X className={cn("size-4", selected && "text-primary-foreground")} />
       </RichButton>
     )
   }
@@ -102,7 +114,7 @@ const AddCourseButton = ({ courseCode }: { courseCode: string }) => {
         addCourse(courseCode)
       }}
     >
-      <Plus className="size-4" />
+      <Plus className={cn("size-4", selected && "text-primary-foreground")} />
     </RichButton>
   )
 }
@@ -156,9 +168,9 @@ export const CourseNode = memo(function CourseNode({
   const courseData = useCourseDataStore((state) =>
     state.getCourseData(courseCode)
   )
-  const { isCourseAdded } = usePrereqGraphUrlParams()
-
-  const isAdded = isCourseAdded(courseCode)
+  const isPrimaryCourse = useInteractivePrereqGraphState((state) =>
+    state.primaryCourseCodes.has(courseCode)
+  )
 
   if (!courseData) {
     return null
@@ -176,7 +188,9 @@ export const CourseNode = memo(function CourseNode({
     <PrereqGraphNodeWrapper
       styleVariant={data.styleVariant}
       className={cn(
-        isAdded && "border-primary ring-primary bg-primary/50 shadow-lg"
+        isPrimaryCourse &&
+          !selected &&
+          "border-primary ring-primary dark:bg-primary/50 bg-primary/30 shadow-lg"
       )}
       style={{ width: `${NODE_WIDTH}px`, height: `${NODE_HEIGHT}px` }}
       nodeProps={props}
@@ -185,23 +199,37 @@ export const CourseNode = memo(function CourseNode({
 
       <div className="w-full px-2 py-2 gap-1.5 flex flex-row items-center group-hover/node:opacity-100 opacity-0 transition-opacity absolute top-0 right-0">
         <div className="flex-1"></div>
-        <AddCourseButton courseCode={courseCode} />
+        <AddCourseButton courseCode={courseCode} selected={selected} />
         <Link href={`/courses/${courseCode}`}>
           <RichButton
             tooltip="Go to course page"
             variant="ghost"
             size="icon-xs"
           >
-            <ArrowRightIcon className="size-4" />
+            <ArrowRightIcon
+              className={cn("size-4", selected && "text-primary-foreground")}
+            />
           </RichButton>
         </Link>
       </div>
 
       <div className="p-3 flex flex-col h-full">
         <div className="flex-1">
-          <div className="font-semibold text-sm mb-1">{courseCode}</div>
+          <div
+            className={cn(
+              "font-semibold text-sm mb-1",
+              selected && "text-primary-foreground"
+            )}
+          >
+            {courseCode}
+          </div>
           {courseData.title && (
-            <div className="text-xs text-muted-foreground line-clamp-2 mb-2">
+            <div
+              className={cn(
+                "text-xs text-muted-foreground line-clamp-2 mb-2",
+                selected && "text-primary-foreground"
+              )}
+            >
               {courseData.title}
             </div>
           )}
@@ -210,18 +238,40 @@ export const CourseNode = memo(function CourseNode({
         {/* Footer */}
         <div className="flex items-center justify-between flex-none">
           {courseLevel > 0 && (
-            <div className="text-xs text-muted-foreground">
+            <div
+              className={cn(
+                "text-xs text-muted-foreground",
+                selected && "text-primary-foreground"
+              )}
+            >
               Level {courseLevel}
             </div>
           )}
           <div className="flex-1"></div>
           {isOpen ? (
-            <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <div
+              className={cn(
+                "flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400",
+                selected && "text-emerald-300 dark:text-emerald-400"
+              )}
+            >
+              <span
+                className={cn(
+                  "w-1.5 h-1.5 rounded-full bg-emerald-500",
+                  selected && "bg-emerald-300"
+                )}
+              />
               Offered now
             </div>
           ) : (
-            <div className="text-xs text-muted-foreground">Not offered</div>
+            <div
+              className={cn(
+                "text-xs text-muted-foreground",
+                selected && "text-primary-foreground"
+              )}
+            >
+              Not offered
+            </div>
           )}
         </div>
       </div>

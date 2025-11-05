@@ -23,15 +23,16 @@ export function InteractivePrereqGraph({
   nodes: PrereqGraphNodeUnion[]
   edges: Edge[]
 }) {
-  // Read nodes and edges from store
-  // const storeNodes = useInteractivePrereqGraphState((state) => state.nodes)
-  // const storeEdges = useInteractivePrereqGraphState((state) => state.edges)
-
   // Local state for React Flow (allows for drag/selection changes)
   const [nodes, setNodes, onNodesChangeBase] = useNodesState(
     [] as PrereqGraphNodeUnion[]
   )
   const [edges, setEdges, onEdgesChange] = useEdgesState([] as Edge[])
+
+  const reactFlowInstance = useRef<ReactFlowInstance<
+    PrereqGraphNodeUnion,
+    Edge
+  > | null>(null)
 
   // Sync store nodes/edges to local state
   useEffect(() => {
@@ -41,24 +42,7 @@ export function InteractivePrereqGraph({
       nodesCount: nodesProvided.length,
       edgesCount: edgesProvided.length,
     })
-
-    // Fit view to show all nodes after they're loaded
-    // if (nodesProvided.length > 0 && reactFlowInstance.current) {
-    //   const timeoutId = setTimeout(() => {
-    //     reactFlowInstance.current?.fitView({
-    //       padding: 0.2,
-    //       duration: 0,
-    //     })
-    //   }, 100)
-
-    //   return () => clearTimeout(timeoutId)
-    // }
   }, [nodesProvided, edgesProvided, setNodes, setEdges])
-
-  const reactFlowInstance = useRef<ReactFlowInstance<
-    PrereqGraphNodeUnion,
-    Edge
-  > | null>(null)
 
   const onInit = useCallback(
     (instance: ReactFlowInstance<PrereqGraphNodeUnion, Edge>) => {

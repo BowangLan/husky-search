@@ -1,15 +1,27 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import { Panel, useReactFlow } from "@xyflow/react"
-import { Check } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useInteractivePrereqGraphState } from "@/store/interactive-prereq-graph-state"
+import { useNode } from "@/store/prereq-graph-node-map.store"
+import {
+  Panel,
+  ReactFlowStore,
+  useNodesState,
+  useReactFlow,
+  useStore,
+} from "@xyflow/react"
+import { Check, ChevronRight, Plus, X } from "lucide-react"
 
 import type {
   PrereqGraphCourseNodeData,
   PrereqGraphNodeUnion,
 } from "@/lib/prereq-graph-utils"
+import { cn } from "@/lib/utils"
 import { useCourseSearch } from "@/hooks/use-course-search"
-import { usePrereqGraphUrlParams } from "@/hooks/use-prereq-graph-url-params"
+import {
+  usePrereqGraphAddCourse,
+  usePrereqGraphRemoveCourse,
+} from "@/hooks/use-prereq-graph-course-operations"
 import {
   Command,
   CommandEmpty,
@@ -19,6 +31,11 @@ import {
   CommandList,
 } from "@/components/ui/command"
 
+import { Icons } from "../icons"
+import { Button, buttonVariants } from "../ui/button"
+import { RichButton } from "../ui/rich-button"
+import { CourseSmallBlock } from "./course-small-block"
+import { Section, SectionTitle } from "./panel-section"
 // import { RIGHT_PANEL_WIDTH } from "./prereq-graph-config"
 import { useNodeSelectAndCenter } from "./use-node-select-and-center"
 
@@ -32,14 +49,243 @@ interface CourseOption {
   nodeId: string
 }
 
+function useIsNodeSelected(nodeId: string) {
+  const { getNode } = useReactFlow()
+  const node = getNode(nodeId)
+  const selectedRef = useRef<boolean>(false)
+
+  useEffect(() => {
+    if (node?.selected) {
+      selectedRef.current = true
+    } else {
+      selectedRef.current = false
+    }
+  }, [node?.selected])
+
+  return selectedRef.current ?? false
+}
+
+const AddCourseButton = ({ courseCode }: { courseCode: string }) => {
+  const { addCourse, loadingCourseCodes } = usePrereqGraphAddCourse()
+  const isPrimaryCourse = useInteractivePrereqGraphState((state) =>
+    state.primaryCourseCodes.has(courseCode)
+  )
+  const { removeCourse } = usePrereqGraphRemoveCourse({ isPrimaryCourse })
+
+  if (isPrimaryCourse) {
+    return (
+      <RichButton
+        tooltip="Remove course and all associated courses from graph"
+        variant="ghost"
+        size="icon-xs"
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          removeCourse(courseCode)
+        }}
+      >
+        <X className="size-4" />
+      </RichButton>
+    )
+  }
+
+  return (
+    <>
+      <RichButton
+        tooltip="Remove this course only from graph"
+        variant="ghost"
+        size="icon-xs"
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          removeCourse(courseCode)
+        }}
+        disabled={loadingCourseCodes.has(courseCode)}
+      >
+        <X className="size-3.5" />
+      </RichButton>
+      <RichButton
+        tooltip="Add course and all associated courses to graph"
+        variant="ghost"
+        size="icon-xs"
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          addCourse(courseCode)
+        }}
+        loading={loadingCourseCodes.has(courseCode)}
+      >
+        <Plus className="size-4" />
+      </RichButton>
+    </>
+  )
+}
+
+const CourseSmallBlockWithState = ({ courseCode }: { courseCode: string }) => {
+  const course = useInteractivePrereqGraphState((state) =>
+    state.coursesMap.get(courseCode)
+  )
+  const centerNode = useNodeSelectAndCenter()
+  const isSelected = useIsNodeSelected(courseCode)
+  const isPrimaryCourse = useInteractivePrereqGraphState((state) =>
+    state.primaryCourseCodes.has(courseCode)
+  )
+
+  if (!course) return null
+
+  return (
+    <div className="relative group w-full">
+      <CourseSmallBlock
+        courseCode={courseCode}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          centerNode(courseCode)
+        }}
+        className={cn(
+          isPrimaryCourse &&
+            "dark:bg-primary/50 bg-primary/30 hover:dark:bg-primary/70 hover:bg-primary/60",
+          isSelected && "border-primary bg-primary text-primary-foreground"
+        )}
+      />
+
+      <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+        <AddCourseButton courseCode={courseCode} />
+      </div>
+    </div>
+  )
+}
+
+const CurrentCourseList = () => {
+  const courseMap = useInteractivePrereqGraphState((state) => state.coursesMap)
+  const courseCodes = useInteractivePrereqGraphState(
+    (state) => state.courseCodes
+  )
+  const primaryCourseCodes = useInteractivePrereqGraphState(
+    (state) => state.primaryCourseCodes
+  )
+
+  // Group courses by subjectArea using useMemo
+  const groupedCourses = useMemo(() => {
+    const groups: Record<string, { subjectArea: string; courses: any[] }> = {}
+
+    Array.from(courseCodes)
+      .map((courseCode) => courseMap.get(courseCode))
+      .filter(
+        (course) =>
+          course !== undefined && !primaryCourseCodes.has(course.courseCode)
+      )
+      .forEach((course) => {
+        const subjectArea = course!.subjectArea || "Other"
+        if (!groups[subjectArea]) {
+          groups[subjectArea] = { subjectArea, courses: [] }
+        }
+        groups[subjectArea].courses.push(course)
+      })
+
+    // Sort subjectAreas alphabetically, and within, sort courses alphabetically by courseCode
+    return Object.values(groups)
+      .sort((a, b) => a.subjectArea.localeCompare(b.subjectArea))
+      .map(({ subjectArea, courses }) => ({
+        subjectArea,
+        courses: courses.sort((a, b) =>
+          a.courseCode.localeCompare(b.courseCode)
+        ),
+      }))
+  }, [courseMap, courseCodes])
+
+  const [expandedSubjectAreas, setExpandedSubjectAreas] = useState<Set<string>>(
+    new Set()
+  )
+
+  const handleSubjectAreaExpandToggle = (subjectArea: string) => {
+    setExpandedSubjectAreas((prev) => {
+      const newSet = new Set(prev)
+      if (prev.has(subjectArea)) {
+        newSet.delete(subjectArea)
+      } else {
+        newSet.add(subjectArea)
+      }
+      return newSet
+    })
+  }
+
+  return (
+    <div className="space-y-1 py-4 bg-background rounded-lg border shadow-md backdrop-blur-sm">
+      <Section>
+        {/* <SectionTitle>Primary Courses</SectionTitle> */}
+        <div className="flex flex-col gap-1">
+          {Array.from(primaryCourseCodes)
+            .sort((a, b) => a.localeCompare(b))
+            .map((courseCode) => (
+              <CourseSmallBlockWithState
+                key={courseCode}
+                courseCode={courseCode}
+              />
+            ))}
+        </div>
+      </Section>
+      <Section>
+        {/* <SectionTitle>Associated Courses</SectionTitle> */}
+        <div className="flex flex-col gap-1 max-h-[400px] overflow-y-auto">
+          {groupedCourses.map((group) => (
+            <div key={group.subjectArea} className="flex flex-col gap-1">
+              <div
+                className={cn(
+                  buttonVariants({ variant: "secondary", size: "sm" }),
+                  "h-9 justify-start gap-2 select-none text-xs"
+                )}
+                onClick={() => handleSubjectAreaExpandToggle(group.subjectArea)}
+              >
+                <Icons.subjectArea className="size-3.5" />
+                <div className="flex-1 flex flex-row items-center gap-2">
+                  {group.subjectArea}
+                </div>
+
+                <div className="text-xs text-muted-foreground">
+                  {group.courses.length} courses
+                </div>
+
+                {/* chevron right */}
+                <ChevronRight
+                  className={cn(
+                    "size-3.5 trans",
+                    expandedSubjectAreas.has(group.subjectArea) && "rotate-90"
+                    // isExpanded && "rotate-90"
+                  )}
+                />
+              </div>
+              {expandedSubjectAreas.has(group.subjectArea) && (
+                <div className="flex flex-col gap-1">
+                  {group.courses.map((course) => (
+                    <CourseSmallBlockWithState
+                      key={course.courseCode}
+                      courseCode={course.courseCode}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </Section>
+    </div>
+  )
+}
+
 export function PrereqGraphSearchPanel({ nodes }: PrereqGraphSearchPanelProps) {
   const [searchInGraphOpen, setSearchInGraphOpen] = useState(false)
   const [addCourseOpen, setAddCourseOpen] = useState(false)
   const [searchInGraphValue, setSearchInGraphValue] = useState("")
 
-  // Hook for URL params management
-  const { isCourseAdded, isMajorAdded, addCourse, addMajor } =
-    usePrereqGraphUrlParams()
+  // Hooks for course operations
+  const { addCourse, loadingCourseCodes } = usePrereqGraphAddCourse()
+  const primaryCourseCodes = useInteractivePrereqGraphState(
+    (state) => state.primaryCourseCodes
+  )
+  const primarySubjectArea = useInteractivePrereqGraphState(
+    (state) => state.primarySubjectArea
+  )
 
   // Hook for course search (add courses)
   const {
@@ -120,7 +366,8 @@ export function PrereqGraphSearchPanel({ nodes }: PrereqGraphSearchPanelProps) {
 
   // Handle major selection - update URL with new subject area
   const handleMajorSelect = (majorCode: string) => {
-    addMajor(majorCode)
+    // TODO:
+    // addMajor(majorCode)
 
     // Reset search
     setShowResults(false)
@@ -137,6 +384,8 @@ export function PrereqGraphSearchPanel({ nodes }: PrereqGraphSearchPanelProps) {
   return (
     <Panel position="top-left" className="pointer-events-auto">
       <div className="flex flex-col gap-2" style={{ width: PANEL_WIDTH }}>
+        <CurrentCourseList />
+
         {/* Search courses within graph */}
         <div>
           <Command
@@ -222,7 +471,7 @@ export function PrereqGraphSearchPanel({ nodes }: PrereqGraphSearchPanelProps) {
                     {majors.length > 0 && (
                       <CommandGroup heading="Majors">
                         {majors.map((major) => {
-                          const added = isMajorAdded(major.code)
+                          const added = primarySubjectArea === major.code
                           return (
                             <CommandItem
                               key={`major-${major.code}`}
@@ -267,22 +516,25 @@ export function PrereqGraphSearchPanel({ nodes }: PrereqGraphSearchPanelProps) {
                     {courses.length > 0 && (
                       <CommandGroup heading="Courses">
                         {courses.map((course) => {
-                          const added = isCourseAdded(course)
+                          const added = primaryCourseCodes.has(course)
+                          const isLoading = loadingCourseCodes.has(
+                            course.replace(/\s+/g, "").toUpperCase()
+                          )
                           return (
                             <CommandItem
                               key={`course-${course}`}
                               value={course}
                               onSelect={() => {
-                                if (!added) {
+                                if (!added && !isLoading) {
                                   handleCourseSelect(course)
                                 }
                               }}
                               className={`cursor-pointer ${
-                                added
+                                added || isLoading
                                   ? "opacity-60 cursor-not-allowed"
                                   : "hover:bg-accent"
                               }`}
-                              disabled={added}
+                              disabled={added || isLoading}
                             >
                               <div className="flex items-center justify-between w-full">
                                 <span className="font-semibold text-sm">
@@ -295,6 +547,11 @@ export function PrereqGraphSearchPanel({ nodes }: PrereqGraphSearchPanelProps) {
                                       Added
                                     </span>
                                   </div>
+                                )}
+                                {isLoading && (
+                                  <span className="text-xs text-muted-foreground ml-2">
+                                    Adding...
+                                  </span>
                                 )}
                               </div>
                             </CommandItem>

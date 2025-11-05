@@ -15,6 +15,8 @@ export type InteractivePrereqGraphState = {
   coursesMap: Map<string, ConvexCourseOverview> // Map keyed by courseCode for O(1) lookups
   subjectAreas: Set<string> // Set of subject areas for O(1) membership checks
   courseCodes: Set<string> // Set of course codes for O(1) membership checks
+  primaryCourseCodes: Set<string> // These are passed to useQuery(api.courses.listOverviewByCourseCodes)
+  primarySubjectArea: string | null // These are passed to useQuery(api.courses.listOverviewBySubjectArea)
   displayOptions: DisplayOptions
 
   // Computed state - nodes and edges derived from input state
@@ -31,6 +33,8 @@ export type InteractivePrereqGraphState = {
 
   // Actions
   setCourses: (courses: ConvexCourseOverview[]) => void
+  setPrimaryCourseCodes: (courseCodes: Set<string>) => void
+  setPrimarySubjectArea: (subjectArea: string | null) => void
   addCourse: (course: ConvexCourseOverview) => void
   removeCourse: (courseCode: string) => void
   setSubjectAreas: (subjectAreas: string[]) => void
@@ -52,6 +56,8 @@ export const useInteractivePrereqGraphState = create<InteractivePrereqGraphState
   coursesMap: new Map(),
   subjectAreas: new Set(),
   courseCodes: new Set(),
+  primaryCourseCodes: new Set(),
+  primarySubjectArea: null,
   displayOptions: {
     ignoreUnlistedNodes: true,
     hideUnconnectedNodes: false,
@@ -104,6 +110,14 @@ export const useInteractivePrereqGraphState = create<InteractivePrereqGraphState
       courseCodesSize: courseCodes.size,
     })
     get()._computeGraph()
+  },
+
+  setPrimaryCourseCodes: (courseCodes: Set<string>) => {
+    set({ primaryCourseCodes: courseCodes })
+  },
+
+  setPrimarySubjectArea: (subjectArea: string | null) => {
+    set({ primarySubjectArea: subjectArea })
   },
 
   addCourse: (course: ConvexCourseOverview) => {

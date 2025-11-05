@@ -1,13 +1,133 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+
+export const parseCourseCodes = (courseCodesParam: string | null) => {
+  if (!courseCodesParam) return new Set<string>()
+  return new Set(
+    courseCodesParam
+      .split(",")
+      .map((c) => c.trim())
+      .filter((c) => c.length > 0)
+      .map((c) => {
+        return c.replaceAll("+", " ").replaceAll(/\s+/g, " ").toUpperCase().trim()
+      })
+  )
+}
+
+export const parseSubjectArea = (subjectArea: string | null) => {
+  if (!subjectArea) return null
+  return subjectArea.toUpperCase().trim()
+}
+
+export const usePrereqGraphUrlParams = () => {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Get current params
+  const subjectArea = searchParams.get("subjectArea")
+  const courseCodesParam = searchParams.get("courseCodes")
+
+  // Use useMemo to make courseCodes reactive (triggers re-renders when URL params change)
+  const currentCourseCodes = useMemo(() => {
+    if (!courseCodesParam) return new Set<string>()
+    return new Set(
+      courseCodesParam
+        .split(",")
+        .map((c) => c.trim())
+        .filter((c) => c.length > 0)
+        .map((c) => {
+          return c.replaceAll("+", " ").replaceAll(/\s+/g, " ").toUpperCase().trim()
+        })
+    )
+  }, [courseCodesParam])
+
+  // Check if a course is already in the graph
+  const isCourseAdded = (courseCode: string) => {
+    // Normalize course code by removing all spaces
+    const normalized = courseCode.replaceAll("+", " ").replaceAll(/\s+/g, " ").toUpperCase()
+    return currentCourseCodes.has(normalized.trim())
+  }
+
+  const updateUrl = (courseCodes: Set<string>, subjectArea: string | null) => {
+    const courseCodesArray = Array.from(courseCodes)
+    const params = new URLSearchParams()
+    params.set("courseCodes", courseCodesArray.join(","))
+    if (subjectArea) {
+      params.set("subjectArea", subjectArea)
+    }
+    router.push(`/prereq-graph?${params.toString()}`)
+    // Note: currentCourseCodes will update automatically via useMemo when courseCodesParam changes
+  }
+
+  // Check if a major is already in the graph
+  const isMajorAdded = (majorCode: string) => {
+    return subjectArea?.toUpperCase() === majorCode.toUpperCase()
+  }
+
+  const addCourses = (courseCodes: Set<string>) => {
+    const newCourseCodes = new Set(currentCourseCodes)
+    for (const courseCode of courseCodes) {
+      newCourseCodes.add(courseCode)
+    }
+    updateUrl(newCourseCodes, subjectArea)
+    // Note: currentCourseCodes will update automatically via useMemo when courseCodesParam changes
+  }
+
+  const removeCourse = (courseCode: string) => {
+    if (!isCourseAdded(courseCode)) {
+      // Not added, don't do anything
+      return
+    }
+
+    // Normalize course code for comparison
+    const normalized = courseCode.replaceAll("+", " ").replaceAll(/\s+/g, " ").toUpperCase().trim()
+
+    const newCourseCodes = new Set(currentCourseCodes)
+    newCourseCodes.delete(normalized)
+
+    updateUrl(newCourseCodes, subjectArea)
+  }
+
+  const addMajor = (majorCode: string) => {
+    if (isMajorAdded(majorCode)) {
+      // Already added, don't do anything
+      return
+    }
+
+    // Build new URL - replace subjectArea (only one major at a time)
+    const newSubjectArea = majorCode.toUpperCase()
+    updateUrl(currentCourseCodes, newSubjectArea)
+  }
+
+  const removeMajor = (majorCode: string) => {
+    if (!isMajorAdded(majorCode)) {
+      // Not added, don't do anything
+      return
+    }
+
+    const newSubjectArea = null
+    updateUrl(currentCourseCodes, newSubjectArea)
+  }
+
+  return {
+    courseCodes: currentCourseCodes,
+    subjectArea,
+    isCourseAdded,
+    isMajorAdded,
+    addCourses,
+    removeCourse,
+    addMajor,
+    removeMajor,
+  }
+}
 
 /**
  * Hook for managing URL search parameters on the prereq graph page
  * Handles courseCodes (comma-separated with + for spaces) and subjectArea
  */
-export function usePrereqGraphUrlParams() {
+export function usePrereqGraphUrlParams1() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -90,7 +210,7 @@ export function usePrereqGraphUrlParams() {
 
     // Build new URL
     const params = new URLSearchParams(searchParams.toString())
-    
+
     if (newCourseCodes.length > 0) {
       params.set("courseCodes", newCourseCodes.join(","))
     } else {

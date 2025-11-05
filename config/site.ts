@@ -1,3 +1,4 @@
+import { Icons } from "@/components/icons";
 import { Calendar, Home, Layers, LucideIcon, Network } from "lucide-react";
 
 export type SiteConfig = typeof siteConfig
@@ -10,12 +11,12 @@ export const siteConfig = {
     {
       title: "Courses",
       href: "/",
-      IconComp: Home,
+      IconComp: Icons.course
     },
     {
       title: "Majors",
       href: "/majors",
-      IconComp: Layers
+      IconComp: Icons.subjectArea
     },
     {
       title: "Schedule",
@@ -25,7 +26,7 @@ export const siteConfig = {
     {
       title: "Prereq Graph",
       href: "/prereq-graph",
-      IconComp: Network
+      IconComp: Icons.graph
     }
     // {
     //   title: "Plan",

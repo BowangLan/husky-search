@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useEffect, useMemo } from "react"
+import { Suspense, useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import { useCourseDataStore } from "@/store/course-data.store"
@@ -8,49 +8,69 @@ import { useInteractivePrereqGraphState } from "@/store/interactive-prereq-graph
 import { useQuery } from "convex/react"
 
 import { ConvexCourseOverview } from "@/types/convex-courses"
+import {
+  parseCourseCodes,
+  parseSubjectArea,
+} from "@/hooks/use-prereq-graph-url-params"
 import { InteractivePrereqGraph } from "@/components/prereq-graph/full-size-prereq-graph"
 
-function PrereqGraphPageClient() {
+const usePrereqGraphPageSearchParamsHydration = () => {
   const searchParams = useSearchParams()
   const subjectArea = searchParams.get("subjectArea")
   const courseCodesParam = searchParams.get("courseCodes")
+
+  useEffect(() => {
+    const courseCodes = parseCourseCodes(courseCodesParam)
+    const parsedSubjectArea = parseSubjectArea(subjectArea)
+    console.log("[usePrereqGraphPageSearchParamsHydration] useEffect", {
+      courseCodes,
+      parsedSubjectArea,
+    })
+    useInteractivePrereqGraphState.getState().setPrimaryCourseCodes(courseCodes)
+    useInteractivePrereqGraphState
+      .getState()
+      .setPrimarySubjectArea(parsedSubjectArea)
+  }, [courseCodesParam, subjectArea])
+}
+
+function PrereqGraphPageClient() {
+  usePrereqGraphPageSearchParamsHydration()
   const nodes = useInteractivePrereqGraphState((state) => state.nodes)
   const edges = useInteractivePrereqGraphState((state) => state.edges)
+  const primaryCourseCodes = useInteractivePrereqGraphState(
+    (state) => state.primaryCourseCodes
+  )
+  const primarySubjectArea = useInteractivePrereqGraphState(
+    (state) => state.primarySubjectArea
+  )
+  const hasPrimarySubjectArea =
+    primarySubjectArea !== null && primarySubjectArea.length > 0
+  const hasPrimaryCourseCodes = primaryCourseCodes.size > 0
 
   // Parse courseCodes from query param (comma-separated string with + for spaces)
-  const courseCodes = useMemo(() => {
-    if (!courseCodesParam) return null
-    // Split by comma and filter out empty strings
-    // Replace "+" with " " since API expects spaces
-    const codes = courseCodesParam
-      .split(",")
-      .map((c) => c.trim().replace(/\+/g, " "))
-      .filter((c) => c.length > 0)
-    return codes.length > 0 ? codes : null
-  }, [courseCodesParam])
 
   // Query courses by subject area and course codes in parallel
   const coursesBySubjectArea = useQuery(
     api.courses.listOverviewBySubjectArea,
-    subjectArea && subjectArea.length > 0
+    hasPrimarySubjectArea
       ? {
-          subjectArea,
+          subjectArea: primarySubjectArea,
         }
       : "skip"
   )
 
   const coursesByCodes = useQuery(
     api.courses.listOverviewByCourseCodes,
-    courseCodes && courseCodes.length > 0
+    hasPrimaryCourseCodes
       ? {
-          courseCodes,
+          courseCodes: Array.from(primaryCourseCodes),
         }
       : "skip"
   )
 
   console.log("[render] prereq-graph/page", {
-    subjectArea,
-    courseCodes,
+    primarySubjectArea,
+    primaryCourseCodes,
     coursesBySubjectArea,
     coursesByCodes,
   })
@@ -58,17 +78,27 @@ function PrereqGraphPageClient() {
   // Get store actions
   const setCourses = useInteractivePrereqGraphState((state) => state.setCourses)
 
-  // Merge results from both queries when available
+  // Merge results from both queries when available - only runs once during initialization
   useEffect(() => {
-    // If neither parameter is provided, clear the store
-    if ((!subjectArea || subjectArea.length === 0) && !courseCodes) {
+    // Only run during initialization
+    // If neither parameter is provided, clear the store and finish initialization
+    if (
+      (!primarySubjectArea || primarySubjectArea.length === 0) &&
+      primaryCourseCodes.size === 0
+    ) {
       setCourses([])
       return
     }
 
     // Wait for both queries to complete if they're both requested
-    const hasSubjectAreaQuery = subjectArea && subjectArea.length > 0
-    const hasCourseCodesQuery = courseCodes && courseCodes.length > 0
+    const hasSubjectAreaQuery =
+      primarySubjectArea && primarySubjectArea.length > 0
+    const hasCourseCodesQuery = primaryCourseCodes.size > 0
+
+    console.log("[useEffect] prereq-graph/page", {
+      hasSubjectAreaQuery,
+      hasCourseCodesQuery,
+    })
 
     // If subject area query is requested but still loading, wait
     if (hasSubjectAreaQuery && coursesBySubjectArea === undefined) {
@@ -103,33 +133,24 @@ function PrereqGraphPageClient() {
       ).values()
     )
 
-    console.log("uniqubeCourses", uniqueCourses)
+    console.log("[useEffect] prereq-graph/page", { uniqueCourses })
 
     setCourses(uniqueCourses)
     useCourseDataStore.getState().setCourseData(uniqueCourses)
+
+    // Mark initialization as complete
   }, [
     coursesBySubjectArea,
     coursesByCodes,
-    subjectArea,
-    courseCodes,
+    primarySubjectArea,
+    primaryCourseCodes,
     setCourses,
   ])
 
-  // Get loading state - loading if any active query is still loading
-  const hasSubjectAreaQuery = subjectArea && subjectArea.length > 0
-  const hasCourseCodesQuery = courseCodes && courseCodes.length > 0
-
-  // If no queries are active, not loading
-  let isLoading = false
-  if (hasSubjectAreaQuery && coursesBySubjectArea === undefined) {
-    isLoading = true
-  }
-  if (hasCourseCodesQuery && coursesByCodes === undefined) {
-    isLoading = true
-  }
-  if (!hasSubjectAreaQuery && !hasCourseCodesQuery) {
-    isLoading = false
-  }
+  // Get loading state - only show loading during initialization
+  // After initialization, dynamic course additions are handled by usePrereqGraphAddCourse hook
+  // and should not trigger the page-level loading state
+  const isLoading = hasPrimarySubjectArea && hasPrimaryCourseCodes
 
   return (
     <div className="h-full w-full">

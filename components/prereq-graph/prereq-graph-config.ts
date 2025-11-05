@@ -1,1 +1,0 @@
-export const RIGHT_PANEL_WIDTH = "min(280px, 90vw)"

@@ -9,6 +9,7 @@ import {
   useState,
 } from "react"
 import type { DawgpathCourseDetail } from "@/convex/dawgpath"
+import { useInteractivePrereqGraphState } from "@/store/interactive-prereq-graph-state"
 import { useNodeMap } from "@/store/prereq-graph-node-map.store"
 import { usePrereqGraphSelectedCourseStore } from "@/store/prereq-graph-selected-course.store"
 import {
@@ -38,7 +39,6 @@ import {
   type PrereqGraphCourseNodeData,
   type PrereqGraphNodeUnion,
 } from "@/lib/prereq-graph-utils"
-import { usePrereqGraphUrlParams } from "@/hooks/use-prereq-graph-url-params"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
@@ -162,8 +162,9 @@ export function GraphContent({
   )
 
   const { theme } = useTheme()
-
-  const { isCourseAdded } = usePrereqGraphUrlParams()
+  const primaryCourseCodes = useInteractivePrereqGraphState(
+    (state) => state.primaryCourseCodes
+  )
 
   const handleEdgesChangeCombined = useCallback<OnEdgesChange<Edge>>(
     (changes) => {
@@ -183,7 +184,7 @@ export function GraphContent({
       if (
         node.data.courseCode === currentCourseCode ||
         (typeof node.data.courseCode === "string" &&
-          isCourseAdded(node.data.courseCode))
+          primaryCourseCodes.has(node.data.courseCode))
       ) {
         return "var(--color-primary)"
       } else if (node.data.isOfferedNow) {

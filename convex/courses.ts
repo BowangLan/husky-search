@@ -315,6 +315,22 @@ export const listOverviewByCourseCodes = query({
 })
 
 
+export const listOverviewByCourseCodesMutation = mutation({
+  args: {
+    courseCodes: v.array(v.string()),
+    prereqLevel: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const mapped: Record<string, ConvexCourseOverview> = await ctx.runQuery(api.courses.listOverviewByCourseCodes, {
+      courseCodes: args.courseCodes,
+      prereqLevel: args.prereqLevel,
+    });
+
+    return mapped;
+  }
+})
+
+
 export const listOverviewByCredit = query({
   args: {
     credit: v.string(),
