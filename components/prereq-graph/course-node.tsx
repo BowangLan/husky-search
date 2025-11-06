@@ -9,6 +9,8 @@ import {
   Handle,
   NodeToolbar,
   Position,
+  useInternalNode,
+  useNodeId,
   type Node,
   type NodeProps,
 } from "@xyflow/react"
@@ -38,10 +40,12 @@ const SelectedCoursePrereqPanelLeft = ({
   courseCode: string
 }) => {
   const nodeMap = useNodeMap((state) => state.nodeMap)
-  const richNodeData = nodeMap.get(courseCode)
+  const courseDependencies = useInteractivePrereqGraphState((state) =>
+    state.courseDependenciesMap.get(courseCode)
+  )
   const centerNode = useNodeSelectAndCenter()
 
-  if (!richNodeData || richNodeData.leftNodeIdMap.size === 0) {
+  if (!courseDependencies || courseDependencies.leftCourseCodes.size === 0) {
     return null
   }
 
@@ -54,15 +58,15 @@ const SelectedCoursePrereqPanelLeft = ({
     >
       <div className="bg-background border rounded-lg shadow-lg p-3 flex flex-col">
         <div className="flex flex-col gap-1">
-          {Array.from(richNodeData.leftNodeIdMap.entries()).map(
-            ([leftNodeId, edgeId]) => (
+          {Array.from(courseDependencies.leftCourseCodes).map(
+            (leftCourseCode) => (
               <CourseSmallBlock
-                key={edgeId}
-                courseCode={leftNodeId}
+                key={leftCourseCode}
+                courseCode={leftCourseCode}
                 onClick={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
-                  centerNode(leftNodeId)
+                  centerNode(leftCourseCode)
                 }}
               />
             )
@@ -124,11 +128,12 @@ const SelectedCoursePrereqPanelRight = ({
 }: {
   courseCode: string
 }) => {
-  const nodeMap = useNodeMap((state) => state.nodeMap)
-  const richNodeData = nodeMap.get(courseCode)
+  const courseDependencies = useInteractivePrereqGraphState((state) =>
+    state.courseDependenciesMap.get(courseCode)
+  )
   const centerNode = useNodeSelectAndCenter()
 
-  if (!richNodeData || richNodeData.rightNodeIdMap.size === 0) {
+  if (!courseDependencies || courseDependencies.rightCourseCodes.size === 0) {
     return null
   }
 
@@ -141,15 +146,15 @@ const SelectedCoursePrereqPanelRight = ({
     >
       <div className="bg-background border rounded-lg shadow-lg p-3 flex flex-col">
         <div className="flex flex-col gap-1">
-          {Array.from(richNodeData.rightNodeIdMap.entries()).map(
-            ([rightNodeId, edgeId]) => (
+          {Array.from(courseDependencies.rightCourseCodes).map(
+            (rightCourseCode) => (
               <CourseSmallBlock
-                key={edgeId}
-                courseCode={rightNodeId}
+                key={rightCourseCode}
+                courseCode={rightCourseCode}
                 onClick={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
-                  centerNode(rightNodeId)
+                  centerNode(rightCourseCode)
                 }}
               />
             )

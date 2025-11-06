@@ -2,67 +2,32 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useInteractivePrereqGraphState } from "@/store/interactive-prereq-graph-state"
-import { useNode } from "@/store/prereq-graph-node-map.store"
-import {
-  Panel,
-  ReactFlowStore,
-  useNodesState,
-  useReactFlow,
-  useStore,
-} from "@xyflow/react"
-import { Check, ChevronRight, Plus, X } from "lucide-react"
+import { useNodeMap } from "@/store/prereq-graph-node-map.store"
+import { Edge, Panel, useReactFlow } from "@xyflow/react"
+import { ChevronRight, Eye, EyeOff, Plus, Search, X } from "lucide-react"
 
-import type {
-  PrereqGraphCourseNodeData,
-  PrereqGraphNodeUnion,
-} from "@/lib/prereq-graph-utils"
+import { ConvexCourseOverview } from "@/types/convex-courses"
+import type { PrereqGraphNodeUnion } from "@/lib/prereq-graph-utils"
 import { cn } from "@/lib/utils"
-import { useCourseSearch } from "@/hooks/use-course-search"
 import {
   usePrereqGraphAddCourse,
   usePrereqGraphRemoveCourse,
 } from "@/hooks/use-prereq-graph-course-operations"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
 
 import { Icons } from "../icons"
-import { Button, buttonVariants } from "../ui/button"
+import { buttonVariants } from "../ui/button"
+import { Input } from "../ui/input"
 import { RichButton } from "../ui/rich-button"
+import { AddCourseOrMajorPopover } from "./add-course-or-major-popover"
 import { CourseSmallBlock } from "./course-small-block"
-import { Section, SectionTitle } from "./panel-section"
+import { PanelContainer, Section } from "./panel-section"
+import { PrereqGraphFilterBar } from "./prereq-graph-filter-bar"
 // import { RIGHT_PANEL_WIDTH } from "./prereq-graph-config"
 import { useNodeSelectAndCenter } from "./use-node-select-and-center"
+import { useReactFlowNode } from "./use-react-flow-node"
 
 interface PrereqGraphSearchPanelProps {
   nodes: PrereqGraphNodeUnion[]
-}
-
-interface CourseOption {
-  courseCode: string
-  courseTitle: string
-  nodeId: string
-}
-
-function useIsNodeSelected(nodeId: string) {
-  const { getNode } = useReactFlow()
-  const node = getNode(nodeId)
-  const selectedRef = useRef<boolean>(false)
-
-  useEffect(() => {
-    if (node?.selected) {
-      selectedRef.current = true
-    } else {
-      selectedRef.current = false
-    }
-  }, [node?.selected])
-
-  return selectedRef.current ?? false
 }
 
 const AddCourseButton = ({ courseCode }: { courseCode: string }) => {
@@ -125,11 +90,17 @@ const CourseSmallBlockWithState = ({ courseCode }: { courseCode: string }) => {
   const course = useInteractivePrereqGraphState((state) =>
     state.coursesMap.get(courseCode)
   )
+  const courseDependencies = useInteractivePrereqGraphState((state) =>
+    state.courseDependenciesMap.get(courseCode)
+  )
   const centerNode = useNodeSelectAndCenter()
-  const isSelected = useIsNodeSelected(courseCode)
+  const rfNode = useReactFlowNode(courseCode)
+  const isSelected = rfNode?.selected ?? false
+  const isInGraph = rfNode !== undefined
   const isPrimaryCourse = useInteractivePrereqGraphState((state) =>
     state.primaryCourseCodes.has(courseCode)
   )
+  const rf = useReactFlow()
 
   if (!course) return null
 
@@ -145,18 +116,60 @@ const CourseSmallBlockWithState = ({ courseCode }: { courseCode: string }) => {
         className={cn(
           isPrimaryCourse &&
             "dark:bg-primary/50 bg-primary/30 hover:dark:bg-primary/70 hover:bg-primary/60",
-          isSelected && "border-primary bg-primary text-primary-foreground"
+          isSelected && "border-primary bg-primary text-primary-foreground",
+          !isInGraph && "opacity-50"
         )}
       />
 
-      <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-        <AddCourseButton courseCode={courseCode} />
+      <div className="absolute right-1 top-1/2 -translate-y-1/2 transition-opacity z-20 flex flex-row">
+        <div className="opacity-0 group-hover:opacity-100 flex flex-row">
+          <AddCourseButton courseCode={courseCode} />
+        </div>
+        {!isInGraph && (
+          <RichButton
+            tooltip="Show course in graph"
+            variant="ghost"
+            size="icon-xs"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              rf.addNodes([
+                {
+                  id: courseCode,
+                  type: "courseNode",
+                  data: { courseCode },
+                  position: { x: 0, y: 0 },
+                },
+              ])
+              const edges: Edge[] = []
+              for (const dependency of courseDependencies?.rightCourseCodes ??
+                new Set()) {
+                edges.push({
+                  id: `${courseCode}-${dependency}`,
+                  source: courseCode,
+                  target: dependency,
+                })
+              }
+              for (const dependency of courseDependencies?.leftCourseCodes ??
+                new Set()) {
+                edges.push({
+                  id: `${dependency}-${courseCode}`,
+                  source: dependency,
+                  target: courseCode,
+                })
+              }
+              rf.addEdges(edges)
+            }}
+          >
+            <EyeOff className="size-4" />
+          </RichButton>
+        )}
       </div>
     </div>
   )
 }
 
-const CurrentCourseList = () => {
+const CurrentCourseListGroupedByMajor = () => {
   const courseMap = useInteractivePrereqGraphState((state) => state.coursesMap)
   const courseCodes = useInteractivePrereqGraphState(
     (state) => state.courseCodes
@@ -211,360 +224,150 @@ const CurrentCourseList = () => {
   }
 
   return (
-    <div className="space-y-1 py-4 bg-background rounded-lg border shadow-md backdrop-blur-sm">
-      <Section>
-        {/* <SectionTitle>Primary Courses</SectionTitle> */}
-        <div className="flex flex-col gap-1">
-          {Array.from(primaryCourseCodes)
-            .sort((a, b) => a.localeCompare(b))
-            .map((courseCode) => (
-              <CourseSmallBlockWithState
-                key={courseCode}
-                courseCode={courseCode}
-              />
-            ))}
-        </div>
-      </Section>
-      <Section>
-        {/* <SectionTitle>Associated Courses</SectionTitle> */}
-        <div className="flex flex-col gap-1 max-h-[400px] overflow-y-auto">
-          {groupedCourses.map((group) => (
-            <div key={group.subjectArea} className="flex flex-col gap-1">
-              <div
-                className={cn(
-                  buttonVariants({ variant: "secondary", size: "sm" }),
-                  "h-9 justify-start gap-2 select-none text-xs"
-                )}
-                onClick={() => handleSubjectAreaExpandToggle(group.subjectArea)}
-              >
-                <Icons.subjectArea className="size-3.5" />
-                <div className="flex-1 flex flex-row items-center gap-2">
-                  {group.subjectArea}
-                </div>
-
-                <div className="text-xs text-muted-foreground">
-                  {group.courses.length} courses
-                </div>
-
-                {/* chevron right */}
-                <ChevronRight
-                  className={cn(
-                    "size-3.5 trans",
-                    expandedSubjectAreas.has(group.subjectArea) && "rotate-90"
-                    // isExpanded && "rotate-90"
-                  )}
-                />
-              </div>
-              {expandedSubjectAreas.has(group.subjectArea) && (
-                <div className="flex flex-col gap-1">
-                  {group.courses.map((course) => (
-                    <CourseSmallBlockWithState
-                      key={course.courseCode}
-                      courseCode={course.courseCode}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+    <>
+      <div className="flex flex-col gap-1 max-h-[400px] overflow-y-auto">
+        {Array.from(primaryCourseCodes)
+          .sort((a, b) => a.localeCompare(b))
+          .map((courseCode) => (
+            <CourseSmallBlockWithState
+              key={courseCode}
+              courseCode={courseCode}
+            />
           ))}
-        </div>
-      </Section>
+        {groupedCourses.map((group) => (
+          <div key={group.subjectArea} className="flex flex-col gap-1">
+            <div
+              className={cn(
+                buttonVariants({ variant: "secondary", size: "sm" }),
+                "h-9 justify-start gap-2 select-none text-xs"
+              )}
+              onClick={() => handleSubjectAreaExpandToggle(group.subjectArea)}
+            >
+              <Icons.subjectArea className="size-3.5" />
+              <div className="flex-1 flex flex-row items-center gap-2">
+                {group.subjectArea}
+              </div>
+
+              <div className="text-xs text-muted-foreground">
+                {group.courses.length} courses
+              </div>
+
+              {/* chevron right */}
+              <ChevronRight
+                className={cn(
+                  "size-3.5 trans",
+                  expandedSubjectAreas.has(group.subjectArea) && "rotate-90"
+                  // isExpanded && "rotate-90"
+                )}
+              />
+            </div>
+            {expandedSubjectAreas.has(group.subjectArea) && (
+              <div className="flex flex-col gap-1">
+                {group.courses.map((course) => (
+                  <CourseSmallBlockWithState
+                    key={course.courseCode}
+                    courseCode={course.courseCode}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+const CurrentCourseList = ({ query }: { query: string }) => {
+  const courseMap = useInteractivePrereqGraphState((state) => state.coursesMap)
+  const courseCodes = useInteractivePrereqGraphState(
+    (state) => state.courseCodes
+  )
+  const primaryCourseCodes = useInteractivePrereqGraphState(
+    (state) => state.primaryCourseCodes
+  )
+
+  const courses = useMemo(() => {
+    const primaryCourses: ConvexCourseOverview[] = []
+    const courses: ConvexCourseOverview[] = []
+
+    Array.from(courseCodes).forEach((courseCode) => {
+      const course = courseMap.get(courseCode)
+      if (!course) return
+      if (
+        query.trim().length > 0 &&
+        !course.courseCode.toUpperCase().includes(query.trim().toUpperCase()) &&
+        !course.title.toUpperCase().includes(query.trim().toUpperCase())
+      ) {
+        return
+      }
+      if (primaryCourseCodes.has(course.courseCode)) {
+        primaryCourses.push(course)
+      } else {
+        courses.push(course)
+      }
+    })
+
+    primaryCourses.sort((a, b) => a.courseCode.localeCompare(b.courseCode))
+    courses.sort((a, b) => a.courseCode.localeCompare(b.courseCode))
+
+    return [...primaryCourses, ...courses]
+  }, [courseMap, courseCodes, primaryCourseCodes, query])
+
+  return (
+    <div className="flex flex-col gap-1">
+      {courses.map((course) => (
+        <CourseSmallBlockWithState
+          key={course.courseCode}
+          courseCode={course.courseCode}
+        />
+      ))}
     </div>
   )
 }
 
-export function PrereqGraphSearchPanel({ nodes }: PrereqGraphSearchPanelProps) {
-  const [searchInGraphOpen, setSearchInGraphOpen] = useState(false)
-  const [addCourseOpen, setAddCourseOpen] = useState(false)
+export function PrereqGraphSearchPanel() {
   const [searchInGraphValue, setSearchInGraphValue] = useState("")
-
-  // Hooks for course operations
-  const { addCourse, loadingCourseCodes } = usePrereqGraphAddCourse()
-  const primaryCourseCodes = useInteractivePrereqGraphState(
-    (state) => state.primaryCourseCodes
-  )
-  const primarySubjectArea = useInteractivePrereqGraphState(
-    (state) => state.primarySubjectArea
-  )
-
-  // Hook for course search (add courses)
-  const {
-    query: addCourseQuery,
-    courses,
-    majors,
-    loading,
-    showResults,
-    setShowResults,
-    handleChange,
-  } = useCourseSearch({
-    maxCourses: 50,
-    maxMajors: 10,
-    autoNavigate: false,
-  })
-
-  // Hook for searching within graph
-  const { getNode } = useReactFlow()
-  const centerNode = useNodeSelectAndCenter()
-
-  // Extract course codes from nodes that are course nodes
-  const courseOptions = useMemo<CourseOption[]>(() => {
-    return nodes
-      .filter(
-        (node): node is typeof node & { data: PrereqGraphCourseNodeData } => {
-          return (
-            node.type === "courseNode" &&
-            "courseCode" in node.data &&
-            typeof node.data.courseCode === "string"
-          )
-        }
-      )
-      .map((node) => ({
-        courseCode: node.data.courseCode,
-        courseTitle: node.data.courseTitle || "",
-        nodeId: node.id,
-      }))
-      .sort((a, b) => a.courseCode.localeCompare(b.courseCode))
-  }, [nodes])
-
-  // Filter courses within graph based on search value
-  const filteredCoursesInGraph = useMemo(() => {
-    if (!searchInGraphValue.trim()) {
-      return courseOptions
-    }
-
-    const query = searchInGraphValue.trim().toUpperCase()
-    return courseOptions.filter(
-      (course) =>
-        course.courseCode.toUpperCase().includes(query) ||
-        course.courseTitle.toUpperCase().includes(query)
-    )
-  }, [courseOptions, searchInGraphValue])
-
-  // Handle course selection within graph
-  const handleSelectInGraph = (courseCode: string) => {
-    const course = courseOptions.find((c) => c.courseCode === courseCode)
-    if (!course) return
-
-    const node = getNode(course.nodeId)
-    if (!node) return
-
-    centerNode(node.id)
-
-    // Reset search
-    setSearchInGraphValue("")
-    setSearchInGraphOpen(false)
-  }
-
-  // Handle course selection - update URL with new course code
-  const handleCourseSelect = (courseCode: string) => {
-    addCourse(courseCode)
-
-    // Reset search
-    setShowResults(false)
-    setAddCourseOpen(false)
-  }
-
-  // Handle major selection - update URL with new subject area
-  const handleMajorSelect = (majorCode: string) => {
-    // TODO:
-    // addMajor(majorCode)
-
-    // Reset search
-    setShowResults(false)
-    setAddCourseOpen(false)
-  }
-
-  const handleAddCourseInputChange = (value: string) => {
-    handleChange(value)
-    setAddCourseOpen(true)
-  }
 
   const PANEL_WIDTH = "min(300px, 90vw)"
 
   return (
     <Panel position="top-left" className="pointer-events-auto">
       <div className="flex flex-col gap-2" style={{ width: PANEL_WIDTH }}>
-        <CurrentCourseList />
+        <PanelContainer>
+          <Section>
+            {/* Header */}
+            <div className="flex flex-row items-center gap-1 mb-4">
+              <div className="relative flex-1">
+                <Input
+                  placeholder="Search courses"
+                  value={searchInGraphValue}
+                  onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setSearchInGraphValue(e.target.value.toUpperCase())
+                  }
+                  className="border-0 focus:ring-0 focus-visible:ring-0 rounded-md pl-10 h-9"
+                />
+                <X
+                  className="size-4 absolute right-3 top-1/2 -translate-y-1/2 opacity-50 cursor-pointer"
+                  onClick={() => setSearchInGraphValue("")}
+                />
+                <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-50 cursor-pointer" />
+              </div>
 
-        {/* Search courses within graph */}
-        <div>
-          <Command
-            shouldFilter={false}
-            className="rounded-lg border shadow-md bg-background/95 backdrop-blur-sm"
-          >
-            <CommandInput
-              placeholder="Search courses in graph..."
-              value={searchInGraphValue}
-              onValueChange={(value) => {
-                setSearchInGraphValue(value.toUpperCase())
-                setSearchInGraphOpen(true)
-              }}
-              onFocus={() => setSearchInGraphOpen(true)}
-              onBlur={() => {
-                // Close dropdown after a short delay to allow clicks to register
-                setTimeout(() => setSearchInGraphOpen(false), 200)
-              }}
-              className="border-0 focus:ring-0"
-            />
-            {searchInGraphOpen && searchInGraphValue.trim() && (
-              <CommandList className="max-h-[300px]">
-                <CommandEmpty>No courses found.</CommandEmpty>
-                <CommandGroup>
-                  {filteredCoursesInGraph.map((course) => (
-                    <CommandItem
-                      key={course.nodeId}
-                      value={course.courseCode}
-                      onSelect={() => handleSelectInGraph(course.courseCode)}
-                      className="cursor-pointer"
-                    >
-                      <div className="flex flex-col gap-1 py-1">
-                        <span className="font-semibold text-sm">
-                          {course.courseCode}
-                        </span>
-                        {course.courseTitle && (
-                          <span className="text-xs text-muted-foreground line-clamp-1">
-                            {course.courseTitle}
-                          </span>
-                        )}
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            )}
-          </Command>
-        </div>
-
-        {/* Add course or major */}
-        <div>
-          <Command
-            shouldFilter={false}
-            className="rounded-lg border shadow-md bg-background/95 backdrop-blur-sm"
-          >
-            <CommandInput
-              placeholder="Add course or major to graph..."
-              value={addCourseQuery}
-              onValueChange={handleAddCourseInputChange}
-              onFocus={() => {
-                setAddCourseOpen(true)
-                setShowResults(true)
-              }}
-              onBlur={() => {
-                // Close dropdown after a short delay to allow clicks to register
-                setTimeout(() => {
-                  setAddCourseOpen(false)
-                  setShowResults(false)
-                }, 200)
-              }}
-              className="border-0 focus:ring-0"
-            />
-            {addCourseOpen && showResults && addCourseQuery.trim() && (
-              <CommandList className="max-h-[400px]">
-                {loading ? (
-                  <div className="p-4 text-center text-sm text-muted-foreground">
-                    Searching...
-                  </div>
-                ) : courses.length === 0 && majors.length === 0 ? (
-                  <CommandEmpty>No courses or majors found.</CommandEmpty>
-                ) : (
-                  <>
-                    {majors.length > 0 && (
-                      <CommandGroup heading="Majors">
-                        {majors.map((major) => {
-                          const added = primarySubjectArea === major.code
-                          return (
-                            <CommandItem
-                              key={`major-${major.code}`}
-                              value={major.code}
-                              onSelect={() => {
-                                if (!added) {
-                                  handleMajorSelect(major.code)
-                                }
-                              }}
-                              className={`cursor-pointer ${
-                                added
-                                  ? "opacity-60 cursor-not-allowed"
-                                  : "hover:bg-accent"
-                              }`}
-                              disabled={added}
-                            >
-                              <div className="flex items-center justify-between w-full">
-                                <div className="flex flex-col gap-1 py-1 flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-semibold text-sm">
-                                      {major.code}
-                                    </span>
-                                    {added && (
-                                      <Check className="h-3 w-3 text-green-500" />
-                                    )}
-                                  </div>
-                                  <span className="text-xs text-muted-foreground line-clamp-1">
-                                    {major.title}
-                                  </span>
-                                </div>
-                                {added && (
-                                  <span className="text-xs text-muted-foreground ml-2">
-                                    Added
-                                  </span>
-                                )}
-                              </div>
-                            </CommandItem>
-                          )
-                        })}
-                      </CommandGroup>
-                    )}
-                    {courses.length > 0 && (
-                      <CommandGroup heading="Courses">
-                        {courses.map((course) => {
-                          const added = primaryCourseCodes.has(course)
-                          const isLoading = loadingCourseCodes.has(
-                            course.replace(/\s+/g, "").toUpperCase()
-                          )
-                          return (
-                            <CommandItem
-                              key={`course-${course}`}
-                              value={course}
-                              onSelect={() => {
-                                if (!added && !isLoading) {
-                                  handleCourseSelect(course)
-                                }
-                              }}
-                              className={`cursor-pointer ${
-                                added || isLoading
-                                  ? "opacity-60 cursor-not-allowed"
-                                  : "hover:bg-accent"
-                              }`}
-                              disabled={added || isLoading}
-                            >
-                              <div className="flex items-center justify-between w-full">
-                                <span className="font-semibold text-sm">
-                                  {course}
-                                </span>
-                                {added && (
-                                  <div className="flex items-center gap-2 ml-2">
-                                    <Check className="h-3 w-3 text-green-500" />
-                                    <span className="text-xs text-muted-foreground">
-                                      Added
-                                    </span>
-                                  </div>
-                                )}
-                                {isLoading && (
-                                  <span className="text-xs text-muted-foreground ml-2">
-                                    Adding...
-                                  </span>
-                                )}
-                              </div>
-                            </CommandItem>
-                          )
-                        })}
-                      </CommandGroup>
-                    )}
-                  </>
-                )}
-              </CommandList>
-            )}
-          </Command>
-        </div>
+              {/* Add button */}
+              <AddCourseOrMajorPopover />
+            </div>
+            {/* Filter bar */}
+            <PrereqGraphFilterBar />
+            <div className="max-h-[50vh] overflow-y-auto">
+              {searchInGraphValue.trim().length > 0 ? (
+                <CurrentCourseList query={searchInGraphValue} />
+              ) : (
+                <CurrentCourseListGroupedByMajor />
+              )}
+            </div>
+          </Section>
+        </PanelContainer>
       </div>
     </Panel>
   )

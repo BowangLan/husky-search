@@ -35,14 +35,9 @@ import { Maximize2 } from "lucide-react"
 import { useTheme } from "next-themes"
 
 import {
-  convertPrereqGraphToReactFlow,
   type PrereqGraphCourseNodeData,
   type PrereqGraphNodeUnion,
 } from "@/lib/prereq-graph-utils"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
-import { Skeleton } from "@/components/ui/skeleton"
 
 import { edgeTypes, nodeTypes } from "./prereq-graph-config"
 import { PrereqGraphSearchPanel } from "./prereq-graph-search-panel"
@@ -155,7 +150,7 @@ export function GraphContent({
     (changes) => {
       console.log("Handling node changes in GraphContent", changes)
       onNodesChangeBase(changes)
-      useNodeMap.getState().setNodesAndEdges(nodes, edges)
+      // useNodeMap.getState().applyNodeChanges(changes)
       // Layout will be handled by AutoLayoutHandler via useAutoLayout hook
     },
     [onNodesChangeBase, nodes, edges]
@@ -291,7 +286,7 @@ export function GraphContent({
       >
         {panelContent ?? defaultPanelContent}
       </Panel> */}
-      <PrereqGraphSearchPanel nodes={nodes} />
+      <PrereqGraphSearchPanel />
       <SelectedCoursePanel />
     </ReactFlow>
   )

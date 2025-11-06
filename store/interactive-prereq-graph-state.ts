@@ -13,6 +13,10 @@ export type DisplayOptions = {
 export type InteractivePrereqGraphState = {
   // Internal state - optimized with Sets and Maps for O(1) operations
   coursesMap: Map<string, ConvexCourseOverview> // Map keyed by courseCode for O(1) lookups
+  courseDependenciesMap: Map<string, {
+    leftCourseCodes: Set<string>
+    rightCourseCodes: Set<string>
+  }> // Map keyed by courseCode for O(1) lookups, value is a set of left and right course codes
   subjectAreas: Set<string> // Set of subject areas for O(1) membership checks
   courseCodes: Set<string> // Set of course codes for O(1) membership checks
   primaryCourseCodes: Set<string> // These are passed to useQuery(api.courses.listOverviewByCourseCodes)
@@ -48,12 +52,15 @@ export type InteractivePrereqGraphState = {
   clear: () => void // Clear all state
 
   // Internal: compute nodes and edges from current state
-  _computeGraph: () => void
+  computeGraph: (params?: {
+    coursesRecord?: Record<string, ConvexCourseOverview>
+  }) => void
 }
 
 export const useInteractivePrereqGraphState = create<InteractivePrereqGraphState>((set, get) => ({
   // Initial state - using Maps and Sets
   coursesMap: new Map(),
+  courseDependenciesMap: new Map(),
   subjectAreas: new Set(),
   courseCodes: new Set(),
   primaryCourseCodes: new Set(),
@@ -103,13 +110,33 @@ export const useInteractivePrereqGraphState = create<InteractivePrereqGraphState
       courseCodes.add(course.courseCode)
     })
 
-    set({ coursesMap, subjectAreas, courseCodes })
+    const courseDependenciesMap = new Map<string, {
+      leftCourseCodes: Set<string>
+      rightCourseCodes: Set<string>
+    }>()
+    courses.forEach((course) => {
+      courseDependenciesMap.set(course.courseCode, {
+        leftCourseCodes: new Set(),
+        rightCourseCodes: new Set(),
+      })
+    })
+
+    const { nodes, edges } = createNodesAndEdgesFromCourses(Object.fromEntries(coursesMap), {
+      ignoreUnlistedNodes: get().displayOptions.ignoreUnlistedNodes,
+      hideUnconnectedNodes: get().displayOptions.hideUnconnectedNodes,
+    })
+
+    edges.forEach((edge) => {
+      courseDependenciesMap.get(edge.source)?.rightCourseCodes.add(edge.target)
+      courseDependenciesMap.get(edge.target)?.leftCourseCodes.add(edge.source)
+    })
+
+    set({ coursesMap, subjectAreas, courseCodes, courseDependenciesMap, nodes, edges })
     console.log("[interactive-prereq-graph-state] setCourses", {
       coursesMapSize: coursesMap.size,
       subjectAreasSize: subjectAreas.size,
       courseCodesSize: courseCodes.size,
     })
-    get()._computeGraph()
   },
 
   setPrimaryCourseCodes: (courseCodes: Set<string>) => {
@@ -131,7 +158,7 @@ export const useInteractivePrereqGraphState = create<InteractivePrereqGraphState
     newCourseCodes.add(course.courseCode)
 
     set({ coursesMap: newMap, subjectAreas: newSubjectAreas, courseCodes: newCourseCodes })
-    get()._computeGraph()
+    get().computeGraph()
   },
 
   removeCourse: (courseCode: string) => {
@@ -156,7 +183,7 @@ export const useInteractivePrereqGraphState = create<InteractivePrereqGraphState
     }
 
     set({ coursesMap: newMap, subjectAreas: newSubjectAreas, courseCodes: newCourseCodes })
-    get()._computeGraph()
+    get().computeGraph()
   },
 
   setSubjectAreas: (subjectAreas: string[]) => {
@@ -208,7 +235,7 @@ export const useInteractivePrereqGraphState = create<InteractivePrereqGraphState
         ...options,
       },
     })
-    get()._computeGraph()
+    get().computeGraph()
   },
 
   updateDisplayOptions: (options: Partial<DisplayOptions>) => {
@@ -226,21 +253,21 @@ export const useInteractivePrereqGraphState = create<InteractivePrereqGraphState
   },
 
   // Internal: compute nodes and edges from current state
-  _computeGraph: () => {
-    const { coursesMap, displayOptions } = get()
-    console.log("[interactive-prereq-graph-state] _computeGraph", {
-      coursesMapSize: coursesMap.size,
-      displayOptions,
-    })
+  computeGraph: (params) => {
+    let coursesRecord: Record<string, ConvexCourseOverview> = {}
+    if (params?.coursesRecord) {
+      coursesRecord = params.coursesRecord
+    } else {
+      const { coursesMap } = get()
+      coursesRecord = Object.fromEntries(coursesMap)
+    }
+    const { displayOptions } = get()
 
-    if (coursesMap.size === 0) {
+    if (Object.keys(coursesRecord).length === 0) {
       set({ nodes: [], edges: [] })
       console.log("[interactive-prereq-graph-state] _computeGraph no courses")
       return
     }
-
-    // Convert Map to record for createNodesAndEdgesFromCourses (which expects Record)
-    const coursesRecord = Object.fromEntries(coursesMap)
 
     // Create nodes and edges from courses
     const { nodes, edges } = createNodesAndEdgesFromCourses(coursesRecord, {
