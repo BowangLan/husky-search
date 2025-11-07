@@ -1,0 +1,105 @@
+# UW Advising Offices by Program
+
+Source: https://advising.uw.edu/academic-support/advising-offices-by-program/
+
+| Program | Email | Phone | Location |
+|---------|-------|-------|----------|
+| Aeronautics and  Astronautics | aeroadvising@uw.edu | (206) 616-1115 | GUG 317 |
+| Aerospace Studies | afrotc@uw.edu | (206) 543-2360 | CLK 114 |
+| American Ethnic Studies | aes@uw.edu | (206) 221-0664 | PDL B509 |
+| American Indian Studies | native@u.washington.edu | (206) 543-9082 | PDL C514 |
+| Anthropology | anth-undergrad@uw.edu | (206) 685-9516 | DEN 310A |
+| Applied and Computational Mathematical Sciences | advising@math.washington.edu | (206) 543-6830 | PDL C36 |
+| Applied Mathematics | amathadv@uw.edu | (206) 543-5493 | LEW 203 |
+| Aquatic and Fishery Sciences | safsadv@uw.edu | (206) 543-7457 | FSH 116 |
+| Architectural Design | archdept@uw.edu | (206) 543-3043 | GLD 208 |
+| Architecture | archdept@uw.edu | (206) 543-3043 | GLD 208 |
+| Art | uaskart@uw.edu | (206) 543-0646 | ART 104 |
+| Art History | uaskart@uw.edu | (206) 543-0646 | ART 104 |
+| Asian Languages & Literature | has-center@uw.edu | (206) 543-2634 | PDL A-002 |
+| Astronomy | astroadvising@uw.edu | (206) 543-2888 | PAB C319 |
+| Atmospheric and Climate Science | atmosadv@uw.edu | (206) 543-4576 | ATG 422 |
+| Biochemistry | advisers@chem.washington.edu | (206) 543-1610 | BAG 303 |
+| Bioengineering | bioeng@uw.edu | (206) 221-6695 | FOEGE N107 |
+| Bioethics and Humanities | mdcox@uw.edu | (206) 543-5145 | HSB A204 |
+| Biology | bioladv@uw.edu | (206) 543-9120 | HCK 318 |
+| Business | bizinfo@uw.edu | (206) 685-3400 | DEM 202 |
+| Chemical Engineering | chemeadv@uw.edu | (206) 685-1634 | BNS 137 |
+| Chemistry | advisers@chem.washington.edu | (206) 543-1610 | BAG 303 |
+| Cinema & Media Studies | has-center@uw.edu | (206) 543-2634 | PDL A-002 |
+| Civil and Environmental Engineering | ceadvice@uw.edu | (206) 543-5092 | MOR 201 |
+| Classics | has-center@uw.edu | (206) 543-2634 | PDL A-002 |
+| Communication | comadv@uw.edu | (206) 543-8860 | CMU 118 |
+| Community, Environment, & Planning | cepinfo@uw.edu | (206) 543-1508 | GLD 208Q |
+| Comparative History of Ideas | chid@uw.edu | (206) 543-2097 | PDL B102D |
+| Computer Science and Engineering | ugrad-adviser@cs.washington.edu | (206) 543-1695 | CSE 2 170 |
+| Construction Management | cmadvising@uw.edu | (206) 543-6377 | ARC 120 |
+| Dance | danceadv@uw.edu | (206) 543-0550 | MNY 256 |
+| Design | uaskart@uw.edu | (206) 543-0646 | ART 104 |
+| Digital Arts and Experimental Media | dxarts@uw.edu | (206) 221-6085 | RAI 207 |
+| Disability Studies | disstadv@uw.edu | (206) 616-2352 | SMI M253 |
+| Diversity Minor | divminor@uw.edu | (206) 616-2352 | SMI M253 |
+| Drama | dramaadv@uw.edu | (206) 543-4204 | HUT 129 |
+| Early Care and Education (Online Option) | eceinfo@uw.edu | (206) 221-3527 | MLR 206 |
+| Early Childhood and Family Studies | ecfsinfo@uw.edu | (206) 221-3527 | MLR 206 |
+| Earth and Space Sciences | essadv@uw.edu | (206) 543-8904 | JHN 065 |
+| Economics | econadv@uw.edu | (206) 543-5794 | SAV 305 |
+| Education, Communities, and Organizations | ecoinfo@uw.edu | (206) 221-3527 | MLR 206 |
+| Education, Learning, and Society | elsminor@uw.edu | (206) 221-3527 | MLR 206 |
+| Electrical and Computer Engineering | undergradece@uw.edu | (206) 221-5270 | CSE AE 100R |
+| English | has-center@uw.edu | (206) 543-2634 | PDL A002 |
+| Environmental and Occupational Health Sciences | ehug@uw.edu | (206) 543-4207 | HRC 242 B |
+| Environmental Studies | wieman@uw.edu | (206) 616-2461 | ACC 12 |
+| Food Systems, Nutrition, and Health | ugnutr@uw.edu | (206) 543-8333 | RAI 305 |
+| French and Italian Studies | has-center@uw.edu | (206) 543-2634 | PDL A-002 |
+| Gender, Women & Sexuality Studies | gwssadvs@uw.edu | (206) 543-6902 | PDL B110K |
+| Geography | geogadv@uw.edu | (206) 543-3246 | SMI 415 A & B |
+| German | has-center@uw.edu | (206) 543-2634 | PDL A-002 |
+| Global Health | ghminor@uw.edu | (206) 685.5601 | NJB |
+| Health Informatics and Health Information Management | hihim@uw.edu | (206) 543-8810 | UW Tower 14th floor |
+| History | histadv@uw.edu | (206) 543-5691 | SMI 318 |
+| Human Centered Design and Engineering | askhcde@uw.edu | (206) 543-2567 | SIEG 423 |
+| Human Rights | polsadvc@uw.edu | (206) 543-1824 | SMI 215 |
+| Individualized Studies | istudy@uw.edu | (206) 543-2550 | MGH 141 |
+| Industrial and Systems Engineering | ieadvise@uw.edu | (206) 543-5041 | MEB G7 |
+| Informatics | informatics@uw.edu | (206) 543-1794 | MGH 420 |
+| Integrated Social Sciences | issadv@uw.edu | (206) 685-9415 | ICH 208 |
+| Interdisciplinary Engineering Studies Program | engradv@uw.edu | (206) 543-1770 | LOW 301 |
+| International Studies | jsisadv@uw.edu | (206) 543-6001 | THO 111 |
+| Labor Studies | hbcls@uw.edu | (206) 543-7946 | SMI 101 |
+| Laboratory Medicine | medtech@uw.edu | (206) 598-6131 | UMEC NW120 |
+| Landscape Architecture | landarchinfo@uw.edu | (206) 543-9240 | GLD 348 |
+| Law, Societies, and Justice | lsjadv@uw.edu | (206) 543-2396 | SMI M253 |
+| Linguistics | has-center@uw.edu | (206) 543-2634 | PDL A-002 |
+| Marine Biology | marbiol@uw.edu | (206) 543-7426 | FSH 116 |
+| Materials Science and Engineering | askmse@uw.edu | (206) 616-6581 | ROB 302A |
+| Mathematics | advising@math.washington.edu | (206) 543-6830 | PDL C36 |
+| Mechanical Engineering | meadvise@uw.edu | (206) 543-5090 | MEB 143 |
+| Microbiology | advmicro@uw.edu | (206) 543-2572 | HSB K-335A |
+| Middle Eastern Languages and Cultures | has-center@uw.edu | (206) 543-2634 | PDL A-002 |
+| Military Science | armyrotc@u.washington.edu | (206) 543-9010 | CLK 105 |
+| Music | musicadv@uw.edu | (206) 543-1239 | MUS 116 |
+| Naval Science | nrotc@uw.edu | (206) 543-0170 | CLK 202 |
+| Neuroscience | tfreng@uw.edu | (206) 616-3982 | HCK 318 |
+| Oceanography | student@ocean.uw.edu | (206) 543-5039 | OTB 108 |
+| Online Bachelor's Degree Completion | degrees@pce.uw.edu | 206-685-3226 | UW Tower |
+| Paleobiology | bioladv@uw.edu | (206) 543-9120 | HCK 318 |
+| Philosophy | philadv@uw.edu | (206) 543-5855 | SAV 361 |
+| Physics | physadvs@uw.edu | (206) 543-2772 | PAB C139A |
+| Political Science | polsadvc@uw.edu | (206) 543-1824 | SMI 215 |
+| Psychology | psyadvis@uw.edu | (206) 543-2698 | GTH 119 |
+| Public Health | phgh@uw.edu | (206) 221-4561 | HRC G120 |
+| Quantitative Science | cqs@uw.edu | (206) 543-1191 | AND 006 |
+| Real Estate | remajor@uw.edu | (206) 616-5335 | GLD 424 |
+| Scandinavian Studies | has-center@uw.edu | (206) 685-7962 | RAI 305X |
+| School of Environmental and Forest Sciences | cfradv@uw.edu | (206) 543-3077 | AND 116 |
+| School of Social Work | uwsocialwork@uw.edu | 206-543-8617 | Social Work Building 023A |
+| Slavic Languages and Literatures | has-center@uw.edu | (206) 543-2634 | PDL A-002 |
+| Sociology | asksoc@uw.edu | (206) 543-5396 | SAV 211 |
+| Spanish and Portuguese Studies | has-center@uw.edu | (206) 543-2634 | PDL A-002 |
+| Speech and Hearing Sciences | shugadv@uw.edu | (206) 685-7403 | EGL 210 |
+| Statistics | statugradadv@stat.washington.edu | (206) 543-8296 | PDL B313A |
+| Urban Design and Planning | udp@uw.edu | (206) 543-4190 | GLD 208Q |
+| Values in Society | philadv@uw.edu | (206) 543-5855 | SAV 361 |
+
+*Total: 97 programs*
