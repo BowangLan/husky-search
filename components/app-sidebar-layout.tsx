@@ -4,9 +4,12 @@ import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { isEmailFromUW } from "@/constants"
+import { api } from "@/convex/_generated/api"
+import { usePinnedMajorCodes, useRemoveMajorPin } from "@/store/pinned-majors.store"
 import { useScheduledCourses } from "@/store/schedule.store"
 import { useUserStore } from "@/store/user.store"
 import { useClerk, useUser } from "@clerk/nextjs"
+import { useQuery } from "convex/react"
 import {
   Calendar,
   ChevronUp,
@@ -16,9 +19,11 @@ import {
   LogOut,
   MessageSquare,
   Moon,
+  Pin,
   Search,
   Sun,
   User2,
+  X,
 } from "lucide-react"
 import { useTheme } from "next-themes"
 
@@ -35,6 +40,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
@@ -50,6 +60,7 @@ import {
   SidebarInput,
   SidebarInset,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
@@ -69,6 +80,56 @@ import { SchedulePreviewProvider } from "@/components/schedule/schedule-preview-
 function isPathActive(pathname: string, href: string) {
   if (href === "/") return pathname === href
   return pathname.startsWith(href)
+}
+
+function PinnedMajorItem({
+  code,
+  pathname,
+}: {
+  code: string
+  pathname: string
+}) {
+  const major = useQuery(api.myplan1.subjectAreas.getByCode, { code })
+  const isActive = pathname === `/majors/${code}`
+  const removePin = useRemoveMajorPin()
+
+  const handleUnpin = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    removePin(code)
+  }
+
+  if (!major) return null
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild isActive={isActive}>
+        <Link
+          href={`/majors/${code}`}
+          className={cn(
+            "flex items-center gap-2",
+            !isActive && "opacity-50 hover:opacity-100"
+          )}
+        >
+          <Pin className="size-4 fill-primary text-primary shrink-0" />
+          <span className="truncate">{major.code}</span>
+        </Link>
+      </SidebarMenuButton>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <SidebarMenuAction
+            onClick={handleUnpin}
+            showOnHover
+          >
+            <X className="size-4" />
+          </SidebarMenuAction>
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          <p>Unpin major</p>
+        </TooltipContent>
+      </Tooltip>
+    </SidebarMenuItem>
+  )
 }
 
 function SidebarSearchInput({ onSearchClick }: { onSearchClick: () => void }) {
@@ -256,6 +317,7 @@ export function AppSidebarLayout({ children }: { children: React.ReactNode }) {
   }, [])
 
   const navWithIcons = siteConfig.mainNav
+  const pinnedMajorCodes = usePinnedMajorCodes()
 
   const firstName = user?.firstName ?? null
   const lastName = user?.lastName ?? null
@@ -316,6 +378,22 @@ export function AppSidebarLayout({ children }: { children: React.ReactNode }) {
                   </SidebarMenu>
                 </SidebarGroupContent>
               </SidebarGroup>
+              {pinnedMajorCodes.length > 0 && (
+                <SidebarGroup>
+                  <SidebarGroupLabel>Pinned Majors</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {pinnedMajorCodes.map((code) => (
+                        <PinnedMajorItem
+                          key={code}
+                          code={code}
+                          pathname={pathname}
+                        />
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              )}
             </SidebarContent>
             <SidebarFooter className="!bg-transparent">
               <SidebarMenu>

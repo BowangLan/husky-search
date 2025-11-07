@@ -4,14 +4,19 @@ import { useMemo } from "react"
 import Link from "next/link"
 import { api } from "@/convex/_generated/api"
 import { ProgramDetail } from "@/services/program-service"
+import {
+  useIsMajorPinned,
+  useToggleMajorPin,
+} from "@/store/pinned-majors.store"
 import { useTrackMajorVisit } from "@/store/visit-cache.store"
 import { useQuery } from "convex/react"
-import { Loader, Network, TrendingDown, TrendingUp } from "lucide-react"
+import { Loader, Network, Pin, TrendingDown, TrendingUp } from "lucide-react"
 
 import { ConvexCourseOverview } from "@/types/convex-courses"
-import { capitalize } from "@/lib/utils"
+import { capitalize, cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { RichButton } from "@/components/ui/rich-button"
 
 import { ConvexCourseCardHorizontalList } from "../course-card-convex"
 import { PageTitle, PageWithHeaderLayout } from "../page-wrapper"
@@ -30,6 +35,13 @@ function ViewTransition({ children }: { children: React.ReactNode }) {
 
 export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
   useTrackMajorVisit(program)
+
+  const isPinned = useIsMajorPinned(program.code)
+  const togglePin = useToggleMajorPin()
+
+  const handlePinClick = () => {
+    togglePin(program.code)
+  }
 
   const subjectArea = program.code
   const convexCourses = useQuery(api.courses.listOverviewBySubjectArea, {
@@ -96,6 +108,19 @@ export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
           <div className="flex items-center gap-2">
             <PageTitle>{capitalize(program.title)}</PageTitle>
             <div className="flex-1"></div>
+            <RichButton
+              tooltip={isPinned ? "Unpin major" : "Pin major"}
+              variant="ghost"
+              className="size-9"
+              onClick={handlePinClick}
+            >
+              <Pin
+                className={cn(
+                  "size-4 transition-colors",
+                  isPinned && "fill-primary text-primary"
+                )}
+              />
+            </RichButton>
             <Link href={`/prereq-graph?subjectArea=${program.code}`}>
               <Button variant="outline">
                 <Network className="h-4 w-4" />

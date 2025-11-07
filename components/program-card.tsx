@@ -2,15 +2,24 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import {
+  useIsMajorPinned,
+  useToggleMajorPin,
+} from "@/store/pinned-majors.store"
+import { Pin } from "lucide-react"
 
 import { ProgramInfo } from "@/types/program"
 import { capitalize, cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
-
-import { AnimatedList } from "./animated-list"
+import { RichButton } from "@/components/ui/rich-button"
 
 // ViewTransition wrapper - falls back to fragment if unstable_ViewTransition is not available
-function ViewTransition({ children }: { children: React.ReactNode; name?: string }) {
+function ViewTransition({
+  children,
+}: {
+  children: React.ReactNode
+  name?: string
+}) {
   return <>{children}</>
 }
 
@@ -21,8 +30,17 @@ export function ProgramCardLink({
   program: ProgramInfo
   className?: string
 }) {
+  const isPinned = useIsMajorPinned(program.code)
+  const togglePin = useToggleMajorPin()
+
+  const handlePinClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    togglePin(program.code)
+  }
+
   return (
-    <Card className={cn("relative h-full hover:scale-100", className)}>
+    <Card className={cn("relative h-full hover:scale-100 group", className)}>
       <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       <Link
         href={`/majors/${program.code}`}
@@ -30,6 +48,23 @@ export function ProgramCardLink({
         prefetch
         // scroll={false}
       ></Link>
+
+      {/* Pin button */}
+      <div className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+        <RichButton
+          tooltip={isPinned ? "Unpin major" : "Pin major"}
+          variant="ghost"
+          className="size-7 bg-background/80 backdrop-blur-sm hover:bg-background"
+          onClick={handlePinClick}
+        >
+          <Pin
+            className={cn(
+              "size-3.5 transition-colors",
+              isPinned && "fill-primary text-primary"
+            )}
+          />
+        </RichButton>
+      </div>
 
       {/* <div className="relative aspect-video w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-muted/50 to-muted/30">
         <div className="flex h-full items-center justify-center">
