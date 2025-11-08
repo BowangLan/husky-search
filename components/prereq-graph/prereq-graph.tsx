@@ -267,6 +267,7 @@ export function GraphContent({
       className="bg-background"
       colorMode={theme === "dark" ? "dark" : "light"}
       panOnScroll={true}
+      multiSelectionKeyCode={null}
     >
       <Background />
       <Controls />
