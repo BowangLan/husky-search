@@ -90,26 +90,11 @@ const AddCourseButton = ({
     state.primaryCourseCodes.has(courseCode)
   )
 
-  if (isPrimaryCourse) {
-    return (
-      <RichButton
-        tooltip="Remove course from graph"
-        variant="ghost"
-        size="icon-xs"
-        onClick={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          removeCourse(courseCode)
-        }}
-      >
-        <X className={cn("size-4", selected && "text-primary-foreground")} />
-      </RichButton>
-    )
-  }
+  if (isPrimaryCourse) return null;
 
   return (
     <RichButton
-      tooltip="Add course to graph"
+      tooltip="Add all associated courses to graph"
       variant="ghost"
       size="icon-xs"
       onClick={(e) => {
@@ -119,6 +104,34 @@ const AddCourseButton = ({
       }}
     >
       <Plus className={cn("size-4", selected && "text-primary-foreground")} />
+    </RichButton>
+  )
+}
+
+const RemoveCourseButton = ({
+  courseCode,
+  selected = false,
+}: {
+  courseCode: string
+  selected?: boolean
+}) => {
+  const { removeCourse } = usePrereqGraphRemoveCourse()
+  const isPrimaryCourse = useInteractivePrereqGraphState((state) =>
+    state.primaryCourseCodes.has(courseCode)
+  )
+
+  return (
+    <RichButton
+      tooltip={isPrimaryCourse ? "Remove course and all associated courses from graph" : "Remove this course only from graph"}
+      variant="ghost"
+      size="icon-xs"
+      onClick={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        removeCourse(courseCode)
+      }}
+    >
+      <X className={cn("size-4", selected && "text-primary-foreground")} />
     </RichButton>
   )
 }
@@ -194,16 +207,17 @@ export const CourseNode = memo(function CourseNode({
       styleVariant={data.styleVariant}
       className={cn(
         isPrimaryCourse &&
-          !selected &&
-          "border-primary ring-primary dark:bg-primary/50 bg-primary/30 shadow-lg"
+        !selected &&
+        "border-primary ring-primary dark:bg-primary/50 bg-primary/30 shadow-lg"
       )}
       style={{ width: `${NODE_WIDTH}px`, height: `${NODE_HEIGHT}px` }}
       nodeProps={props}
     >
       <Handle type="target" position={Position.Left} className="w-3 h-3" />
 
-      <div className="w-full px-2 py-2 gap-1.5 flex flex-row items-center group-hover/node:opacity-100 opacity-0 transition-opacity absolute top-0 right-0">
+      <div className="w-full px-2 py-2 flex flex-row items-center group-hover/node:opacity-100 opacity-0 transition-opacity absolute top-0 right-0">
         <div className="flex-1"></div>
+        <RemoveCourseButton courseCode={courseCode} selected={selected} />
         <AddCourseButton courseCode={courseCode} selected={selected} />
         <Link href={`/courses/${courseCode}`}>
           <RichButton

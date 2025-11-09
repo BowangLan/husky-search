@@ -54,8 +54,8 @@ function PrereqGraphPageClient() {
     api.courses.listOverviewBySubjectArea,
     hasPrimarySubjectArea
       ? {
-          subjectArea: primarySubjectArea,
-        }
+        subjectArea: primarySubjectArea,
+      }
       : "skip"
   )
 
@@ -63,8 +63,8 @@ function PrereqGraphPageClient() {
     api.courses.listOverviewByCourseCodes,
     hasPrimaryCourseCodes
       ? {
-          courseCodes: Array.from(primaryCourseCodes),
-        }
+        courseCodes: Array.from(primaryCourseCodes),
+      }
       : "skip"
   )
 
@@ -150,7 +150,10 @@ function PrereqGraphPageClient() {
   // Get loading state - only show loading during initialization
   // After initialization, dynamic course additions are handled by usePrereqGraphAddCourse hook
   // and should not trigger the page-level loading state
-  const isLoading = hasPrimarySubjectArea && hasPrimaryCourseCodes
+  // const isBySubjectAreaLoading = hasPrimarySubjectArea && coursesBySubjectArea === undefined
+  // const isByCourseCodesLoading = hasPrimaryCourseCodes && coursesByCodes === undefined
+  // const isLoading = isBySubjectAreaLoading || isByCourseCodesLoading
+  const isLoading = false
 
   return (
     <div className="h-full w-full">
