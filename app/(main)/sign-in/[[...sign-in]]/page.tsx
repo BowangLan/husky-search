@@ -16,7 +16,7 @@ export default async function SignInPage({
             Sign in to Husky Search
           </h1>
           <p className="text-sm text-muted-foreground">
-            You must sign in or sign up with a <span className="font-semibold text-foreground">@uw.edu</span> email address to access this content.
+            You must sign in or sign up with a <span className="font-semibold text-foreground">@uw.edu</span> email address to access course data.
           </p>
         </div>
         <SignIn fallbackRedirectUrl={redirectUrl} />
