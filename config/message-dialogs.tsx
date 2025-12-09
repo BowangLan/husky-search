@@ -153,7 +153,7 @@ export const messageDialogConfigs: MessageDialogConfig[] = [
         variant: "default",
       },
     ],
-  }
+  },
   {
     id: "non-uw-email",
     eyebrow: "Access Limited",
