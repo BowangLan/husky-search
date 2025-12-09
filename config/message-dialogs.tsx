@@ -142,7 +142,7 @@ export const messageDialogConfigs: MessageDialogConfig[] = [
       { type: "anonymousOnly" },
       // { type: "pathname", patterns: ["/", "/courses/*"] },
       // { type: "respectOptOut" },
-      // { type: "showOnce" },
+      { type: "showOnce" },
     ],
     // allowDontShowAgain: true,
     actions: [
@@ -183,7 +183,7 @@ export const messageDialogConfigs: MessageDialogConfig[] = [
           )
         },
       },
-      { type: "showOnce" },
+      // { type: "showOnce" },
     ],
     allowDontShowAgain: true,
     actions: [
