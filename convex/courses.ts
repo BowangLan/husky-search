@@ -16,19 +16,16 @@ export const getByCourseCode = query({
     courseCode: v.string(),
   },
   handler: async (ctx, args) => {
-    // const userIsStudent = await isStudentHelper(ctx);
+    const userIsStudent = await isStudentHelper(ctx);
 
-    // if (!userIsStudent) {
-    //   const myplanCourse = await ctx.db.query("myplanCourses")
-    //     .withIndex("by_course_code", (q) => q.eq("courseCode", args.courseCode))
-    //     .first();
+    if (!userIsStudent) {
+      return {
+        myplanCourse: null,
+        dp: null,
+        cecCourse: [],
+      };
+    }
 
-    //   return {
-    //     myplanCourse,
-    //     dp: null,
-    //     cecCourse: [],
-    //   };
-    // }
     const currentTerms = await ctx.runQuery(api.kvStore.getCurrentTerms);
 
     const [myplanCourse, dp, cecCourse] = await Promise.all([

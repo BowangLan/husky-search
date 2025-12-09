@@ -1,14 +1,15 @@
 "use client"
 
 // @ts-ignore
-import { useState } from "react"
-import { notFound } from "next/navigation"
+import { useState, useEffect } from "react"
+import { notFound, useRouter } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import {
   useTrackCourseVisit,
   useTrackMajorVisit,
 } from "@/store/visit-cache.store"
 import { useQuery } from "convex/react"
+import { useAuth } from "@clerk/nextjs"
 
 import { cn } from "@/lib/utils"
 import { CourseDetailPrereqGraph } from "@/components/pages/course-detail/course-detail-prereq-graph-section"
@@ -249,6 +250,12 @@ const CourseDetailPageSkeleton = () => {
 }
 
 export function CourseDetailPage({ courseCode }: { courseCode: string }) {
+  const { isSignedIn, isLoaded } = useAuth()
+  const router = useRouter()
+
+  // Check if course exists (no auth required)
+  const briefCourse = useQuery(api.courses.getByCourseCodeBrief, { courseCode })
+  // Get full course data (requires auth for some fields)
   const c = useQuery(api.courses.getByCourseCode, { courseCode })
 
   // Extract subject area code from course code (e.g., "CSE 142" -> "CSE")
@@ -257,9 +264,6 @@ export function CourseDetailPage({ courseCode }: { courseCode: string }) {
     api.myplan1.subjectAreas.getByCode,
     subjectAreaCode ? { code: subjectAreaCode } : "skip"
   )
-  // const c = useQuery(api.courses.getByCourseCodeDev, {
-  //   courseCode: course.code,
-  // })
 
   useTrackCourseVisit(courseCode)
   useTrackMajorVisit({
@@ -276,12 +280,30 @@ export function CourseDetailPage({ courseCode }: { courseCode: string }) {
     courseDuplicate: false,
   })
 
-  const isLoading = c === undefined
+  // Handle authentication and data loading states
+  useEffect(() => {
+    // Wait for auth to load
+    if (!isLoaded || briefCourse === undefined || c === undefined) {
+      return
+    }
+
+    // If course doesn't exist in database, don't redirect (will show 404)
+    if (briefCourse === null) {
+      return
+    }
+
+    // If course exists but user is not signed in and full data is restricted
+    if (!isSignedIn && c?.myplanCourse === null) {
+      router.push(`/sign-in?redirect_url=${encodeURIComponent(window.location.pathname)}`)
+    }
+  }, [isLoaded, isSignedIn, briefCourse, c, router])
+
+  const isLoading = c === undefined || !isLoaded || briefCourse === undefined
 
   console.log(c)
 
-  if (c?.myplanCourse === null) {
-    // should be detected by generateMetadata
+  // Course doesn't exist in database -> 404
+  if (briefCourse === null) {
     return notFound()
   }
 

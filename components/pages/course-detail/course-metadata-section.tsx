@@ -91,7 +91,7 @@ export const CourseMetadataSectionCard = ({
               <p>
                 {parseDescription(
                   course.myplanCourse?.detailData?.courseSummaryDetails
-                    .courseDescription
+                    ?.courseDescription || ""
                 )}
               </p>
             </div>
