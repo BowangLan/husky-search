@@ -1,7 +1,9 @@
 import { Suspense } from "react"
 import { Metadata } from "next"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { api } from "@/convex/_generated/api"
+import { auth } from "@clerk/nextjs/server"
+import { ConvexHttpClient } from "convex/browser"
 import { fetchQuery } from "convex/nextjs"
 
 import { DOMAIN } from "@/config/site"
@@ -78,11 +80,33 @@ export default async function CoursePage({
 }) {
   const { id: courseCode } = await params
 
+  const normalizedCourseCode = decodeURIComponent(courseCode).toUpperCase()
+
+  const session = await auth()
+
+  if (!session.userId) {
+    return redirect(
+      `/sign-in?redirect_url=${encodeURIComponent(window.location.pathname)}`
+    )
+  }
+
+  // Check if course exists (no auth required)
+  const [briefCourse, subjectArea] = await Promise.all([
+    fetchQuery(api.courses.getByCourseCodeBrief, {
+      courseCode: normalizedCourseCode,
+    }),
+    fetchQuery(api.myplan1.subjectAreas.getByCode, {
+      code: normalizedCourseCode.replace(/\d+$/, "").trim(),
+    }),
+  ])
+
+  if (!briefCourse || !subjectArea) {
+    return notFound()
+  }
+
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <CourseDetailPage
-        courseCode={decodeURIComponent(courseCode).toUpperCase()}
-      />
+      <CourseDetailPage courseCode={normalizedCourseCode} />
     </Suspense>
   )
 }
