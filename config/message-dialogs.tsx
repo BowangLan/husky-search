@@ -86,22 +86,54 @@ export type MessageDialogConfig = {
 }
 
 export const messageDialogConfigs: MessageDialogConfig[] = [
+  // {
+  //   id: "welcome-anon",
+  //   eyebrow: "New here?",
+  //   title: "Please sign in!",
+  //   renderContent: () => (
+  //     <div className="space-y-2 text-base/relaxed font-light text-foreground">
+  //       <p>Please sign in with your UW email!</p>
+  //       <p>
+  //         We're currently in the beta period, so all course data is temporarily
+  //         available to anyone.
+  //       </p>
+  //       <p>
+  //         But in the future, we'll begin to limit features and parts of course
+  //         data (specifically, DawgPath and CEC data) to only logged-in users
+  //         with a UW email. This is to ensure that data restricted to only
+  //         students by UW is respected.
+  //       </p>
+  //     </div>
+  //   ),
+  //   tone: "info",
+  //   conditions: [
+  //     { type: "anonymousOnly" },
+  //     // { type: "pathname", patterns: ["/", "/courses/*"] },
+  //     // { type: "respectOptOut" },
+  //     { type: "showOnce" },
+  //   ],
+  //   // allowDontShowAgain: true,
+  //   actions: [
+  //     { label: "Maybe later", variant: "ghost" },
+  //     {
+  //       label: "Sign in",
+  //       href: "/sign-in",
+  //       variant: "default",
+  //     },
+  //   ],
+  // },
   {
     id: "welcome-anon",
     eyebrow: "New here?",
     title: "Please sign in!",
     renderContent: () => (
       <div className="space-y-2 text-base/relaxed font-light text-foreground">
-        <p>Please sign in with your UW email!</p>
+        <p>Sign in with your UW email!</p>
         <p>
-          We're currently in the beta period, so all course data is temporarily
-          available to anyone.
+          Access to course data now requires signing in with your UW email address.
         </p>
         <p>
-          But in the future, we'll begin to limit features and parts of course
-          data (specifically, DawgPath and CEC data) to only logged-in users
-          with a UW email. This is to ensure that data restricted to only
-          students by UW is respected.
+          Please sign in to view courses and features. Data restricted by UW (including MyPlan, DawgPath and CEC information) is available only to logged-in users with a UW email.
         </p>
       </div>
     ),
@@ -110,7 +142,7 @@ export const messageDialogConfigs: MessageDialogConfig[] = [
       { type: "anonymousOnly" },
       // { type: "pathname", patterns: ["/", "/courses/*"] },
       // { type: "respectOptOut" },
-      { type: "showOnce" },
+      // { type: "showOnce" },
     ],
     // allowDontShowAgain: true,
     actions: [
@@ -121,7 +153,7 @@ export const messageDialogConfigs: MessageDialogConfig[] = [
         variant: "default",
       },
     ],
-  },
+  }
   {
     id: "non-uw-email",
     eyebrow: "Access Limited",
