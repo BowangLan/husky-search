@@ -85,9 +85,7 @@ export default async function CoursePage({
   const session = await auth()
 
   if (!session.userId) {
-    return redirect(
-      `/sign-in?redirect_url=${encodeURIComponent(window.location.pathname)}`
-    )
+    return redirect(`/sign-in`)
   }
 
   // Check if course exists (no auth required)
