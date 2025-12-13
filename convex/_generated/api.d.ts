@@ -19,6 +19,7 @@ import type * as cec from "../cec.js";
 import type * as cecDetailScrapers from "../cecDetailScrapers.js";
 import type * as cecIndexScrapers from "../cecIndexScrapers.js";
 import type * as constants from "../constants.js";
+import type * as coursePlans from "../coursePlans.js";
 import type * as courses from "../courses.js";
 import type * as crons from "../crons.js";
 import type * as dawgpath from "../dawgpath.js";
@@ -52,6 +53,7 @@ declare const fullApi: ApiFromModules<{
   cecDetailScrapers: typeof cecDetailScrapers;
   cecIndexScrapers: typeof cecIndexScrapers;
   constants: typeof constants;
+  coursePlans: typeof coursePlans;
   courses: typeof courses;
   crons: typeof crons;
   dawgpath: typeof dawgpath;

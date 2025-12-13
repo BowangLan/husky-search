@@ -263,4 +263,30 @@ export default defineSchema({
     .index("by_clerk_id", ["clerkId"])
     .index("by_email", ["email"])
   ,
+
+  coursePlans: defineTable({
+    userId: v.string(), // Clerk user ID
+    name: v.optional(v.string()), // Plan name (e.g., "4-Year Plan", "Default")
+    isDefault: v.boolean(), // Whether this is the user's default plan
+
+    // Core plan data (synced from Zustand store)
+    terms: v.array(v.object({
+      id: v.string(),
+      year: v.number(),
+      quarter: v.string(), // "Winter" | "Spring" | "Summer" | "Autumn"
+      label: v.string(),
+    })),
+
+    plansByTerm: v.any(), // Record<string, TermPlan> - flexible JSON structure
+    activeTermIds: v.array(v.string()), // List of active term IDs
+
+    // Metadata
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    lastSyncedAt: v.optional(v.number()),
+    version: v.number(), // For conflict resolution
+  })
+    .index("by_user_id", ["userId"])
+    .index("by_user_and_default", ["userId", "isDefault"])
+  ,
 });

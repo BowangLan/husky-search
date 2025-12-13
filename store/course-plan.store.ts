@@ -53,6 +53,14 @@ export type CoursePlanState = {
   terms: Term[] // list of planned terms in chronological order
   plansByTerm: Record<string, TermPlan> // termId -> courses in that term
   activeTermIds: string[] // list of active term IDs from convex kvStore
+  remoteVersion: number // last known backend version for concurrency
+
+  // Backend sync
+  convexPlanId: any | null // Id<"coursePlans"> | null
+  syncStatus: "idle" | "syncing" | "synced" | "error"
+  syncError: string | null
+  lastSyncedAt: number | null
+  localVersion: number // Track local changes
 
   // Term management
   addTerm: (year: number, quarter: Quarter) => void
@@ -81,6 +89,13 @@ export type CoursePlanState = {
   getTermPlan: (termId: string) => TermPlan | undefined
   getAllCourses: () => PlannedCourse[]
   getTotalCredits: (termId?: string) => number
+
+  // Backend sync actions
+  setSyncStatus: (status: CoursePlanState["syncStatus"], error?: string) => void
+  setConvexPlanId: (planId: any | null) => void
+  markSynced: (version: number) => void
+  loadFromBackend: (planData: any) => void
+  toggleActiveTerms: (termIds: string[]) => void
 }
 
 const quarterOrder: Record<Quarter, number> = {
@@ -111,9 +126,9 @@ const ssrSafeStorage = createJSONStorage(() => {
   if (typeof window === "undefined") {
     return {
       getItem: () => null,
-      setItem: () => {},
-      removeItem: () => {},
-      clear: () => {},
+      setItem: () => { },
+      removeItem: () => { },
+      clear: () => { },
       key: () => null,
       length: 0,
     } as Storage
@@ -151,6 +166,14 @@ export const coursePlanStore = createStore<CoursePlanState>()(
       terms: [],
       plansByTerm: {},
       activeTermIds: [],
+      remoteVersion: 0,
+
+      // Backend sync state
+      convexPlanId: null,
+      syncStatus: "idle",
+      syncError: null,
+      lastSyncedAt: null,
+      localVersion: 0,
 
       addTerm: (year: number, quarter: Quarter) => {
         set((state) => {
@@ -176,6 +199,7 @@ export const coursePlanStore = createStore<CoursePlanState>()(
               ...state.plansByTerm,
               [termId]: { termId, courses: [] },
             },
+            localVersion: state.localVersion + 1,
           }
         })
       },
@@ -189,6 +213,7 @@ export const coursePlanStore = createStore<CoursePlanState>()(
           return {
             terms: updatedTerms,
             plansByTerm: updatedPlans,
+            localVersion: state.localVersion + 1,
           }
         })
       },
@@ -227,6 +252,7 @@ export const coursePlanStore = createStore<CoursePlanState>()(
                 courses: [...plan.courses, newCourse],
               },
             },
+            localVersion: state.localVersion + 1,
           }
         })
       },
@@ -244,6 +270,7 @@ export const coursePlanStore = createStore<CoursePlanState>()(
                 courses: plan.courses.filter((c) => c.id !== courseId),
               },
             },
+            localVersion: state.localVersion + 1,
           }
         })
       },
@@ -263,6 +290,7 @@ export const coursePlanStore = createStore<CoursePlanState>()(
                 ),
               },
             },
+            localVersion: state.localVersion + 1,
           }
         })
       },
@@ -289,6 +317,7 @@ export const coursePlanStore = createStore<CoursePlanState>()(
                 courses: [...toPlan.courses, course],
               },
             },
+            localVersion: state.localVersion + 1,
           }
         })
       },
@@ -403,12 +432,13 @@ export const coursePlanStore = createStore<CoursePlanState>()(
                 courses: [],
               },
             },
+            localVersion: state.localVersion + 1,
           }
         })
       },
 
       clearAll: () => {
-        set({ terms: [], plansByTerm: {} })
+        set({ terms: [], plansByTerm: {}, remoteVersion: 0 })
       },
 
       getTerm: (termId: string) => {
@@ -441,6 +471,47 @@ export const coursePlanStore = createStore<CoursePlanState>()(
         return state.terms.reduce((sum, term) => {
           return sum + state.getTotalCredits(term.id)
         }, 0)
+      },
+
+      // Backend sync actions
+      setSyncStatus: (status, error) => {
+        set({ syncStatus: status, syncError: error ?? null })
+      },
+
+      setConvexPlanId: (planId) => {
+        set({ convexPlanId: planId })
+      },
+
+      markSynced: (version: number) => {
+        set({
+          remoteVersion: version,
+          lastSyncedAt: Date.now(),
+        })
+      },
+
+      loadFromBackend: (planData) => {
+        if (!planData) return
+
+        set({
+          terms: planData.terms ?? [],
+          plansByTerm: planData.plansByTerm ?? {},
+          activeTermIds: planData.activeTermIds ?? [],
+          convexPlanId: planData._id,
+          localVersion: 0,
+          remoteVersion: planData.version ?? 0,
+          lastSyncedAt: planData.updatedAt ?? Date.now(),
+          syncStatus: "synced",
+        })
+      },
+
+      toggleActiveTerms: (termIds: string[]) => {
+        set((state) => {
+          const newActiveTermIds = [...termIds]
+          return {
+            activeTermIds: newActiveTermIds,
+            localVersion: state.localVersion + 1,
+          }
+        })
       },
 
     }),
@@ -486,8 +557,13 @@ export const coursePlanStore = createStore<CoursePlanState>()(
 )
 
 // Hooks
-export function useCoursePlan() {
-  return useStore(coursePlanStore, (s) => s)
+export function useCoursePlan<T = CoursePlanState>(
+  selector?: (state: CoursePlanState) => T
+) {
+  return useStore(
+    coursePlanStore,
+    selector ?? ((state) => state as unknown as T)
+  )
 }
 
 export function useTerms() {

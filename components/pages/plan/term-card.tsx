@@ -1,16 +1,17 @@
 "use client"
 
 import { useState } from "react"
-import { MoreVertical, Plus, Trash2, X } from "lucide-react"
+import { MoreVertical, Plus, Trash2, X, Zap } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Term, useTermPlan, useTotalCredits, useCoursePlan } from "@/store/course-plan.store"
+import { Term, useTermPlan, useTotalCredits, useCoursePlan, useActiveTermIds } from "@/store/course-plan.store"
 import { PlannedCourseCard } from "./planned-course-card"
 import {
   AlertDialog,
@@ -31,8 +32,11 @@ type TermCardProps = {
 export function TermCard({ term, onAddCourse }: TermCardProps) {
   const termPlan = useTermPlan(term.id)
   const credits = useTotalCredits(term.id)
-  const { removeTerm, clearTerm } = useCoursePlan()
+  const { removeTerm, clearTerm, toggleActiveTerms } = useCoursePlan()
+  const activeTermIds = useActiveTermIds()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
+  const isActive = activeTermIds.includes(term.id)
 
   const courses = termPlan?.courses ?? []
   const courseCount = courses.length
@@ -61,6 +65,13 @@ export function TermCard({ term, onAddCourse }: TermCardProps) {
     clearTerm(term.id)
   }
 
+  const handleToggleActive = () => {
+    const newActiveTermIds = isActive
+      ? activeTermIds.filter(id => id !== term.id)
+      : [...activeTermIds, term.id]
+    toggleActiveTerms(newActiveTermIds)
+  }
+
   return (
     <>
       <div className="border rounded-lg bg-card shadow-sm flex flex-col h-full">
@@ -68,8 +79,16 @@ export function TermCard({ term, onAddCourse }: TermCardProps) {
         <div className="px-4 py-3 border-b bg-muted/30">
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-lg">{term.label}</h3>
-              <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="font-semibold text-lg">{term.label}</h3>
+                {isActive && (
+                  <Badge variant="default" className="bg-blue-600 text-xs h-5">
+                    <Zap className="size-3 mr-1" />
+                    Active
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant={getCreditBadgeVariant()} className="text-xs">
                   {credits} CR
                 </Badge>
@@ -87,6 +106,11 @@ export function TermCard({ term, onAddCourse }: TermCardProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleToggleActive}>
+                  <Zap className="size-4 mr-2" />
+                  {isActive ? "Mark as Planning" : "Mark as Active"}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleClear} disabled={courseCount === 0}>
                   <X className="size-4 mr-2" />
                   Clear courses

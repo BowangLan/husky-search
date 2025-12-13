@@ -1,19 +1,60 @@
 "use client"
 
-import { useTotalCredits } from "@/store/course-plan.store"
-import { Calendar, Plus, Search, Settings } from "lucide-react"
+import { useTotalCredits, type CoursePlanState } from "@/store/course-plan.store"
+import { Calendar, Plus, Search, Settings, Cloud, CloudOff, Loader2, CloudCheck } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { RichButton } from "@/components/ui/rich-button"
-
 type PlanToolbarProps = {
   onAddTerm: () => void
   onSearchCourse: () => void
+  syncStatus: CoursePlanState["syncStatus"]
+  lastSyncedAt: number | null
+  manualSync: () => void | Promise<void>
 }
 
-export function PlanToolbar({ onAddTerm, onSearchCourse }: PlanToolbarProps) {
+function formatTimeAgo(timestamp: number): string {
+  const seconds = Math.floor((Date.now() - timestamp) / 1000)
+  if (seconds < 60) return "just now"
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  return `${days}d ago`
+}
+
+export function PlanToolbar({
+  onAddTerm,
+  onSearchCourse,
+  syncStatus,
+  lastSyncedAt,
+  manualSync,
+}: PlanToolbarProps) {
   const totalCredits = useTotalCredits()
+
+  const getSyncIcon = () => {
+    switch (syncStatus) {
+      case "syncing":
+        return <Loader2 className="size-4 animate-spin" />
+      case "synced":
+        return <CloudCheck className="size-4 text-green-600" />
+      case "error":
+        return <CloudOff className="size-4 text-destructive" />
+      default:
+        return <Cloud className="size-4" />
+    }
+  }
+
+  const getSyncText = () => {
+    if (syncStatus === "synced" && lastSyncedAt) {
+      return `Synced ${formatTimeAgo(lastSyncedAt)}`
+    }
+    if (syncStatus === "syncing") return "Syncing..."
+    if (syncStatus === "error") return "Sync failed"
+    return "Not synced"
+  }
 
   return (
     <div className="border-b bg-card/50 backdrop-blur-sm">
@@ -45,6 +86,19 @@ export function PlanToolbar({ onAddTerm, onSearchCourse }: PlanToolbarProps) {
                 CR
               </div>
             )}
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={manualSync}
+              disabled={syncStatus === "syncing"}
+              className="gap-2 hidden sm:flex"
+            >
+              {getSyncIcon()}
+              <span className="text-xs text-muted-foreground">
+                {getSyncText()}
+              </span>
+            </Button>
 
             <RichButton
               size="icon-sm"

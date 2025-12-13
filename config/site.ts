@@ -27,11 +27,12 @@ export const siteConfig = {
       title: "Prereq Graph",
       href: "/prereq-graph",
       IconComp: Icons.graph
-    }
+    },
     // {
     //   title: "Plan",
     //   href: "/plan",
-    // },
+    //   IconComp: Layers
+    // }
     // {
     //   title: "About",
     //   href: "/about",

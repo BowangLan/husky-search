@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { useAddCourse, useTerms } from "@/store/course-plan.store"
+import { useAddCourse, useTerms, useCoursePlan } from "@/store/course-plan.store"
 import { Check, Loader2, Plus, Search } from "lucide-react"
 import { toast } from "sonner"
 
@@ -43,6 +43,7 @@ export function CourseSearchDialog({
   const addCourse = useAddCourse()
   const terms = useTerms()
   const { data: allCourseCodes, isLoading } = useStaticCourseCodes()
+  const activeTermIds = useCoursePlan((state) => state.activeTermIds)
 
   // Update target term when selectedTermId changes
   useEffect(() => {
@@ -85,22 +86,30 @@ export function CourseSearchDialog({
         return
       }
 
+      const isTargetTermActive = activeTermIds.includes(targetTermId)
+
       // For now, we don't have course details from the static data
       // We'll add just the course code, and the user can see full details by clicking
       addCourse(targetTermId, {
         courseCode,
         credits: 5, // Default credits, user can edit later
-        sessions: [],
+        sessions: [], // Empty for non-active terms
       })
 
       // Add to recently added set
       setAddedCourses((prev) => new Set(prev).add(courseCode))
 
-      toast.success("Course added", {
-        description: `${courseCode} added to ${term.label}`,
-      })
+      // Show different toast message based on term status
+      toast.success(
+        isTargetTermActive ? "Course added to active term" : "Course added to plan",
+        {
+          description: isTargetTermActive
+            ? `${courseCode} added to ${term.label}. Add sessions from the course detail page.`
+            : `${courseCode} added to ${term.label} for planning.`,
+        }
+      )
     },
-    [targetTermId, terms, addCourse]
+    [targetTermId, terms, addCourse, activeTermIds]
   )
 
   const isCourseAdded = (courseCode: string) => addedCourses.has(courseCode)

@@ -61,7 +61,7 @@ export function ChooseTermDialog({
     else if (currentMonth >= 7 && currentMonth <= 9) startQuarter = "Summer"
     else startQuarter = "Autumn"
 
-    const terms: Array<{ termId: string; year: number; quarter: Quarter; label: string }> = []
+    const terms: Array<{ termId: string; year: number; quarter: Quarter; label: string; exists: boolean }> = []
 
     // Start from current quarter
     let quarterIndex = quarters.indexOf(startQuarter)
@@ -71,18 +71,16 @@ export function ChooseTermDialog({
     for (let i = 0; i < 16; i++) {
       const quarter = quarters[quarterIndex]
       const termId = createTermId(year, quarter)
-      
-      // Check if term exists, if not create it
+
+      // Check if term exists
       const existingTerm = existingTerms.find((t) => t.id === termId)
-      if (!existingTerm) {
-        addTerm(year, quarter)
-      }
 
       terms.push({
         termId,
         year,
         quarter,
         label: createTermLabel(year, quarter),
+        exists: !!existingTerm,
       })
 
       // Move to next quarter
@@ -98,9 +96,13 @@ export function ChooseTermDialog({
       if (a.year !== b.year) return a.year - b.year
       return quarterOrder[a.quarter] - quarterOrder[b.quarter]
     })
-  }, [addTerm, existingTerms])
+  }, [existingTerms])
 
-  const handleSelectTerm = (termId: string) => {
+  const handleSelectTerm = (termId: string, year: number, quarter: Quarter, exists: boolean) => {
+    // Create term if it doesn't exist
+    if (!exists) {
+      addTerm(year, quarter)
+    }
     onSelectTerm(termId)
     onOpenChange(false)
   }
@@ -125,7 +127,7 @@ export function ChooseTermDialog({
                   "justify-between h-auto py-2 px-3 w-full",
                   isActive && "border-primary/50 bg-primary/5 hover:bg-primary/10 hover:border-primary/70"
                 )}
-                onClick={() => handleSelectTerm(term.termId)}
+                onClick={() => handleSelectTerm(term.termId, term.year, term.quarter, term.exists)}
               >
                 <span className="text-sm">{term.label}</span>
                 {isActive && (

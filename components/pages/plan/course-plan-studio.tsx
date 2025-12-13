@@ -16,8 +16,11 @@ import { CourseSearchDialog } from "./course-search-dialog"
 import { PlanToolbar } from "./plan-toolbar"
 import { ScheduleViewPane } from "./schedule-view-pane"
 import { TermViewPane } from "./term-view-pane"
+import { useCoursePlanSync } from "@/hooks/use-course-plan-sync"
 
 export function CoursePlanStudio() {
+  // Initialize sync hook to handle backend synchronization
+  const { syncStatus, lastSyncedAt, manualSync } = useCoursePlanSync()
   const [isAddTermOpen, setIsAddTermOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [selectedTermId, setSelectedTermId] = useState<string | null>(null)
@@ -70,6 +73,9 @@ export function CoursePlanStudio() {
       <PlanToolbar
         onAddTerm={() => setIsAddTermOpen(true)}
         onSearchCourse={handleSearchCourse}
+        syncStatus={syncStatus}
+        lastSyncedAt={lastSyncedAt}
+        manualSync={manualSync}
       />
 
       {/* Resizable Panes Container */}
