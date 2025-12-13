@@ -5,7 +5,10 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { isEmailFromUW } from "@/constants"
 import { api } from "@/convex/_generated/api"
-import { usePinnedMajorCodes, useRemoveMajorPin } from "@/store/pinned-majors.store"
+import {
+  usePinnedMajorCodes,
+  useRemoveMajorPin,
+} from "@/store/pinned-majors.store"
 import { useScheduledCourses } from "@/store/schedule.store"
 import { useUserStore } from "@/store/user.store"
 import { useClerk, useUser } from "@clerk/nextjs"
@@ -40,11 +43,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
@@ -67,6 +65,11 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { AppMainHeader } from "@/components/app-main-header"
 import {
   RightSidebar,
@@ -117,10 +120,7 @@ function PinnedMajorItem({
       </SidebarMenuButton>
       <Tooltip>
         <TooltipTrigger asChild>
-          <SidebarMenuAction
-            onClick={handleUnpin}
-            showOnHover
-          >
+          <SidebarMenuAction onClick={handleUnpin} showOnHover>
             <X className="size-4" />
           </SidebarMenuAction>
         </TooltipTrigger>
@@ -158,7 +158,7 @@ function SidebarSearchInput({ onSearchClick }: { onSearchClick: () => void }) {
         readOnly
         onClick={onSearchClick}
         onFocus={isMobile ? undefined : onSearchClick}
-        className="h-9 pl-10 pr-12 rounded-lg cursor-pointer bg-muted/30 hover:bg-muted/40 border border-border/60 hover:border-border/80 focus-visible:ring-2 focus-visible:ring-primary/20 focus:border-border/80 placeholder:text-muted-foreground/70 transition-colors"
+        className="h-9 pl-10 pr-12 rounded-lg cursor-pointer bg-zinc-100/50 dark:bg-zinc-900/50 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 border border-border/60 hover:border-border/80 focus-visible:ring-2 focus-visible:ring-primary/20 focus:border-border/80 placeholder:text-muted-foreground/70 transition-colors"
       />
       <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 hidden h-6 select-none items-center justify-center rounded-md border border-border/60 bg-muted/60 px-1.5 font-mono text-[10px] font-medium text-muted-foreground/80 sm:flex">
         <span className="text-xs">⌘</span>K

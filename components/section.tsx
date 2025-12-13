@@ -66,7 +66,8 @@ export function SectionTitle({
   return (
     <h2
       className={cn(
-        "text-xl md:text-2xl font-medium md:font-semibold",
+        // "text-xl md:text-2xl font-medium md:font-semibold",
+        "text-xl font-medium text-zinc-900 dark:text-zinc-100 tracking-tight",
         className
       )}
     >
@@ -79,9 +80,5 @@ export function SectionSubtitle({
   children,
   className,
 }: React.ComponentProps<"h3">) {
-  return (
-    <p className={cn("text-base font-light text-muted-foreground", className)}>
-      {children}
-    </p>
-  )
+  return <p className={cn("text-sm text-zinc-500", className)}>{children}</p>
 }

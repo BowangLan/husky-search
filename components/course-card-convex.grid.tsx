@@ -4,6 +4,7 @@ import { ConvexCourseOverview } from "@/types/convex-courses"
 
 import { ConvexCourseCardLink } from "./course-card-convex"
 import { ConvexCourseCardSkeleton } from "./course-card-convex.skeleton"
+import { ConvexCourseCardLinkV2 } from "./course-card-convex.v2"
 
 export const ConvexCourseCardGridInner = ({
   courses,
@@ -13,7 +14,8 @@ export const ConvexCourseCardGridInner = ({
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
       {courses.map((course) => (
-        <ConvexCourseCardLink key={course.courseCode} course={course} />
+        // <ConvexCourseCardLink key={course.courseCode} course={course} />
+        <ConvexCourseCardLinkV2 key={course.courseCode} course={course} />
       ))}
     </div>
   )

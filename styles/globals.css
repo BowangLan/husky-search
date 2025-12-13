@@ -117,7 +117,7 @@
   /* Secondary Colors */
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
+  --sidebar-accent: oklch(from var(--color-zinc-200) l c h / 0.5);
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
 
   /* Muted Colors */
@@ -177,7 +177,7 @@
   /* Secondary Colors */
   --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
+  --sidebar-accent: oklch(from var(--color-zinc-800) l c h / 0.5);
   --sidebar-accent-foreground: oklch(0.985 0 0);
 
   /* Muted Colors */

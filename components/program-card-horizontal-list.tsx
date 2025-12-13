@@ -3,6 +3,7 @@ import { Suspense, use } from "react"
 import { ProgramInfo } from "@/types/program"
 
 import { ProgramCardLink } from "./program-card"
+import { ProgramCardLinkV2 } from "./program-card.v2"
 
 export const ProgramCardHorizontalList = ({
   programs: programsFromProps,
@@ -17,7 +18,12 @@ export const ProgramCardHorizontalList = ({
   return (
     <div className="flex flex-row gap-4 md:gap-6 w-full overflow-x-auto snap-x snap-start snap-mandatory py-4 -translate-y-4">
       {programs.map((program) => (
-        <ProgramCardLink
+        // <ProgramCardLink
+        //   key={program.code}
+        //   program={program}
+        //   className="w-56 md:w-64 flex-none"
+        // />
+        <ProgramCardLinkV2
           key={program.code}
           program={program}
           className="w-56 md:w-64 flex-none"

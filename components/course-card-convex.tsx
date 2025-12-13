@@ -20,6 +20,7 @@ import {
 
 import { ConvexCourseCardGrid } from "./course-card-convex.grid"
 import { ConvexCourseCardSkeleton } from "./course-card-convex.skeleton"
+import { ConvexCourseCardLinkV2 } from "./course-card-convex.v2"
 import { Badge } from "./ui/badge"
 
 const CourseEnrollProgress = ({
@@ -230,7 +231,12 @@ export const ConvexCourseCardHorizontalList = ({
   return (
     <div className="flex flex-row gap-4 md:gap-6 w-full items-stretch overflow-x-auto overflow-y-visible snap-x snap-mandatory py-2 -translate-y-2 flex-none">
       {courses.map((course) => (
-        <ConvexCourseCardLink
+        // <ConvexCourseCardLink
+        //   key={course.courseCode}
+        //   course={course}
+        //   className="w-60 md:w-64 lg:w-64 flex-none h-auto"
+        // />
+        <ConvexCourseCardLinkV2
           key={course.courseCode}
           course={course}
           className="w-60 md:w-64 lg:w-64 flex-none h-auto"

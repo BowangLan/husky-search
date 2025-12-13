@@ -1,12 +1,10 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import Link from "next/link"
 import { api } from "@/convex/_generated/api"
 import { visitCacheStore } from "@/store/visit-cache.store"
-import { fetchQuery } from "convex/nextjs"
-import { useQueries, useQuery } from "convex/react"
-import { ExternalLink, MoreHorizontal, Search, X } from "lucide-react"
+import { useQuery } from "convex/react"
+import { MoreHorizontal, Search, X } from "lucide-react"
 import { useStore } from "zustand"
 
 import { Button } from "@/components/ui/button"
@@ -18,15 +16,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import {
   ConvexCourseCardGrid,
   ConvexCourseCardGridSkeleton,
   ConvexCourseCardGridWithSuspense,
 } from "@/components/course-card-convex.grid"
+import { MajorFilterChip } from "@/components/pages/home/major-filter-chip"
 import { Section, SectionContent, SectionHeader } from "@/components/section"
 
 const MAX_VISIBLE_FILTERS = 8
@@ -97,62 +91,31 @@ export const PopularCourses = () => {
       />
       <div className="flex flex-row gap-3 py-4 z-[21] w-full overflow-x-auto isolate sticky top-0 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
         {firstFewMajors.map((major) => (
-          <Button
+          <MajorFilterChip
             key={major.code}
+            code={major.code}
+            selected={selectedSubjectArea === major.code}
             onClick={() => setSelectedSubjectArea(major.code)}
-            variant={selectedSubjectArea === major.code ? "default" : "outline"}
-            size="sm"
-          >
-            {major.code}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  href={`/majors/${major.code}`}
-                  prefetch
-                  className="text-muted-foreground group inline-flex"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ExternalLink
-                    className="group-hover:text-foreground trans"
-                    style={{ height: "14px", width: "14px" }}
-                  />
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Go to major page</p>
-              </TooltipContent>
-            </Tooltip>
-          </Button>
+            href={`/majors/${major.code}`}
+          />
         ))}
         {selectedSubjectArea && !firstFewMajorSet.has(selectedSubjectArea) && (
-          <Button
+          <MajorFilterChip
             onClick={() => setSelectedSubjectArea(null)}
-            variant="default"
-            size="sm"
-          >
-            {selectedSubjectArea}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  href={`/majors/${selectedSubjectArea}`}
-                  prefetch
-                  className="text-muted-foreground hover:text-foreground inline-flex"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ExternalLink style={{ height: "14px", width: "14px" }} />
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Go to major page</p>
-              </TooltipContent>
-            </Tooltip>
-          </Button>
+            code={selectedSubjectArea}
+            selected
+            href={`/majors/${selectedSubjectArea}`}
+          />
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
+            <button
+              type="button"
+              className="shrink-0 w-8 h-8 inline-flex items-center justify-center rounded-full bg-white border border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 hover:bg-zinc-50 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-500 dark:hover:text-zinc-200 dark:hover:border-zinc-600 dark:hover:bg-zinc-900/80 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              aria-label="More subject areas"
+            >
               <MoreHorizontal className="h-4 w-4" />
-            </Button>
+            </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-56 h-[70vh] md:h-[400px] flex flex-col"
