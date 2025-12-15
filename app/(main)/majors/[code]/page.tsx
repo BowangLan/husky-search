@@ -12,8 +12,6 @@ import { capitalize } from "@/lib/utils"
 import { ProgramDetailPage } from "@/components/pages/program-detail-page"
 import { ProgramDetailPageSkeleton } from "@/components/pages/program-detail-page-skeleton"
 
-export const revalidate = 60 * 60 * 24 // 1 day
-
 function normalizeProgramCode(codeParam: string) {
   return decodeURIComponent(codeParam).toUpperCase()
 }
