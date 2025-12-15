@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { RichButton } from "@/components/ui/rich-button"
 
-import { ConvexCourseCardHorizontalList } from "../course-card-convex"
+import { ConvexCourseCardHorizontalList } from "../course-card-convex.horizontal-list"
 import { PageTitle, PageWithHeaderLayout } from "../page-wrapper"
 import {
   Section,

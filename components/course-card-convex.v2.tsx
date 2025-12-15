@@ -80,17 +80,17 @@ export function ConvexCourseCardLinkV2({
       )}
     >
       <div>
-        <div className="mb-1 flex items-start justify-between gap-3">
+        <div className="mb-1 flex items-center justify-between gap-3">
           <div className="flex items-baseline gap-2 min-w-0">
-            <h3 className="text-lg font-medium tracking-tight text-zinc-900 truncate dark:text-zinc-200">
+            <h3 className="text-lg flex-none font-medium tracking-tight text-zinc-900 truncate dark:text-zinc-200">
               {course.courseCode}
             </h3>
-            <span className="text-xs text-zinc-600 shrink-0 dark:text-zinc-500">
+            <span className="text-xs flex-none text-zinc-600 shrink-0 dark:text-zinc-500 inline-block">
               ({course.credit} cr)
             </span>
           </div>
 
-          <div className="flex gap-1.5 flex-wrap justify-end">
+          <div className="flex gap-1.5 flex-wrap justify-end items-center ml-auto">
             {(course.genEdReqs ?? []).slice(0, 3).map((req) => (
               <Tooltip key={req}>
                 <TooltipTrigger asChild>
@@ -126,10 +126,10 @@ export function ConvexCourseCardLinkV2({
             </>
           ) : (
             <>
-              <AlertCircle className="h-3 w-3 text-zinc-500 dark:text-zinc-600" />
-              <span className="text-[11px] font-medium text-zinc-600 dark:text-zinc-500">
-                No Prereqs
-              </span>
+              {/* <AlertCircle className="h-3 w-3 text-zinc-500 dark:text-zinc-600" />
+                <span className="text-[11px] font-medium text-zinc-600 dark:text-zinc-500">
+                  No Prereqs
+                </span> */}
             </>
           )}
         </div>
@@ -164,7 +164,13 @@ export function ConvexCourseCardLinkV2({
             />
           </div>
         </div>
-      ) : null}
+      ) : (
+        <div className="mt-4 flex items-center justify-between border-t border-zinc-200 pt-4 text-xs dark:border-zinc-800/50">
+          <span className="font-medium text-zinc-600 truncate dark:text-zinc-500">
+            Not currently offered
+          </span>
+        </div>
+      )}
     </Link>
   )
 }
