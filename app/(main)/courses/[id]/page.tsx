@@ -2,12 +2,12 @@ import { Suspense } from "react"
 import { Metadata } from "next"
 import { notFound, redirect } from "next/navigation"
 import { api } from "@/convex/_generated/api"
-import { auth } from "@clerk/nextjs/server"
-import { ConvexHttpClient } from "convex/browser"
 import { fetchQuery } from "convex/nextjs"
 
 import { DOMAIN } from "@/config/site"
+import { getConvexClient } from "@/lib/convex-client"
 import { CourseDetailPage } from "@/components/pages/course-detail-page"
+import { CourseDetailPageSkeleton } from "@/components/pages/course-detail/course-detail-page-skeleton"
 
 export async function generateMetadata({
   params,
@@ -82,29 +82,44 @@ export default async function CoursePage({
 
   const normalizedCourseCode = decodeURIComponent(courseCode).toUpperCase()
 
-  const session = await auth()
+  return (
+    <Suspense fallback={<CourseDetailPageSkeleton />}>
+      <CourseDetailPageAsync courseCode={normalizedCourseCode} />
+    </Suspense>
+  )
+}
 
-  if (!session.userId) {
-    return redirect(`/sign-in`)
-  }
+async function fetchCourseDetail(courseCode: string) {
+  const convexClient = await getConvexClient()
+  return await convexClient.query(api.courses.getByCourseCode, {
+    courseCode: courseCode,
+  })
+}
 
-  // Check if course exists (no auth required)
-  const [briefCourse, subjectArea] = await Promise.all([
-    fetchQuery(api.courses.getByCourseCodeBrief, {
-      courseCode: normalizedCourseCode,
-    }),
-    fetchQuery(api.myplan1.subjectAreas.getByCode, {
-      code: normalizedCourseCode.replace(/\d+$/, "").trim(),
-    }),
+async function CourseDetailPageAsync({ courseCode }: { courseCode: string }) {
+  const fetchDetail = fetchCourseDetail(courseCode)
+  const fetchSubjectArea = fetchQuery(api.myplan1.subjectAreas.getByCode, {
+    code: courseCode.replace(/\d+$/, "").trim(),
+  })
+  const fetchBriefCourse = fetchQuery(api.courses.getByCourseCodeBrief, {
+    courseCode: courseCode,
+  })
+
+  const [detail, subjectArea, briefCourse] = await Promise.all([
+    fetchDetail,
+    fetchSubjectArea,
+    fetchBriefCourse,
   ])
 
-  if (!briefCourse || !subjectArea) {
-    return notFound()
+  if (!detail.myplanCourse || !subjectArea || !briefCourse) {
+    throw notFound()
   }
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <CourseDetailPage courseCode={normalizedCourseCode} />
-    </Suspense>
+    <CourseDetailPage
+      courseCode={courseCode}
+      courseDetail={detail}
+      subjectArea={subjectArea}
+    />
   )
 }

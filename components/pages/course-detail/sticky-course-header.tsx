@@ -5,20 +5,23 @@ import { api } from "@/convex/_generated/api"
 import { useQuery } from "convex/react"
 import { AnimatePresence, motion } from "motion/react"
 
+import { ConvexCourseDetail } from "@/types/convex-courses"
 import { EASE_OUT_CUBIC } from "@/config/animation"
 import { cn } from "@/lib/utils"
-import { ExternalLink } from "@/components/ui/external-link"
 import { Badge } from "@/components/ui/badge"
+import { ExternalLink } from "@/components/ui/external-link"
+
 import { CourseScheduleButton } from "./course-schedule-button"
 
 export function StickyCourseHeader({
   courseCode,
   className,
+  courseDetail: courseData,
 }: {
   courseCode: string
   className?: string
+  courseDetail: ConvexCourseDetail
 }) {
-  const courseData = useQuery(api.courses.getByCourseCode, { courseCode })
   const [show, setShow] = useState(false)
 
   useEffect(() => {
@@ -38,12 +41,12 @@ export function StickyCourseHeader({
     return () => observer.disconnect()
   }, [courseData?.myplanCourse, courseCode])
 
-  const title = courseData?.myplanCourse?.title ?? ""
-  const credits = courseData?.myplanCourse?.credit
-  const genEds = (courseData?.myplanCourse?.genEdReqs as string[] | undefined) || []
+  const title = courseData.myplanCourse.title ?? ""
+  const credits = courseData.myplanCourse.credit
+  const genEds =
+    (courseData.myplanCourse.genEdReqs as string[] | undefined) || []
   const shownGenEds = genEds.slice(0, 2)
   const moreGenEdsCount = genEds.length - shownGenEds.length
-
 
   return (
     <AnimatePresence initial={false}>
@@ -71,13 +74,18 @@ export function StickyCourseHeader({
                       {courseCode.slice(-2)}
                     </div>
                     {shownGenEds.length > 0 && (
-                      <Badge variant="outline" className="h-5 px-1.5 text-[10px]">
+                      <Badge
+                        variant="outline"
+                        className="h-5 px-1.5 text-[10px]"
+                      >
                         {shownGenEds.join(", ")}
                         {moreGenEdsCount > 0 ? ` +${moreGenEdsCount}` : ""}
                       </Badge>
                     )}
                     {credits ? (
-                      <span className="text-xs text-muted-foreground font-mono">({credits})</span>
+                      <span className="text-xs text-muted-foreground font-mono">
+                        ({credits})
+                      </span>
                     ) : null}
                   </div>
                   {title ? (

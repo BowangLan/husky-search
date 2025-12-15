@@ -1,10 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { api } from "@/convex/_generated/api"
-import { useQuery } from "convex/react"
 import { GraduationCap } from "lucide-react"
 
+import { ConvexCourseDetail } from "@/types/convex-courses"
+import { ConvexSubjectArea } from "@/types/convex-subject-areas"
 import { capitalize, getGenEdLabel } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { ExternalLink } from "@/components/ui/external-link"
@@ -14,30 +14,25 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { getQuarterColor } from "@/components/course-modules"
+
 import { CourseScheduleButton } from "./course-schedule-button"
 
-export const CourseDetailHeader = ({ courseCode }: { courseCode: string }) => {
-  const courseData = useQuery(api.courses.getByCourseCode, { courseCode })
-
-  // Extract subject area code from course code (e.g., "CSE142" -> "CSE")
-  const subjectAreaCode = courseCode?.replace(/\d+$/, "") || ""
-  const subjectArea = useQuery(
-    api.myplan1.subjectAreas.getByCode,
-    subjectAreaCode ? { code: subjectAreaCode } : "skip"
-  )
-
-  if (!courseData?.myplanCourse) {
-    return null
-  }
-
+export const CourseDetailHeader = ({
+  courseCode,
+  courseDetail: courseData,
+  subjectArea,
+}: {
+  courseCode: string
+  courseDetail: ConvexCourseDetail
+  subjectArea: ConvexSubjectArea
+}) => {
   const hasCurrentTermData =
-    courseData?.myplanCourse?.currentTermData &&
+    courseData.myplanCourse.currentTermData &&
     courseData.myplanCourse.currentTermData.length > 0 &&
     courseData.myplanCourse.currentTermData[0]?.sessions &&
     courseData.myplanCourse.currentTermData[0].sessions.length > 0
 
-  const termsOfferedFromConvex = (courseData.myplanCourse as any)
-    ?.termsOffered as string[] | undefined
+  const termsOfferedFromConvex = courseData.myplanCourse.termsOffered
   // Note: We no longer have access to course.detail, but the main data source should be sufficient
   const termsOfferedFromDetail = undefined
 
@@ -76,12 +71,12 @@ export const CourseDetailHeader = ({ courseCode }: { courseCode: string }) => {
             >
               {`${course.subject} ${course.number}`}
             </Badge> */}
-        <Link href={`/majors/${subjectAreaCode}`} prefetch scroll={false}>
+        <Link href={`/majors/${subjectArea.code}`} prefetch scroll={false}>
           <Badge
             variant="outline"
             className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 cursor-pointer hover:opacity-80 trans"
           >
-            {subjectAreaCode}
+            {subjectArea.code}
           </Badge>
         </Link>
       </div>
@@ -229,14 +224,14 @@ export const CourseDetailHeader = ({ courseCode }: { courseCode: string }) => {
       </div>
       <div className="items-center gap-2 hidden">
         {/* Program */}
-        <Link href={`/majors/${subjectAreaCode}`} prefetch scroll={false}>
+        <Link href={`/majors/${subjectArea.code}`} prefetch scroll={false}>
           <Badge
             size="lg"
             variant="outline"
             className="bg-gradient-to-r from-purple-500/10 to-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 cursor-pointer hover:opacity-80 trans"
           >
             <GraduationCap className="h-5 w-5 mr-2" />
-            {capitalize(subjectArea?.title || subjectAreaCode)}
+            {capitalize(subjectArea.title)}
           </Badge>
         </Link>
       </div>

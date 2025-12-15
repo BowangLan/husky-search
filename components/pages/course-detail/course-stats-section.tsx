@@ -6,6 +6,7 @@ import { useUser } from "@clerk/nextjs"
 import { useQuery } from "convex/react"
 import { Activity, Gauge, GraduationCap, Scale } from "lucide-react"
 
+import { ConvexCourseDetail } from "@/types/convex-courses"
 import { COMPONENTS, useHasComponentAccess } from "@/config/permissions"
 import {
   easinessScore,
@@ -30,8 +31,9 @@ import {
 
 import { CourseMetadataSectionCard } from "./course-metadata-section"
 
-export const EasinessStat = ({ data }: { data: CourseDetail }) => {
-  const gpaDistro = data?.dp?.gpa_distro
+export const EasinessStat = ({ data }: { data: ConvexCourseDetail }) => {
+  console.log("EasinessStat data", data)
+  const gpaDistro = data.dp?.gpa_distro
 
   const easiness =
     gpaDistro && gpaDistro.length > 0 ? easinessScore(gpaDistro) : undefined
@@ -50,8 +52,8 @@ export const EasinessStat = ({ data }: { data: CourseDetail }) => {
   )
 }
 
-export const MeanGPAStat = ({ data }: { data: CourseDetail }) => {
-  const gpaDistro = data?.dp?.gpa_distro
+export const MeanGPAStat = ({ data }: { data: ConvexCourseDetail }) => {
+  const gpaDistro = data.dp?.gpa_distro
 
   const meanGPA =
     gpaDistro && gpaDistro.length > 0 ? medianGPA(gpaDistro) / 10 : undefined
@@ -70,8 +72,8 @@ export const MeanGPAStat = ({ data }: { data: CourseDetail }) => {
   )
 }
 
-export const WeightedGPAStat = ({ data }: { data: CourseDetail }) => {
-  const gpaDistro = data?.dp?.gpa_distro
+export const WeightedGPAStat = ({ data }: { data: ConvexCourseDetail }) => {
+  const gpaDistro = data.dp?.gpa_distro
 
   const weightedGPA =
     gpaDistro && gpaDistro.length > 0
@@ -92,8 +94,8 @@ export const WeightedGPAStat = ({ data }: { data: CourseDetail }) => {
   )
 }
 
-export const StdDevGPAStat = ({ data }: { data: CourseDetail }) => {
-  const gpaDistro = data?.dp?.gpa_distro
+export const StdDevGPAStat = ({ data }: { data: ConvexCourseDetail }) => {
+  const gpaDistro = data.dp?.gpa_distro
 
   const stdDevGPA =
     gpaDistro && gpaDistro.length > 0
@@ -116,10 +118,10 @@ export const GPADistroChartCard = ({
   data,
   courseCode,
 }: {
-  data: CourseDetail
+  data: ConvexCourseDetail
   courseCode: string
 }) => {
-  const gpaDistro = data?.dp?.gpa_distro
+  const gpaDistro = data.dp?.gpa_distro
   const hasGPAPermission = useHasComponentAccess(COMPONENTS.GPA_DISTRIBUTION)
 
   return (
@@ -170,35 +172,27 @@ export const GPADistroChartCard = ({
 
 export const CourseDetailStatsSection = ({
   courseCode,
+  courseDetail: data,
 }: {
   courseCode: string
+  courseDetail: ConvexCourseDetail
 }) => {
-  const data = useQuery(api.courses.getByCourseCode, {
-    courseCode,
-  })
-  const hasStatsPermission = useHasComponentAccess(
-    COMPONENTS.COURSE_DETAIL_STATS
-  )
+  // const hasStatsPermission = useHasComponentAccess(
+  //   COMPONENTS.COURSE_DETAIL_STATS
+  // )
 
-  // dev
-  // const data = useQuery(api.courses.getByCourseCodeDev, {
-  //   courseCode,
-  // })
-
-  if (!data) return null
-
-  if (!hasStatsPermission) {
-    return (
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full">
-        <div className="lg:col-span-7 space-y-4 min-w-0 lg:row-start-1">
-          <CourseMetadataSectionCard course={data} />
-        </div>
-        <aside className="lg:col-span-5 space-y-4 min-w-0 lg:row-start-1 lg:col-start-8">
-          <GPADistroChartCard data={data} courseCode={courseCode} />
-        </aside>
-      </section>
-    )
-  }
+  // if (!hasStatsPermission) {
+  //   return (
+  //     <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full">
+  //       <div className="lg:col-span-7 space-y-4 min-w-0 lg:row-start-1">
+  //         <CourseMetadataSectionCard course={data} />
+  //       </div>
+  //       <aside className="lg:col-span-5 space-y-4 min-w-0 lg:row-start-1 lg:col-start-8">
+  //         <GPADistroChartCard data={data} courseCode={courseCode} />
+  //       </aside>
+  //     </section>
+  //   )
+  // }
 
   return (
     <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full">

@@ -7,7 +7,7 @@ import OpenAI from "openai";
 import { createEmbedding } from "./embedding";
 import { KV_STORE_KEYS } from "./kvStore";
 import { Doc } from "./_generated/dataModel";
-import { ConvexCourseOverview } from "@/types/convex-courses";
+import { ConvexCourseDetail, ConvexCourseOverview } from "@/types/convex-courses";
 import { MyplanCourseTermData } from "./schema";
 import { DawgpathCourseDetail } from "./dawgpath";
 
@@ -77,9 +77,10 @@ export const getByCourseCode = query({
       },
       dp: dp?.detailData,
       cecCourse,
-    };
+    } satisfies ConvexCourseDetail;
   }
 })
+
 
 export const getByCourseCodeBrief = query({
   args: {
@@ -373,6 +374,7 @@ export const listOverviewByCredit = query({
 })
 
 
+// TODO: replace this with ConvexCourseDetail from types/convex-courses.ts
 export type CourseDetail = NonNullable<FunctionReturnType<typeof api.courses.getByCourseCode>>
 export type CourseCecItem = Omit<NonNullable<CourseDetail["cecCourse"]>[number], 'data'> & {
   data: {

@@ -75,6 +75,7 @@ const cleanEnrollData = (enrollData: TermEnrollData): TermEnrollData => {
   return result
 }
 
+// @deprecated
 export const CourseEnrollTrendSection = ({
   courseCode,
 }: {

@@ -8,8 +8,9 @@ import { CourseCecItem } from "@/convex/courses"
 import { useQuery } from "convex/react"
 import { ExternalLinkIcon, Grid, List, Radar, X } from "lucide-react"
 
+import { ConvexCourseDetail } from "@/types/convex-courses"
+import { COMPONENTS, useHasComponentAccess } from "@/config/permissions"
 import { cn, formatTerm, getColor5, getColor5Classes } from "@/lib/utils"
-import { useHasComponentAccess, COMPONENTS } from "@/config/permissions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FilterTabItem, FilterTabList } from "@/components/ui/filter-tabs"
 import { Label } from "@/components/ui/label"
@@ -89,9 +90,7 @@ const ProfessorEvalBlock = ({
                   <TooltipTrigger asChild>
                     <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 cursor-help" />
                   </TooltipTrigger>
-                  <TooltipContent>
-                    Currently teaching
-                  </TooltipContent>
+                  <TooltipContent>Currently teaching</TooltipContent>
                 </Tooltip>
               )}
             </div>
@@ -261,10 +260,11 @@ const ProfessorEvalBlock = ({
   )
 }
 
-export function CECEvaluations({ courseCode }: { courseCode: string }) {
-  const data = useQuery(api.courses.getByCourseCode, {
-    courseCode,
-  })
+export function CECEvaluations({
+  courseDetail: data,
+}: {
+  courseDetail: ConvexCourseDetail
+}) {
   const hasCECPermission = useHasComponentAccess(COMPONENTS.CEC_EVALUATIONS)
   const [selectedProfessor, setSelectedProfessor] = useState<string | null>(
     null
@@ -272,10 +272,12 @@ export function CECEvaluations({ courseCode }: { courseCode: string }) {
 
   const items = data?.cecCourse
   const currentInstructors = useMemo(() => {
-    const termData = data?.myplanCourse?.currentTermData?.[0]
+    const termData = data.myplanCourse.currentTermData?.[0]
     const sessions = Array.isArray(termData?.sessions) ? termData!.sessions : []
-    return new Set(sessions.map((session: any) => session.instructor).filter(Boolean))
-  }, [data?.myplanCourse])
+    return new Set(
+      sessions.map((session: any) => session.instructor).filter(Boolean)
+    )
+  }, [data.myplanCourse])
 
   const sorted = useMemo(() => {
     if (!items) return []
@@ -347,9 +349,7 @@ export function CECEvaluations({ courseCode }: { courseCode: string }) {
                           <TooltipTrigger asChild>
                             <div className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0 cursor-help" />
                           </TooltipTrigger>
-                          <TooltipContent>
-                            Currently teaching
-                          </TooltipContent>
+                          <TooltipContent>Currently teaching</TooltipContent>
                         </Tooltip>
                       )}
                     </div>

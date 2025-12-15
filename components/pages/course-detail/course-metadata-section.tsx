@@ -1,6 +1,7 @@
 import { CourseDetail } from "@/convex/courses"
 import { FileText, GraduationCap } from "lucide-react"
 
+import { ConvexCourseDetail } from "@/types/convex-courses"
 import { MyPlanCourseCodeGroupWithDetail } from "@/types/myplan"
 import { capitalizeSingle } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
@@ -48,7 +49,7 @@ export const formatRawPrereqs = (prereqs: string[] | undefined) => {
 export const CourseMetadataSectionCard = ({
   course,
 }: {
-  course: CourseDetail
+  course: ConvexCourseDetail
 }) => {
   return (
     <Card hoverInteraction={false}>

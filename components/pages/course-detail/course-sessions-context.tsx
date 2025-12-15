@@ -11,6 +11,7 @@ import { CourseDetail } from "@/convex/courses"
 import { MyplanCourseTermSession } from "@/convex/schema"
 import { useQuery } from "convex/react"
 
+import { ConvexCourseDetail } from "@/types/convex-courses"
 import { MyPlanCourseDetail } from "@/types/myplan"
 import { parseTermId } from "@/lib/course-utils"
 import { expandDays } from "@/lib/utils"
@@ -60,10 +61,12 @@ export const useCourseSessions = (): CourseSessionsContextValue => {
 
 export const CourseSessionsProvider = ({
   courseCode,
+  courseDetail: data,
   children,
 }: {
   courseCode: string
   children: ReactNode
+  courseDetail: ConvexCourseDetail
 }) => {
   const [selectedSessionIds, setSelectedSessionIds] = useState<string[]>([])
   const [pinnedSessionIds, setPinnedSessionIds] = useState<string[]>([])
@@ -74,10 +77,7 @@ export const CourseSessionsProvider = ({
   const [viewType, setViewType] = useState<"list" | "calendar">("list")
   const [selectedTermId, setSelectedTermId] = useState<string | null>(null)
 
-  const data = useQuery(api.courses.getByCourseCode, {
-    courseCode,
-  })
-
+  // should always be false
   const isLoading = data === undefined
 
   // Get available terms from currentTermData

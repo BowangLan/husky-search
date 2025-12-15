@@ -1,16 +1,18 @@
 "use client"
 
 // @ts-ignore
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { notFound, useRouter } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import {
   useTrackCourseVisit,
   useTrackMajorVisit,
 } from "@/store/visit-cache.store"
-import { useQuery } from "convex/react"
 import { useAuth } from "@clerk/nextjs"
+import { useQuery } from "convex/react"
 
+import { ConvexCourseDetail } from "@/types/convex-courses"
+import { ConvexSubjectArea } from "@/types/convex-subject-areas"
 import { cn } from "@/lib/utils"
 import { CourseDetailPrereqGraph } from "@/components/pages/course-detail/course-detail-prereq-graph-section"
 
@@ -20,10 +22,10 @@ import { Card, CardContent } from "../ui/card"
 import { Skeleton } from "../ui/skeleton"
 import CECEvaluations from "./course-detail/cec-evaluations"
 import { CourseDetailHeader } from "./course-detail/course-detail-header"
+import { CourseDetailRecommendations } from "./course-detail/course-detail-recommendations"
 import { CourseSessionsSection } from "./course-detail/course-sessions-section"
 import { CourseDetailStatsSection } from "./course-detail/course-stats-section"
 import { StickyCourseHeader } from "./course-detail/sticky-course-header"
-import { CourseDetailRecommendations } from "./course-detail/course-detail-recommendations"
 
 const PageTab = ({
   active,
@@ -59,26 +61,42 @@ const PageTab = ({
   )
 }
 
-const CourseDetailPageContent = ({ courseCode }: { courseCode: string }) => {
-  const c = useQuery(api.courses.getByCourseCode, { courseCode })
+const CourseDetailPageContent = ({
+  courseCode,
+  courseDetail: courseData,
+  subjectArea,
+}: {
+  courseCode: string
+  courseDetail: ConvexCourseDetail
+  subjectArea: ConvexSubjectArea
+}) => {
   const hasCurrentTermData =
-    c?.myplanCourse?.currentTermData &&
-    c.myplanCourse.currentTermData.length > 0 &&
-    c.myplanCourse.currentTermData[0]?.sessions &&
-    c.myplanCourse.currentTermData[0].sessions.length > 0
+    courseData.myplanCourse?.currentTermData &&
+    courseData.myplanCourse.currentTermData.length > 0 &&
+    courseData.myplanCourse.currentTermData[0]?.sessions &&
+    courseData.myplanCourse.currentTermData[0].sessions.length > 0
 
-  const [tab, setTab] = useState<"sessions" | "recommendations" | "cec" | "prereqs">(
-    hasCurrentTermData ? "sessions" : "cec"
-  )
+  const [tab, setTab] = useState<
+    "sessions" | "recommendations" | "cec" | "prereqs"
+  >(hasCurrentTermData ? "sessions" : "cec")
 
-  const prereqGraph = c?.dp?.prereq_graph
-  const hasRecommendationsTab = !!c?.dp
+  const prereqGraph = courseData.dp?.prereq_graph
+  const hasRecommendationsTab = !!courseData.dp?.prereq_graph
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <StickyCourseHeader courseCode={courseCode} />
-      <CourseDetailHeader courseCode={courseCode} />
-      <CourseDetailStatsSection courseCode={courseCode} />
+      <StickyCourseHeader courseCode={courseCode} courseDetail={courseData} />
+
+      <CourseDetailHeader
+        courseCode={courseCode}
+        courseDetail={courseData}
+        subjectArea={subjectArea}
+      />
+
+      <CourseDetailStatsSection
+        courseCode={courseCode}
+        courseDetail={courseData}
+      />
 
       <div className="flex items-center gap-2 my-6">
         {hasCurrentTermData && (
@@ -108,7 +126,10 @@ const CourseDetailPageContent = ({ courseCode }: { courseCode: string }) => {
       </div>
 
       {tab === "sessions" && hasCurrentTermData && (
-        <CourseSessionsSection courseCode={courseCode} />
+        <CourseSessionsSection
+          courseCode={courseCode}
+          courseDetail={courseData}
+        />
       )}
       {/* {tab === "recommendations" && hasRecommendationsTab && (
         <section className="space-y-4">
@@ -121,7 +142,7 @@ const CourseDetailPageContent = ({ courseCode }: { courseCode: string }) => {
           <CourseDetailRecommendations courseCode={courseCode} courseDetail={c} />
         </section>
       )} */}
-      {tab === "cec" && <CECEvaluations courseCode={courseCode} />}
+      {tab === "cec" && <CECEvaluations courseDetail={courseData} />}
       {tab === "prereqs" && prereqGraph && (
         <section className="space-y-4">
           <div>
@@ -162,150 +183,29 @@ const CourseDetailPageContent = ({ courseCode }: { courseCode: string }) => {
   )
 }
 
-const CourseDetailPageSkeleton = () => {
-  return (
-    <div className="space-y-4">
-      {/* Header skeleton */}
-      <section className="my-4 md:my-8 space-y-2 md:space-y-4">
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-[30px] w-[90px]" />
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-end gap-2 mb-2">
-            <Skeleton className="h-[36px] sm:h-[40px] lg:h-[48px] w-[240px]" />
-            <Skeleton className="h-[28px] w-[36px]" />
-          </div>
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-[32px] w-[350px]" />
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-[30px] w-[40px]" />
-          <Skeleton className="h-[30px] w-[50px]" />
-          <div className="flex-1"></div>
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-[30px] w-[128px]" />
-            <Skeleton className="h-[30px] w-[148px]" />
-          </div>
-        </div>
-      </section>
-
-      {/* Stats skeleton */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:col-span-7">
-          <Skeleton className="h-[114px]" />
-          <Skeleton className="h-[114px]" />
-          <Skeleton className="h-[114px]" />
-        </div>
-        <Skeleton className="lg:col-span-7 space-y-4 min-w-0 lg:row-start-2 h-[256px]" />
-        <Skeleton className="lg:col-span-5 space-y-4 min-w-0 lg:row-start-1 lg:col-start-8 lg:row-span-2" />
-      </section>
-
-      {/* Tabs skeleton */}
-      <div className="flex items-center my-6 gap-4">
-        <Skeleton className="h-8 w-24 rounded-none" />
-        <Skeleton className="h-8 w-36 rounded-none" />
-      </div>
-
-      {/* Sessions skeleton */}
-      <Card className="overflow-hidden" hoverInteraction={false}>
-        <CardContent className="px-0">
-          <div className="my-4 mx-4 space-y-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="px-0">
-                <div className="border-t" />
-                <div
-                  className="px-4 py-4 md:px-6 grid gap-3"
-                  style={{
-                    gridTemplateColumns:
-                      "minmax(96px,108px) minmax(96px,160px) 1.5fr auto minmax(160px,240px)",
-                  }}
-                >
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-20" />
-                    <Skeleton className="h-3 w-10" />
-                  </div>
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-28" />
-                  </div>
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-40" />
-                    <Skeleton className="h-4 w-32" />
-                  </div>
-                  <div className="space-y-2">
-                    <Skeleton className="h-8 w-16" />
-                  </div>
-                  <div className="space-y-2">
-                    <Skeleton className="h-3 w-24" />
-                    <Skeleton className="h-2 w-full" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
-
-export function CourseDetailPage({ courseCode }: { courseCode: string }) {
-  const { isSignedIn, isLoaded } = useAuth()
-  const router = useRouter()
-
-  // Check if course exists (no auth required)
-  const briefCourse = useQuery(api.courses.getByCourseCodeBrief, { courseCode })
-  // Get full course data (requires auth for some fields)
-  const c = useQuery(api.courses.getByCourseCode, { courseCode })
-
-  // Extract subject area code from course code (e.g., "CSE 142" -> "CSE")
-  const subjectAreaCode = courseCode?.replace(/\d+$/, "").trim() || ""
-  const subjectArea = useQuery(
-    api.myplan1.subjectAreas.getByCode,
-    subjectAreaCode ? { code: subjectAreaCode } : "skip"
-  )
-
+export function CourseDetailPage({
+  courseCode,
+  courseDetail,
+  subjectArea,
+}: {
+  courseCode: string
+  courseDetail: ConvexCourseDetail
+  subjectArea: ConvexSubjectArea
+}) {
   useTrackCourseVisit(courseCode)
   useTrackMajorVisit({
     id: 0,
-    code: subjectArea?.code || subjectAreaCode,
-    title: subjectArea?.title || subjectAreaCode,
-    campus: "",
-    collegeCode: "",
-    collegeTitle: "",
-    departmentCode: "",
-    departmentTitle: "",
-    codeNoSpaces: "",
-    quotedCode: "",
+    code: subjectArea.code,
+    title: subjectArea.title,
+    campus: subjectArea.campus,
+    collegeCode: subjectArea.collegeCode,
+    collegeTitle: subjectArea.collegeTitle,
+    departmentCode: subjectArea.departmentCode,
+    departmentTitle: subjectArea.departmentTitle,
+    codeNoSpaces: subjectArea.codeNoSpaces,
+    quotedCode: subjectArea.quotedCode,
     courseDuplicate: false,
   })
-
-  // Handle authentication and data loading states
-  useEffect(() => {
-    // Wait for auth to load
-    if (!isLoaded || briefCourse === undefined || c === undefined) {
-      return
-    }
-
-    // If course doesn't exist in database, don't redirect (will show 404)
-    if (briefCourse === null) {
-      return
-    }
-
-    // If course exists but user is not signed in and full data is restricted
-    if (!isSignedIn && c?.myplanCourse === null) {
-      router.push(`/sign-in?redirect_url=${encodeURIComponent(window.location.pathname)}`)
-    }
-  }, [isLoaded, isSignedIn, briefCourse, c, router])
-
-  const isLoading = c === undefined || !isLoaded || briefCourse === undefined
-
-  console.log(c)
-
-  // Course doesn't exist in database -> 404
-  if (briefCourse === null) {
-    return notFound()
-  }
 
   return (
     <Page className="mx-page px-page">
@@ -313,11 +213,11 @@ export function CourseDetailPage({ courseCode }: { courseCode: string }) {
         <BackButton url={`/majors/${course.subjectAreaCode}`} />
       </PageTopToolbar> */}
       <div className="pb-12">
-        {isLoading ? (
-          <CourseDetailPageSkeleton />
-        ) : (
-          <CourseDetailPageContent courseCode={courseCode} />
-        )}
+        <CourseDetailPageContent
+          courseCode={courseCode}
+          courseDetail={courseDetail}
+          subjectArea={subjectArea}
+        />
         {/* <CECEvaluations items={(c as any)?.cecCourse} /> */}
       </div>
     </Page>

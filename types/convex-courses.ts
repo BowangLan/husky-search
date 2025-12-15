@@ -1,4 +1,6 @@
+import { Doc } from "@/convex/_generated/dataModel"
 import { DawgpathCourseDetail } from "@/convex/dawgpath"
+import { MyplanCourseTermData } from "@/convex/schema"
 
 export type ConvexCourseOverviewEnroll = {
   termId: string
@@ -23,4 +25,8 @@ export type ConvexCourseOverview = {
   prereqMap?: Pick<DawgpathCourseDetail["prereq_graph"]["x"], "edges" | "nodes">
 }
 
-
+export type ConvexCourseDetail = {
+  myplanCourse: Doc<"myplanCourses"> & { currentTermData?: MyplanCourseTermData[] }
+  dp: DawgpathCourseDetail | null
+  cecCourse: Doc<"cecCourses">[]
+}
