@@ -28,12 +28,13 @@ import {
 } from "../section"
 import { ProgramPrereqGraphs } from "./program-prereq-graphs"
 
-// ViewTransition wrapper - falls back to fragment if unstable_ViewTransition is not available
-function ViewTransition({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
-}
-
-export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
+export function ProgramDetailPage({
+  program,
+  initialCourses,
+}: {
+  program: ProgramDetail
+  initialCourses?: ConvexCourseOverview[]
+}) {
   useTrackMajorVisit(program)
 
   const isPinned = useIsMajorPinned(program.code)
@@ -47,19 +48,18 @@ export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
   const convexCourses = useQuery(api.courses.listOverviewBySubjectArea, {
     subjectArea: subjectArea ?? "",
   })
+  const courses = convexCourses ?? initialCourses ?? []
 
   const groupedCoursesByLevel = useMemo(() => {
-    const courses = convexCourses ?? []
     return courses.reduce((acc, course) => {
       const level = (course.courseNumber?.slice(0, 1) ?? "?") + "00"
       if (!acc[level]) acc[level] = []
       acc[level].push(course)
       return acc
     }, {} as Record<string, ConvexCourseOverview[]>)
-  }, [convexCourses])
+  }, [courses])
 
   const courseAvailability = useMemo(() => {
-    const courses = convexCourses ?? []
     let open = 0
     let closed = 0
     let notOffered = 0
@@ -92,9 +92,9 @@ export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
     }
 
     return { open, closed, notOffered, total: courses.length }
-  }, [convexCourses])
+  }, [courses])
 
-  const isLoading = convexCourses === undefined
+  const isLoading = convexCourses === undefined && !initialCourses
 
   return (
     <PageWithHeaderLayout
@@ -104,31 +104,29 @@ export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
         </Badge>
       }
       title={
-        <ViewTransition>
-          <div className="flex items-center gap-2">
-            <PageTitle>{capitalize(program.title)}</PageTitle>
-            <div className="flex-1"></div>
-            <RichButton
-              tooltip={isPinned ? "Unpin major" : "Pin major"}
-              variant="ghost"
-              className="size-9"
-              onClick={handlePinClick}
-            >
-              <Pin
-                className={cn(
-                  "size-4 transition-colors",
-                  isPinned && "fill-primary text-primary"
-                )}
-              />
-            </RichButton>
-            <Link href={`/prereq-graph?subjectArea=${program.code}`}>
-              <Button variant="outline">
-                <Network className="h-4 w-4" />
-                View Prerequisite Graph
-              </Button>
-            </Link>
-          </div>
-        </ViewTransition>
+        <div className="flex items-center gap-2">
+          <PageTitle>{capitalize(program.title)}</PageTitle>
+          <div className="flex-1"></div>
+          <RichButton
+            tooltip={isPinned ? "Unpin major" : "Pin major"}
+            variant="ghost"
+            className="size-9"
+            onClick={handlePinClick}
+          >
+            <Pin
+              className={cn(
+                "size-4 transition-colors",
+                isPinned && "fill-primary text-primary"
+              )}
+            />
+          </RichButton>
+          <Link href={`/prereq-graph?subjectArea=${program.code}`}>
+            <Button variant="outline">
+              <Network className="h-4 w-4" />
+              View Prerequisite Graph
+            </Button>
+          </Link>
+        </div>
       }
       subtitle={
         <div className="flex flex-wrap items-center gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground font-light">
@@ -170,7 +168,7 @@ export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
           <div className="px-page mx-page flex justify-center items-center">
             <Loader size={40} className="animate-spin" />
           </div>
-        ) : (convexCourses?.length ?? 0) === 0 ? (
+        ) : courses.length === 0 ? (
           <section className="px-page mx-page">
             <div className="text-center py-12">
               <div className="text-muted-foreground text-lg">
@@ -244,7 +242,7 @@ export function ProgramDetailPage({ program }: { program: ProgramDetail }) {
                 </SectionHeader>
                 <SectionContent>
                   <ConvexCourseCardHorizontalList
-                    courses={(convexCourses ?? []).slice(0, 10)}
+                    courses={courses.slice(0, 10)}
                   />
                 </SectionContent>
               </Section>

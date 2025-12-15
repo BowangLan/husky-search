@@ -1,24 +1,57 @@
+import { Suspense } from "react"
+import type { Metadata } from "next"
 import { unstable_cache } from "next/cache"
 import { notFound } from "next/navigation"
+import { api } from "@/convex/_generated/api"
 import { ProgramService } from "@/services/program-service"
+import { fetchQuery } from "convex/nextjs"
 
+import type { ConvexCourseOverview } from "@/types/convex-courses"
 import { DOMAIN } from "@/config/site"
 import { capitalize } from "@/lib/utils"
 import { ProgramDetailPage } from "@/components/pages/program-detail-page"
+import { ProgramDetailPageSkeleton } from "@/components/pages/program-detail-page-skeleton"
 
-const ALL_COURSES_LIMIT = 200
+export const revalidate = 60 * 60 * 24 // 1 day
 
-export const dynamic = 'force-dynamic'
+function normalizeProgramCode(codeParam: string) {
+  return decodeURIComponent(codeParam).toUpperCase()
+}
+
+async function getProgramCached(code: string) {
+  return await unstable_cache(
+    async () => {
+      return await ProgramService.getProgramByCode(code)
+    },
+    ["program-detail", code],
+    { revalidate: 60 * 60 * 24, tags: ["program-detail"] }
+  )()
+}
+
+async function getProgramCoursesCached(subjectArea: string) {
+  return await unstable_cache(
+    async () => {
+      return await fetchQuery(api.courses.listOverviewBySubjectArea, {
+        subjectArea,
+      })
+    },
+    ["program-courses", subjectArea],
+    {
+      revalidate: 60 * 60 * 24,
+      tags: ["program-courses", `program-${subjectArea}`],
+    }
+  )()
+}
 
 export const generateMetadata = async ({
   params,
 }: {
   params: Promise<{ code: string }>
-}) => {
+}): Promise<Metadata> => {
   const { code: codeParam } = await params
-  const code = decodeURIComponent(codeParam).toUpperCase()
+  const code = normalizeProgramCode(codeParam)
 
-  const program = await ProgramService.getProgramByCode(code)
+  const program = await getProgramCached(code)
 
   if (!program) {
     return notFound()
@@ -75,20 +108,25 @@ export default async function ProgramPage({
   params: Promise<{ code: string }>
 }) {
   const { code: codeParam } = await params
-  const code = decodeURIComponent(codeParam).toUpperCase()
+  const code = normalizeProgramCode(codeParam)
 
-  const program = await unstable_cache(
-    async () => {
-      return await ProgramService.getProgramByCode(code)
-    },
-    ["program-detail", code],
-    // { revalidate: 60 * 60 * 24, tags: ["program-detail"] } // 1 day
-    { revalidate: 1, tags: ["program-detail"] } // 1 day
-  )()
+  return (
+    <Suspense fallback={<ProgramDetailPageSkeleton />}>
+      <ProgramDetailPageAsync code={code} />
+    </Suspense>
+  )
+}
+
+async function ProgramDetailPageAsync({ code }: { code: string }) {
+  const program = await getProgramCached(code)
 
   if (!program) {
     notFound()
   }
 
-  return <ProgramDetailPage program={program} />
+  const initialCourses: ConvexCourseOverview[] = await getProgramCoursesCached(
+    program.code
+  )
+
+  return <ProgramDetailPage program={program} initialCourses={initialCourses} />
 }
