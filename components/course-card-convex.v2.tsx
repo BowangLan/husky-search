@@ -48,6 +48,24 @@ function getSeatStatus({
   return { label: "Seats available", dotClass: "bg-emerald-500" }
 }
 
+const NEARLY_FULL_FIXED_THRESHOLD = 10 // if there are less than 10 seats available, it's nearly full
+const NEARLY_FULL_PERCENT_THRESHOLD = 0.9 // if the course is more than 90% full, it's nearly full
+const NOT_NEARLY_FULL_FIXED_THRESHOLD = 25 // if there are 25 or more seats available, it's not nearly full
+
+function getIsNearlyFull({
+  avail,
+  percentFull,
+}: {
+  avail: number
+  percentFull: number
+}) {
+  if (avail >= NOT_NEARLY_FULL_FIXED_THRESHOLD) return false
+  return (
+    avail < NEARLY_FULL_FIXED_THRESHOLD ||
+    percentFull > NEARLY_FULL_PERCENT_THRESHOLD
+  )
+}
+
 export function ConvexCourseCardLinkV2({
   course,
   className,
@@ -64,7 +82,7 @@ export function ConvexCourseCardLinkV2({
   const percentFull =
     enrollMax > 0 ? Math.round((enrollCount / enrollMax) * 100) : 0
   const isClosed = enrollMax > 0 && enrollCount >= enrollMax
-  const isNearlyFull = !isClosed && percentFull >= 85
+  const isNearlyFull = !isClosed && getIsNearlyFull({ avail, percentFull })
   const seatStatus = getSeatStatus({ avail, isClosed, isNearlyFull })
 
   const prereqCount = course.prereqs?.length ?? 0

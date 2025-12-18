@@ -8,7 +8,7 @@ import { createEmbedding } from "./embedding";
 import { KV_STORE_KEYS } from "./kvStore";
 import { Doc } from "./_generated/dataModel";
 import { ConvexCourseDetail, ConvexCourseOverview } from "@/types/convex-courses";
-import { MyplanCourseTermData } from "./schema";
+import { MyplanCourseTermData, MyplanCourseTermSession } from "./schema";
 import { DawgpathCourseDetail } from "./dawgpath";
 
 export const getByCourseCode = query({
@@ -61,11 +61,31 @@ export const getByCourseCode = query({
         .withIndex("by_course_code_and_term_id", (q) => q.eq("courseCode", args.courseCode).eq("termId", term))
         .collect();
 
+      const sessionDataList = sessions.map((session) => session.sessionData);
+
+      // Compute enrollCount from sessions if the stored value is 0 or missing
+      let enrollCount = termData.enrollCount;
+      let enrollMax = termData.enrollMax;
+
+      if (enrollCount === 0 && sessionDataList.length > 0) {
+        enrollCount = sessionDataList.reduce((sum, s) => {
+          const count = parseInt(s.enrollCount, 10);
+          return sum + (isNaN(count) ? 0 : count);
+        }, 0);
+      }
+
+      if (enrollMax === 0 && sessionDataList.length > 0) {
+        enrollMax = sessionDataList.reduce((sum, s) => {
+          const max = parseInt(s.enrollMaximum, 10);
+          return sum + (isNaN(max) ? 0 : max);
+        }, 0);
+      }
+
       return {
         termId: termData.termId,
-        enrollCount: termData.enrollCount,
-        enrollMax: termData.enrollMax,
-        sessions: sessions.map((session) => session.sessionData),
+        enrollCount,
+        enrollMax,
+        sessions: sessionDataList,
       };
     })))
       .filter((item): item is MyplanCourseTermData => item !== null)
@@ -143,7 +163,7 @@ const fetchCurrentTermData = async (
 ): Promise<MyplanCourseTermData[]> => {
   const currentTermData: MyplanCourseTermData[] = (await Promise.all(currentTerms.map(async (term: string) => {
     const termData = await ctx.db.query("myplanCourseTermData")
-      .withIndex("by_course_code_and_term_id", (q: any) => q.eq("courseCode", courseCode).eq("termId", term))
+      .withIndex("by_course_code_and_term_id", (q) => q.eq("courseCode", courseCode).eq("termId", term))
       .first();
 
     if (!termData) {
@@ -151,14 +171,35 @@ const fetchCurrentTermData = async (
     }
 
     const sessions = await ctx.db.query("myplanCourseSessions")
-      .withIndex("by_course_code_and_term_id", (q: any) => q.eq("courseCode", courseCode).eq("termId", term))
+      .withIndex("by_course_code_and_term_id", (q) => q.eq("courseCode", courseCode).eq("termId", term))
       .collect();
+
+    const sessionDataList: MyplanCourseTermSession[] = sessions.map((session) => session.sessionData);
+
+    // Compute enrollCount from sessions if the stored value is 0 or missing
+    // Sessions store enrollCount as strings, so we need to parse them
+    let enrollCount = termData.enrollCount;
+    let enrollMax = termData.enrollMax;
+
+    if (enrollCount === 0 && sessionDataList.length > 0) {
+      enrollCount = sessionDataList.reduce((sum, s) => {
+        const count = parseInt(s.enrollCount, 10);
+        return sum + (isNaN(count) ? 0 : count);
+      }, 0);
+    }
+
+    if (enrollMax === 0 && sessionDataList.length > 0) {
+      enrollMax = sessionDataList.reduce((sum, s) => {
+        const max = parseInt(s.enrollMaximum, 10);
+        return sum + (isNaN(max) ? 0 : max);
+      }, 0);
+    }
 
     return {
       termId: termData.termId,
-      enrollCount: termData.enrollCount,
-      enrollMax: termData.enrollMax,
-      sessions: sessions.map((session: any) => session.sessionData),
+      enrollCount,
+      enrollMax,
+      sessions: sessionDataList,
     };
   })))
     .filter((item): item is MyplanCourseTermData => item !== null);

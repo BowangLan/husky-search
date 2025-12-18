@@ -581,6 +581,8 @@ export const upsertCourseDetail = internalMutation({
       if (existingTermIdMap.has(termData.termId)) {
         const existingTermDataId = existingTermIdMap.get(termData.termId)!;
         await ctx.db.patch(existingTermDataId, {
+          enrollCount: termData.enrollCount,
+          enrollMax: termData.enrollMax,
           lastUpdated: Date.now(),
         });
         return existingTermDataId;

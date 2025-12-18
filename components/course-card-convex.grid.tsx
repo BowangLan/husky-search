@@ -2,8 +2,6 @@ import { Suspense, use } from "react"
 
 import { ConvexCourseOverview } from "@/types/convex-courses"
 
-import { ConvexCourseCardLink } from "./course-card-convex"
-import { ConvexCourseCardSkeleton } from "./course-card-convex.skeleton"
 import { ConvexCourseCardLinkV2 } from "./course-card-convex.v2"
 import { ConvexCourseCardLinkV2Skeleton } from "./course-card-convex.v2.skeleton"
 
