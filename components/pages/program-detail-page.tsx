@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import Link from "next/link"
 import { api } from "@/convex/_generated/api"
 import { ProgramDetail } from "@/services/program-service"
@@ -10,7 +10,7 @@ import {
 } from "@/store/pinned-majors.store"
 import { useTrackMajorVisit } from "@/store/visit-cache.store"
 import { useQuery } from "convex/react"
-import { Loader, Network, Pin, TrendingDown, TrendingUp } from "lucide-react"
+import { LayoutGrid, LayoutList, Loader, Network, Pin, TrendingDown, TrendingUp } from "lucide-react"
 
 import { ConvexCourseOverview } from "@/types/convex-courses"
 import { capitalize, cn } from "@/lib/utils"
@@ -18,7 +18,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { RichButton } from "@/components/ui/rich-button"
 
-import { ConvexCourseCardHorizontalList } from "../course-card-convex.horizontal-list"
+import { ConvexCourseCardGrid } from "../course-card-convex.grid"
+import { ConvexCourseListView } from "../course-card-convex.list"
 import { PageTitle, PageWithHeaderLayout } from "../page-wrapper"
 import {
   Section,
@@ -39,9 +40,19 @@ export function ProgramDetailPage({
 
   const isPinned = useIsMajorPinned(program.code)
   const togglePin = useToggleMajorPin()
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list")
+  const [showOnlyOffered, setShowOnlyOffered] = useState(true)
 
   const handlePinClick = () => {
     togglePin(program.code)
+  }
+
+  const toggleViewMode = () => {
+    setViewMode((prev) => (prev === "list" ? "grid" : "list"))
+  }
+
+  const toggleOfferedFilter = () => {
+    setShowOnlyOffered((prev) => !prev)
   }
 
   const subjectArea = program.code
@@ -50,14 +61,37 @@ export function ProgramDetailPage({
   })
   const courses = convexCourses ?? initialCourses ?? []
 
+  // Filter courses based on offering status
+  const filteredCourses = useMemo(() => {
+    if (!showOnlyOffered) return courses
+    return courses.filter((course) => (course.enroll?.length ?? 0) > 0)
+  }, [courses, showOnlyOffered])
+
+  // Popular courses sorted by max enrollment
+  const popularCourses = useMemo(() => {
+    return [...filteredCourses]
+      .sort((a, b) => {
+        const maxEnrollA = Math.max(
+          ...(a.enroll?.map((e) => e.enrollMax ?? 0) ?? [0]),
+          0
+        )
+        const maxEnrollB = Math.max(
+          ...(b.enroll?.map((e) => e.enrollMax ?? 0) ?? [0]),
+          0
+        )
+        return maxEnrollB - maxEnrollA
+      })
+      .slice(0, 10)
+  }, [filteredCourses])
+
   const groupedCoursesByLevel = useMemo(() => {
-    return courses.reduce((acc, course) => {
+    return filteredCourses.reduce((acc, course) => {
       const level = (course.courseNumber?.slice(0, 1) ?? "?") + "00"
       if (!acc[level]) acc[level] = []
       acc[level].push(course)
       return acc
     }, {} as Record<string, ConvexCourseOverview[]>)
-  }, [courses])
+  }, [filteredCourses])
 
   const courseAvailability = useMemo(() => {
     let open = 0
@@ -176,6 +210,14 @@ export function ProgramDetailPage({
               </div>
             </div>
           </section>
+        ) : filteredCourses.length === 0 ? (
+          <section className="px-page mx-page">
+            <div className="text-center py-12">
+              <div className="text-muted-foreground text-lg">
+                No courses currently being offered. Toggle "All Courses" to see all courses.
+              </div>
+            </div>
+          </section>
         ) : (
           <>
             <div className="px-page mx-page">
@@ -187,6 +229,51 @@ export function ProgramDetailPage({
                   setFilterState={handleFilterStateChange}
                 />
               </div> */}
+
+              {/* Toggles */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                {/* Offering Filter Toggle */}
+                <div className="inline-flex items-center gap-2 bg-muted/50 p-1 rounded-lg">
+                  <Button
+                    variant={showOnlyOffered ? "default" : "ghost"}
+                    size="sm"
+                    onClick={toggleOfferedFilter}
+                    className="gap-2"
+                  >
+                    <span className="text-xs sm:text-sm">Currently Offered</span>
+                  </Button>
+                  <Button
+                    variant={!showOnlyOffered ? "default" : "ghost"}
+                    size="sm"
+                    onClick={toggleOfferedFilter}
+                    className="gap-2"
+                  >
+                    <span className="text-xs sm:text-sm">All Courses</span>
+                  </Button>
+                </div>
+
+                {/* View Mode Toggle */}
+                <div className="inline-flex items-center gap-2 bg-muted/50 p-1 rounded-lg">
+                  <Button
+                    variant={viewMode === "list" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={toggleViewMode}
+                    className="gap-2"
+                  >
+                    <LayoutList className="h-4 w-4" />
+                    <span className="hidden sm:inline">List</span>
+                  </Button>
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={toggleViewMode}
+                    className="gap-2"
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                    <span className="hidden sm:inline">Grid</span>
+                  </Button>
+                </div>
+              </div>
 
               {/* Quick Access Navigation */}
               <Section>
@@ -241,9 +328,11 @@ export function ProgramDetailPage({
                   <SectionTitle>Popular Courses</SectionTitle>
                 </SectionHeader>
                 <SectionContent>
-                  <ConvexCourseCardHorizontalList
-                    courses={courses.slice(0, 10)}
-                  />
+                  {viewMode === "list" ? (
+                    <ConvexCourseListView courses={popularCourses} />
+                  ) : (
+                    <ConvexCourseCardGrid courses={popularCourses} />
+                  )}
                 </SectionContent>
               </Section>
 
@@ -266,7 +355,11 @@ export function ProgramDetailPage({
                       subtitle={`${sortedCourses.length} courses`}
                     />
                     <SectionContent>
-                      <ConvexCourseCardHorizontalList courses={sortedCourses} />
+                      {viewMode === "list" ? (
+                        <ConvexCourseListView courses={sortedCourses} />
+                      ) : (
+                        <ConvexCourseCardGrid courses={sortedCourses} />
+                      )}
                     </SectionContent>
                   </Section>
                 )
