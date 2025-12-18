@@ -48,9 +48,6 @@ export function MajorsPage({
     )
   }
 
-  console.log(campuses)
-  console.log(programs)
-
   const defaultCampus = campuses[0] || "seattle"
 
   return (
