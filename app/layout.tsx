@@ -1,6 +1,5 @@
 import "@/styles/globals.css"
 import { Metadata } from "next"
-import { Analytics } from "@vercel/analytics/next"
 
 import { siteConfig } from "@/config/site"
 import { fontSans } from "@/lib/fonts"
@@ -8,12 +7,10 @@ import { cn } from "@/lib/utils"
 import { Toaster } from "@/components/ui/sonner"
 import { GlobalLayoutWrapper } from "@/components/global-layout-wrapper"
 import { MessageDialogManager } from "@/components/message-dialog-manager"
-import { SiteHeader } from "@/components/site-header"
 import { TailwindIndicator } from "@/components/tailwind-indicator"
 import { ThemeProvider } from "@/components/theme-provider"
 
 import "@xyflow/react/dist/style.css"
-import { env } from "process"
 
 export const metadata: Metadata = {
   title: {
@@ -69,7 +66,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
               />
             </ThemeProvider>
           </GlobalLayoutWrapper>
-          <Analytics />
+          {/* <Analytics /> */}
         </body>
       </html>
     </>
