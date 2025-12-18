@@ -13,6 +13,7 @@ import { TailwindIndicator } from "@/components/tailwind-indicator"
 import { ThemeProvider } from "@/components/theme-provider"
 
 import "@xyflow/react/dist/style.css"
+import { env } from "process"
 
 export const metadata: Metadata = {
   title: {
@@ -40,7 +41,15 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <>
       <html lang="en" suppressHydrationWarning>
-        <head />
+        <head>
+          {process.env.NODE_ENV !== "development" && (
+            <script
+              defer
+              src="https://umami-production-252d.up.railway.app/script.js"
+              data-website-id="5406aecd-ae7c-4a4d-ad88-daedfee3f68d"
+            ></script>
+          )}
+        </head>
         <body
           className={cn(
             "h-screen bg-background font-sans antialiased overflow-y-auto",
