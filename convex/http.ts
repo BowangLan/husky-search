@@ -30,8 +30,6 @@ const handleClerkWebhook = httpAction(async (ctx, request) => {
     return new Response('Error occured', { status: 400 })
   }
 
-  console.log('event', event);
-
   switch (event.type) {
     case 'user.created': {
       await ctx.runMutation(internal.users.upsertUser, {
