@@ -4,6 +4,7 @@ import { ProgramInfo } from "@/types/program"
 
 import { AnimatedList } from "./animated-list"
 import { ProgramCardLink } from "./program-card"
+import { ProgramCardLinkV2 } from "./program-card.v2"
 
 export const ProgramCardGrid = ({
   programs: programsFromProps,
@@ -17,7 +18,7 @@ export const ProgramCardGrid = ({
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {programs.map((program, index) => (
-        <ProgramCardLink key={index} program={program} />
+        <ProgramCardLinkV2 key={index} program={program} />
       ))}
     </div>
   )
@@ -37,7 +38,7 @@ export const AnimatedProgramCardGrid = ({
         // itemDuration={0.5}
         animateLayout={false}
         renderItem={({ item }) => (
-          <ProgramCardLink key={item.id} program={item} />
+          <ProgramCardLinkV2 key={item.id} program={item} />
         )}
       />
     </div>

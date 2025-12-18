@@ -100,7 +100,7 @@ export const GroupedProgramCardSections = ({
           </Accordion>
         </div>
       ) : (
-        <AnimatedProgramCardGrid
+        <ProgramCardGrid
           programs={programs.sort((a, b) => a.code.localeCompare(b.code))}
         />
       )}
