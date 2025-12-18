@@ -158,8 +158,8 @@
   /* Background Colors */
   --background: oklch(0.141 0.005 285.823);
   --card: oklch(0.205 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --sidebar: oklch(0.21 0.006 285.885);
+  --popover: oklch(from var(--color-zinc-900) l c h);
+  --sidebar: oklch(from var(--color-zinc-900) l c h);
 
   /* Foreground Colors */
   --foreground: oklch(0.985 0 0);
@@ -320,7 +320,7 @@
 }
 
 .my-page-header {
-  @apply my-8 md:my-12;
+  @apply my-6;
 }
 
 .progress-indicator-green {
