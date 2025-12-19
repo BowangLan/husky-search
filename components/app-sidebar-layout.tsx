@@ -19,6 +19,7 @@ import {
   Home,
   Info,
   Layers,
+  Lightbulb,
   LogOut,
   MessageSquare,
   Moon,
@@ -77,6 +78,7 @@ import {
   useRightSidebar,
 } from "@/components/app-right-sidebar"
 import { CourseSearchCommand } from "@/components/course-search-command"
+import { FeatureRoadmapDialog } from "@/components/feature-roadmap-dialog"
 import { Icons } from "@/components/icons"
 import { SchedulePreviewProvider } from "@/components/schedule/schedule-preview-context"
 
@@ -254,6 +256,7 @@ export function AppSidebarLayout({ children }: { children: React.ReactNode }) {
   const { signOut } = useClerk()
   const { setTheme, theme } = useTheme()
   const [searchOpen, setSearchOpen] = React.useState(false)
+  const [roadmapOpen, setRoadmapOpen] = React.useState(false)
   const scheduleCount = useScheduledCourses().length
 
   const handleThemeToggle = () => {
@@ -416,7 +419,7 @@ export function AppSidebarLayout({ children }: { children: React.ReactNode }) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Feedback">
+                  {/* <SidebarMenuButton asChild tooltip="Feedback">
                     <a
                       href={externalLinks.feedback}
                       target="_blank"
@@ -425,6 +428,15 @@ export function AppSidebarLayout({ children }: { children: React.ReactNode }) {
                       <MessageSquare className="size-4" />
                       <span>Feedback</span>
                     </a>
+                  </SidebarMenuButton> */}
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setRoadmapOpen(true)}
+                    tooltip="Feature Roadmap"
+                  >
+                    <Lightbulb className="size-4" />
+                    <span>Roadmap</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 {isLoaded && isSignedIn && user ? (
@@ -484,6 +496,7 @@ export function AppSidebarLayout({ children }: { children: React.ReactNode }) {
 
           <MainContentWithRightSidebar>{children}</MainContentWithRightSidebar>
           <CourseSearchCommand open={searchOpen} onOpenChange={setSearchOpen} />
+          <FeatureRoadmapDialog open={roadmapOpen} onOpenChange={setRoadmapOpen} />
         </SidebarProvider>
       </RightSidebarProvider>
     </SchedulePreviewProvider>

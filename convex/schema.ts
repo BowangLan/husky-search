@@ -289,4 +289,33 @@ export default defineSchema({
     .index("by_user_id", ["userId"])
     .index("by_user_and_default", ["userId", "isDefault"])
   ,
+
+  features: defineTable({
+    name: v.string(),
+
+    // in consideration: the feature is being considered for development
+    // in development: the feature is being developed
+    // released: the feature has been released
+    status: v.union(v.literal("in-consideration"), v.literal("in-development"), v.literal("released")),
+    description: v.string(),
+  })
+    .index("by_name", ["name"])
+  ,
+
+  usetSuggestedFeatures: defineTable({
+    userId: v.string(),
+    name: v.string(),
+    description: v.string(),
+    status: v.union(v.literal("suggested"), v.literal("approved"), v.literal("rejected")),
+  })
+    .index("by_user_and_name", ["userId", "name"])
+  ,
+
+  userFeatureVotes: defineTable({
+    userId: v.string(),
+    featureId: v.id("features"),
+    vote: v.union(v.literal("up"), v.literal("down")),
+  })
+    .index("by_user_and_feature", ["userId", "featureId"])
+  ,
 });

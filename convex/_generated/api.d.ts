@@ -25,6 +25,7 @@ import type * as crons from "../crons.js";
 import type * as dawgpath from "../dawgpath.js";
 import type * as dawgpathScrapers from "../dawgpathScrapers.js";
 import type * as embedding from "../embedding.js";
+import type * as features from "../features.js";
 import type * as http from "../http.js";
 import type * as kvStore from "../kvStore.js";
 import type * as myplan from "../myplan.js";
@@ -35,6 +36,7 @@ import type * as myplanScrapers from "../myplanScrapers.js";
 import type * as myplanUtils from "../myplanUtils.js";
 import type * as ops_courseEmbeddings from "../ops/courseEmbeddings.js";
 import type * as ops_myplan from "../ops/myplan.js";
+import type * as seedFeatures from "../seedFeatures.js";
 import type * as users from "../users.js";
 import type * as uwMapScrapers from "../uwMapScrapers.js";
 
@@ -59,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   dawgpath: typeof dawgpath;
   dawgpathScrapers: typeof dawgpathScrapers;
   embedding: typeof embedding;
+  features: typeof features;
   http: typeof http;
   kvStore: typeof kvStore;
   myplan: typeof myplan;
@@ -69,6 +72,7 @@ declare const fullApi: ApiFromModules<{
   myplanUtils: typeof myplanUtils;
   "ops/courseEmbeddings": typeof ops_courseEmbeddings;
   "ops/myplan": typeof ops_myplan;
+  seedFeatures: typeof seedFeatures;
   users: typeof users;
   uwMapScrapers: typeof uwMapScrapers;
 }>;

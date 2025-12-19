@@ -123,6 +123,26 @@ export const messageDialogConfigs: MessageDialogConfig[] = [
   //   ],
   // },
   {
+    id: "feature-roadmap",
+    eyebrow: "Feature Roadmap",
+    title: "Vote on upcoming features and suggest your own ideas!",
+    renderContent: () => (
+      <div className="space-y-2 text-base/relaxed font-light text-foreground">
+        <p>
+          You can now vote on upcoming features or suggest your own ideas! Open
+          the feature roadmap from the{" "}
+          <span className="font-bold">Roadmap</span> button in the{" "}
+          <span className="font-bold italic">bottom left</span> corner of the
+          screen.
+        </p>
+        <p>We'll use your feedback to shape the future of Husky Search.</p>
+        <p>Thank you for your help!</p>
+      </div>
+    ),
+    conditions: [{ type: "showOnce" }],
+    tone: "info",
+  },
+  {
     id: "welcome-anon",
     eyebrow: "New here?",
     title: "Please sign in!",
@@ -130,10 +150,13 @@ export const messageDialogConfigs: MessageDialogConfig[] = [
       <div className="space-y-2 text-base/relaxed font-light text-foreground">
         <p>Sign in with your UW email!</p>
         <p>
-          Access to course data now requires signing in with your UW email address.
+          Access to course data now requires signing in with your UW email
+          address.
         </p>
         <p>
-          Please sign in to view courses and features. Data restricted by UW (including MyPlan, DawgPath and CEC information) is available only to logged-in users with a UW email.
+          Please sign in to view courses and features. Data restricted by UW
+          (including MyPlan, DawgPath and CEC information) is available only to
+          logged-in users with a UW email.
         </p>
       </div>
     ),
@@ -161,10 +184,13 @@ export const messageDialogConfigs: MessageDialogConfig[] = [
     renderContent: () => (
       <div className="space-y-2 text-base/relaxed font-light text-foreground">
         <p>
-          You're signed in with a non-UW email address. Some features and course data are restricted to UW students only.
+          You're signed in with a non-UW email address. Some features and course
+          data are restricted to UW students only.
         </p>
         <p>
-          To access full features including DawgPath and CEC data, please sign in with your UW email address (@u.washington.edu, @uw.edu, or @cs.washington.edu).
+          To access full features including DawgPath and CEC data, please sign
+          in with your UW email address (@u.washington.edu, @uw.edu, or
+          @cs.washington.edu).
         </p>
       </div>
     ),
