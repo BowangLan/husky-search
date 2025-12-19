@@ -5,13 +5,12 @@ import { notFound } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import { fetchQuery } from "convex/nextjs"
 
-import type { ConvexCourseOverview } from "@/types/convex-courses"
 import { DOMAIN } from "@/config/site"
 import { getGenEdLabel } from "@/lib/utils"
 import { GenEdDetailPage } from "@/components/pages/gen-ed"
 import { ProgramDetailPageSkeleton } from "@/components/pages/program-detail-page-skeleton"
 
-const validGenEdCodes = ["A&H", "SSc", "NSc", "C", "W", "DIV", "RSN"]
+CONST VALIDGENEDCODES = ["C", "DIV", "SSC", "NSC", "RSN", "A&H", "W"]
 
 function normalizeGenEdCode(codeParam: string) {
   return decodeURIComponent(codeParam).toUpperCase()
