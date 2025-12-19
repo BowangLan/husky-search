@@ -5,13 +5,21 @@ import { notFound } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import { fetchQuery } from "convex/nextjs"
 
-import type { ConvexCourseOverview } from "@/types/convex-courses"
 import { DOMAIN } from "@/config/site"
 import { getGenEdLabel } from "@/lib/utils"
 import { GenEdDetailPage } from "@/components/pages/gen-ed"
 import { ProgramDetailPageSkeleton } from "@/components/pages/program-detail-page-skeleton"
 
-const validGenEdCodes = ["A&H", "SSc", "NSc", "C", "W", "DIV", "RSN"]
+const GENED_CODES_UPPERCASE = ["C", "DIV", "SSC", "NSC", "RSN", "A&H", "W"]
+const GENED_CODES_UPPERCASE_TO_VALUE = {
+  C: "C",
+  DIV: "DIV",
+  SSC: "SSc",
+  NSC: "NSc",
+  RSN: "RSN",
+  "A&H": "A&H",
+  W: "W",
+}
 
 function normalizeGenEdCode(codeParam: string) {
   return decodeURIComponent(codeParam).toUpperCase()
@@ -61,7 +69,7 @@ export const generateMetadata = async ({
   const { code: codeParam } = await params
   const code = normalizeGenEdCode(codeParam)
 
-  if (!validGenEdCodes.includes(code)) {
+  if (!GENED_CODES_UPPERCASE.includes(code)) {
     return notFound()
   }
 
@@ -119,13 +127,18 @@ export default async function GenEdPage({
   const { code: codeParam } = await params
   const code = normalizeGenEdCode(codeParam)
 
-  if (!validGenEdCodes.includes(code)) {
+  if (!GENED_CODES_UPPERCASE.includes(code)) {
     notFound()
   }
 
+  const genEdValue =
+    GENED_CODES_UPPERCASE_TO_VALUE[
+      code as keyof typeof GENED_CODES_UPPERCASE_TO_VALUE
+    ]
+
   return (
     <Suspense fallback={<ProgramDetailPageSkeleton />}>
-      <GenEdDetailPageAsync code={code} />
+      <GenEdDetailPageAsync code={genEdValue} />
     </Suspense>
   )
 }
