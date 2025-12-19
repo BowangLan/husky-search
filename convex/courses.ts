@@ -265,6 +265,61 @@ export const listOverviewBySubjectArea = query({
   },
 })
 
+export const listOverviewByGenEd = query({
+  args: {
+    genEdCode: v.string(),
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const currentTerms = await ctx.runQuery(api.kvStore.getCurrentTerms);
+    const limit = args.limit ?? 50;
+    const offset = args.offset ?? 0;
+
+    // Query the gen ed requirements table to find all course IDs (lightweight)
+    const allGenEdCourses = await ctx.db
+      .query("myplan_course_gen_ed_reqs")
+      .withIndex("by_gen_ed_req", (q) => q.eq("genEduReq", args.genEdCode))
+      .collect();
+
+    const totalCount = allGenEdCourses.length;
+
+    // Paginate the course IDs
+    const paginatedGenEdCourses = allGenEdCourses.slice(offset, offset + limit);
+
+    // Fetch the actual course documents for the current page only
+    const results = await Promise.all(
+      paginatedGenEdCourses.map(async (genEdCourse) => {
+        return await ctx.db.get(genEdCourse.courseId);
+      })
+    );
+
+    const validResults = results.filter((c): c is NonNullable<typeof c> => c !== null);
+
+    // Fetch currentTermData and dawgpathData for paginated courses only
+    const coursesWithTermData: Array<ConvexCourseOverview> = await Promise.all(
+      validResults.map(async (course) => {
+        const [currentTermData, dawgpathCourse] = await Promise.all([
+          fetchCurrentTermData(ctx, course.courseCode, currentTerms),
+          ctx.db.query("dawgpathCourses")
+            .withIndex("by_course_code", (q) => q.eq("courseCode", course.courseCode))
+            .first(),
+        ]);
+        return convertCourseToOverview({
+          ...course,
+          currentTermData,
+        }, dawgpathCourse?.detailData);
+      })
+    );
+
+    return {
+      data: coursesWithTermData,
+      totalCount,
+      hasMore: offset + limit < totalCount,
+    };
+  },
+})
+
 export const listOverviewByCourseCodes = query({
   args: {
     courseCodes: v.array(v.string()),

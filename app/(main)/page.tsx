@@ -3,6 +3,7 @@ import { Metadata } from "next"
 import { DOMAIN } from "@/config/site"
 import { HeroSection } from "@/components/hero-section"
 import { Page } from "@/components/page-wrapper"
+import { GenEdSection } from "@/components/pages/home/gen-ed-section"
 import { PopularCourses } from "@/components/pages/home/popular-courses"
 import { PopularMajors } from "@/components/pages/home/popular-majors"
 import { RecentMajorsSection } from "@/components/pages/home/recent-majors-section"
@@ -87,6 +88,7 @@ export default function IndexPage() {
       <Page>
         {/* <HeroSection /> */}
         <RecentMajorsSection />
+        <GenEdSection />
         {/* <PopularMajors /> */}
         <PopularCourses />
         <Footer />

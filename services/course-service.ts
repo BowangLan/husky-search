@@ -633,6 +633,65 @@ export class CourseService {
 
     return courses
   }
+
+  static async getCoursesByGenEd(
+    genEdCode: string,
+    {
+      page,
+      pageSize = 50,
+    }: {
+      page: number
+      pageSize?: number
+    }
+  ) {
+    const courses = await db
+      .select({
+        code: MyPlanQuarterCoursesTable.code,
+        title: sql<string>`min(${MyPlanQuarterCoursesTable.data}->>'title')`.as(
+          "title"
+        ),
+        subjectAreaCode: MyPlanQuarterCoursesTable.subjectAreaCode,
+        subjectAreaTitle: MyPlanSubjectAreasTable.title,
+        data: sql<MyPlanCourseCodeGroup["data"]>`
+        array_agg(jsonb_build_object(
+          'data', ${MyPlanQuarterCoursesTable.data},
+          'quarter', ${MyPlanQuarterCoursesTable.quarter},
+          'subjectAreaCode', ${MyPlanQuarterCoursesTable.subjectAreaCode},
+          'myplanId', ${MyPlanQuarterCoursesTable.myplanId}
+        ) ORDER BY ${MyPlanQuarterCoursesTable.quarter} DESC)
+        `,
+      })
+      .from(MyPlanQuarterCoursesTable)
+      .innerJoin(
+        MyPlanSubjectAreasTable,
+        eq(
+          MyPlanQuarterCoursesTable.subjectAreaCode,
+          MyPlanSubjectAreasTable.code
+        )
+      )
+      .innerJoin(
+        CoursesTable,
+        and(
+          eq(
+            sql`CONCAT(${MyPlanQuarterCoursesTable.subjectAreaCode}, ${MyPlanQuarterCoursesTable.number})`,
+            CoursesTable.myplanCode
+          )
+        )
+      )
+      .where(
+        sql`${genEdCode} = ANY(${CoursesTable.genEdReqs})`
+      )
+      .groupBy(
+        MyPlanQuarterCoursesTable.code,
+        MyPlanQuarterCoursesTable.subjectAreaCode,
+        MyPlanSubjectAreasTable.title
+      )
+      .orderBy(asc(MyPlanQuarterCoursesTable.code))
+      .limit(pageSize)
+      .offset((page - 1) * pageSize)
+
+    return courses
+  }
 }
 
 export type CourseSearchResultItem = NonNullable<
