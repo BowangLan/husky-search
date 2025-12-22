@@ -10,7 +10,16 @@ import {
 } from "@/store/pinned-majors.store"
 import { useTrackMajorVisit } from "@/store/visit-cache.store"
 import { useQuery } from "convex/react"
-import { LayoutGrid, LayoutList, Loader, Network, Pin, TrendingDown, TrendingUp } from "lucide-react"
+import {
+  LayoutGrid,
+  LayoutList,
+  Loader,
+  Network,
+  Pin,
+  TrendingDown,
+  TrendingUp,
+  X,
+} from "lucide-react"
 
 import { ConvexCourseOverview } from "@/types/convex-courses"
 import { capitalize, cn } from "@/lib/utils"
@@ -42,6 +51,8 @@ export function ProgramDetailPage({
   const togglePin = useToggleMajorPin()
   const [viewMode, setViewMode] = useState<"list" | "grid">("list")
   const [showOnlyOffered, setShowOnlyOffered] = useState(true)
+  const [selectedLevels, setSelectedLevels] = useState<Set<string>>(new Set())
+  const [selectedGenEds, setSelectedGenEds] = useState<Set<string>>(new Set())
 
   const handlePinClick = () => {
     togglePin(program.code)
@@ -62,14 +73,59 @@ export function ProgramDetailPage({
   const courses = convexCourses ?? initialCourses ?? []
 
   // Filter courses based on offering status
-  const filteredCourses = useMemo(() => {
+  const offeredFilteredCourses = useMemo(() => {
     if (!showOnlyOffered) return courses
     return courses.filter((course) => (course.enroll?.length ?? 0) > 0)
   }, [courses, showOnlyOffered])
 
+  const filterOptions = useMemo(() => {
+    const levelCounts = new Map<string, number>()
+    const genEdCounts = new Map<string, number>()
+
+    for (const course of offeredFilteredCourses) {
+      const level = (course.courseNumber?.slice(0, 1) ?? "?") + "00"
+      if (level !== "?00") {
+        levelCounts.set(level, (levelCounts.get(level) ?? 0) + 1)
+      }
+      for (const req of course.genEdReqs ?? []) {
+        genEdCounts.set(req, (genEdCounts.get(req) ?? 0) + 1)
+      }
+    }
+
+    return {
+      levels: Array.from(levelCounts.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([value, count]) => ({ value, count })),
+      genEds: Array.from(genEdCounts.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([value, count]) => ({ value, count })),
+    }
+  }, [offeredFilteredCourses])
+
+  const fullyFilteredCourses = useMemo(() => {
+    let result = offeredFilteredCourses
+
+    if (selectedLevels.size > 0) {
+      result = result.filter((course) => {
+        const level = (course.courseNumber?.slice(0, 1) ?? "?") + "00"
+        return selectedLevels.has(level)
+      })
+    }
+
+    if (selectedGenEds.size > 0) {
+      result = result.filter((course) => {
+        const reqs = course.genEdReqs ?? []
+        if (reqs.length === 0) return false
+        return reqs.some((r) => selectedGenEds.has(r))
+      })
+    }
+
+    return result
+  }, [offeredFilteredCourses, selectedGenEds, selectedLevels])
+
   // Popular courses sorted by max enrollment
   const popularCourses = useMemo(() => {
-    return [...filteredCourses]
+    return [...fullyFilteredCourses]
       .sort((a, b) => {
         const maxEnrollA = Math.max(
           ...(a.enroll?.map((e) => e.enrollMax ?? 0) ?? [0]),
@@ -82,16 +138,39 @@ export function ProgramDetailPage({
         return maxEnrollB - maxEnrollA
       })
       .slice(0, 10)
-  }, [filteredCourses])
+  }, [fullyFilteredCourses])
 
   const groupedCoursesByLevel = useMemo(() => {
-    return filteredCourses.reduce((acc, course) => {
+    return fullyFilteredCourses.reduce((acc, course) => {
       const level = (course.courseNumber?.slice(0, 1) ?? "?") + "00"
       if (!acc[level]) acc[level] = []
       acc[level].push(course)
       return acc
     }, {} as Record<string, ConvexCourseOverview[]>)
-  }, [filteredCourses])
+  }, [fullyFilteredCourses])
+
+  const toggleLevel = (level: string) => {
+    setSelectedLevels((prev) => {
+      const next = new Set(prev)
+      if (next.has(level)) next.delete(level)
+      else next.add(level)
+      return next
+    })
+  }
+
+  const toggleGenEd = (genEd: string) => {
+    setSelectedGenEds((prev) => {
+      const next = new Set(prev)
+      if (next.has(genEd)) next.delete(genEd)
+      else next.add(genEd)
+      return next
+    })
+  }
+
+  const clearAllLocalFilters = () => {
+    setSelectedLevels(new Set())
+    setSelectedGenEds(new Set())
+  }
 
   const courseAvailability = useMemo(() => {
     let open = 0
@@ -210,12 +289,28 @@ export function ProgramDetailPage({
               </div>
             </div>
           </section>
-        ) : filteredCourses.length === 0 ? (
+        ) : offeredFilteredCourses.length === 0 ? (
           <section className="px-page mx-page">
             <div className="text-center py-12">
               <div className="text-muted-foreground text-lg">
                 No courses currently being offered. Toggle "All Courses" to see all courses.
               </div>
+            </div>
+          </section>
+        ) : fullyFilteredCourses.length === 0 ? (
+          <section className="px-page mx-page">
+            <div className="text-center py-12">
+              <div className="text-muted-foreground text-lg">
+                No courses match your filters. Clear filters to see more courses.
+              </div>
+              {(selectedLevels.size > 0 || selectedGenEds.size > 0) && (
+                <div className="mt-4">
+                  <Button variant="outline" onClick={clearAllLocalFilters}>
+                    <X className="h-4 w-4" />
+                    Clear filters
+                  </Button>
+                </div>
+              )}
             </div>
           </section>
         ) : (
@@ -272,6 +367,57 @@ export function ProgramDetailPage({
                     <LayoutGrid className="h-4 w-4" />
                     <span className="hidden sm:inline">Grid</span>
                   </Button>
+                </div>
+              </div>
+
+              {/* Local Filters */}
+              <div className="mb-6">
+                <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                  {filterOptions.levels.map((opt) => (
+                    <Button
+                      key={`level-${opt.value}`}
+                      size="sm"
+                      variant={selectedLevels.has(opt.value) ? "default" : "outline"}
+                      className="h-8 px-2.5 flex-none"
+                      onClick={() => toggleLevel(opt.value)}
+                    >
+                      {opt.value}
+                      <span className="ml-1 text-xs opacity-70 tabular-nums">
+                        ({opt.count})
+                      </span>
+                    </Button>
+                  ))}
+
+                  {filterOptions.levels.length > 0 && filterOptions.genEds.length > 0 && (
+                    <div className="h-5 w-px bg-border mx-1 flex-none" />
+                  )}
+
+                  {filterOptions.genEds.map((opt) => (
+                    <Button
+                      key={`gened-${opt.value}`}
+                      size="sm"
+                      variant={selectedGenEds.has(opt.value) ? "default" : "outline"}
+                      className="h-8 px-2.5 flex-none"
+                      onClick={() => toggleGenEd(opt.value)}
+                    >
+                      {opt.value}
+                      <span className="ml-1 text-xs opacity-70 tabular-nums">
+                        ({opt.count})
+                      </span>
+                    </Button>
+                  ))}
+
+                  {(selectedLevels.size > 0 || selectedGenEds.size > 0) && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 px-2.5 text-muted-foreground flex-none"
+                      onClick={clearAllLocalFilters}
+                    >
+                      <X className="h-4 w-4" />
+                      Reset
+                    </Button>
+                  )}
                 </div>
               </div>
 
