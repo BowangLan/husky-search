@@ -9,6 +9,7 @@ export type ConvexCourseOverviewEnroll = {
   stateKey?: string
   enrollStatus?: string
   openSessionCount?: number
+  totalSessionCount?: number
 }
 
 export type ConvexCourseOverview = {

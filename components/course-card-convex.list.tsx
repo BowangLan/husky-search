@@ -36,6 +36,20 @@ function getSeatStatus({
   return { label: "Seats available", dotClass: "bg-emerald-500" }
 }
 
+function getSessionStatus({ open, total }: { open: number; total: number }): {
+  label: string
+  dotClass: string
+} {
+  if (total <= 0) return { label: "No sessions found", dotClass: "bg-zinc-400" }
+  if (open <= 0) return { label: "No open sessions", dotClass: "bg-rose-500" }
+  if (open < total)
+    return {
+      label: `${open} of ${total} sessions open`,
+      dotClass: "bg-amber-500",
+    }
+  return { label: "All sessions open", dotClass: "bg-emerald-500" }
+}
+
 const NEARLY_FULL_FIXED_THRESHOLD = 10
 const NEARLY_FULL_PERCENT_THRESHOLD = 0.9
 const NOT_NEARLY_FULL_FIXED_THRESHOLD = 25
@@ -66,6 +80,19 @@ export function ConvexCourseListItem({
   const enrollMax = primaryEnroll?.enrollMax ?? 0
   const enrollCount = primaryEnroll?.enrollCount ?? 0
   const avail = Math.max(0, enrollMax - enrollCount)
+
+  const openSessionCount = (course.enroll ?? []).reduce(
+    (sum, e) => sum + (e.openSessionCount ?? 0),
+    0
+  )
+  const totalSessionCount = (course.enroll ?? []).reduce(
+    (sum, e) => sum + (e.totalSessionCount ?? 0),
+    0
+  )
+  const sessionStatus = getSessionStatus({
+    open: openSessionCount,
+    total: totalSessionCount,
+  })
 
   const percentFull =
     enrollMax > 0 ? Math.round((enrollCount / enrollMax) * 100) : 0
@@ -116,7 +143,7 @@ export function ConvexCourseListItem({
 
         {/* Prerequisites */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-500 dark:text-zinc-600">
+          <span className="text-xs font-normal text-zinc-700 dark:text-zinc-400">
             {course.credit} credits
           </span>
           {hasPrereqs && (
@@ -141,23 +168,56 @@ export function ConvexCourseListItem({
       <div className="flex items-center gap-3 flex-none">
         {primaryEnroll && enrollMax > 0 ? (
           <>
-            <div className="flex items-center gap-2 min-w-[120px]">
+            {/* Seat status */}
+            <div className="flex flex-col gap-0.5 min-w-[120px]">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span
-                    className={cn("h-2 w-2 rounded-full", seatStatus.dotClass)}
-                    aria-hidden="true"
-                  />
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "h-2 w-2 rounded-full",
+                        seatStatus.dotClass
+                      )}
+                      aria-hidden="true"
+                    />
+                    <span className="text-xs text-zinc-600 dark:text-zinc-500">
+                      <span className="font-medium text-zinc-700 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-300">
+                        {avail.toLocaleString()}
+                      </span>{" "}
+                      / {enrollMax.toLocaleString()}
+                      {" seats"}
+                    </span>
+                  </div>
                 </TooltipTrigger>
-                <TooltipContent side="top">{seatStatus.label}</TooltipContent>
+                <TooltipContent side="top">{`${avail.toLocaleString()} of ${enrollMax.toLocaleString()} seats available`}</TooltipContent>
               </Tooltip>
-              <span className="text-xs text-zinc-600 dark:text-zinc-500">
-                <span className="font-medium text-zinc-700 dark:text-zinc-400">
-                  {avail.toLocaleString()}
-                </span>{" "}
-                / {enrollMax.toLocaleString()}
-              </span>
+
+              {/* Session count status */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "h-2 w-2 rounded-full",
+                        sessionStatus.dotClass
+                      )}
+                      aria-hidden="true"
+                    />
+                    <span className="text-xs text-zinc-600 dark:text-zinc-500">
+                      <span className="font-medium text-zinc-700 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-300">
+                        {openSessionCount.toLocaleString()}
+                      </span>{" "}
+                      / {totalSessionCount.toLocaleString()}{" "}
+                      <span>sessions</span>
+                    </span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  {`${openSessionCount.toLocaleString()} of ${totalSessionCount.toLocaleString()} sessions open`}
+                </TooltipContent>
+              </Tooltip>
             </div>
+
             <div className="h-1.5 w-20 sm:w-36 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
               <div
                 className={cn(
