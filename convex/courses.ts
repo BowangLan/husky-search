@@ -174,6 +174,10 @@ const fetchCurrentTermData = async (
       .withIndex("by_course_code_and_term_id", (q) => q.eq("courseCode", courseCode).eq("termId", term))
       .collect();
 
+    if (sessions.length === 0) {
+      return null;
+    }
+
     const sessionDataList: MyplanCourseTermSession[] = sessions.map((session) => session.sessionData);
 
     // Compute enrollCount from sessions if the stored value is 0 or missing
@@ -194,6 +198,16 @@ const fetchCurrentTermData = async (
         return sum + (isNaN(max) ? 0 : max);
       }, 0);
     }
+
+    // if (courseCode === "AFRAM 214") {
+    //   console.log("--------------------------------");
+    //   console.log("\nCourse code: ", courseCode);
+    //   console.log("Term ID: ", termData.termId);
+    //   console.log("Enroll count: ", enrollCount);
+    //   console.log("Enroll max: ", enrollMax);
+    //   console.log("Sessions: ", sessionDataList);
+    //   console.log("--------------------------------");
+    // }
 
     return {
       termId: termData.termId,
@@ -222,6 +236,7 @@ const convertCourseToOverview = (c: Doc<"myplanCourses"> & { currentTermData?: M
     stateKey: t.sessions?.[0]?.stateKey,
     enrollStatus: t.sessions?.[0]?.enrollStatus,
     openSessionCount: t.sessions?.filter((s) => s.stateKey === "active" && s.enrollCount < s.enrollMaximum).length,
+    totalSessionCount: t.sessions?.length ?? 0,
   })),
   prereqs: c.prereqs,
   lastUpdated: c.lastUpdated,
