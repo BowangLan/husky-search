@@ -237,6 +237,7 @@ const convertCourseToOverview = (c: Doc<"myplanCourses"> & { currentTermData?: M
     enrollStatus: t.sessions?.[0]?.enrollStatus,
     openSessionCount: t.sessions?.filter((s) => s.stateKey === "active" && s.enrollCount < s.enrollMaximum).length,
     totalSessionCount: t.sessions?.length ?? 0,
+    sessions: t.sessions,
   })),
   prereqs: c.prereqs,
   lastUpdated: c.lastUpdated,

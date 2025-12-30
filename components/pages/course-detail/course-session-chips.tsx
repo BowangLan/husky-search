@@ -34,7 +34,10 @@ const SessionChip = ({
   const selectedSessionIdSet = new Set(selectedSessionIds)
   const delayedHoverTimeout = useRef<NodeJS.Timeout | null>(null)
 
-  const { triggerToggle, isScheduled } = useScheduleToggleWithToasts(session)
+  const { triggerToggle, isScheduled } = useScheduleToggleWithToasts(
+    session,
+    data
+  )
 
   const enrollState = getSessionEnrollState(session)
   const chipClasses = getEnrollOutlineClasses(enrollState)
@@ -116,7 +119,7 @@ export const SessionChips = () => {
     pinnedSessionIds,
     setPinnedSessionIds,
   } = useCourseSessions()
-  
+
   let filteredSessions = sessions || []
 
   if (selectedWeekDaySet.size > 0) {

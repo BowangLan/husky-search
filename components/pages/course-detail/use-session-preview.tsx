@@ -1,12 +1,16 @@
 "use client"
 
 import * as React from "react"
+
 import { useSchedulePreview } from "@/components/schedule/schedule-preview-context"
+
+import { useCourseSessions } from "./course-sessions-context"
 import { useScheduleToggleWithToasts } from "./use-schedule-toggle"
 
 export function useSessionPreview(session: any) {
   const { setPreviewSession } = useSchedulePreview()
-  const { courseCode, isScheduled } = useScheduleToggleWithToasts(session)
+  const { data } = useCourseSessions()
+  const { courseCode, isScheduled } = useScheduleToggleWithToasts(session, data)
 
   const handleMouseEnter = React.useCallback(() => {
     if (!courseCode) return

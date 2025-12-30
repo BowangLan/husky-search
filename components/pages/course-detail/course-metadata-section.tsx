@@ -2,17 +2,9 @@ import { CourseDetail } from "@/convex/courses"
 import { FileText, GraduationCap } from "lucide-react"
 
 import { ConvexCourseDetail } from "@/types/convex-courses"
-import { MyPlanCourseCodeGroupWithDetail } from "@/types/myplan"
-import { capitalizeSingle } from "@/lib/utils"
+import { parseDescription } from "@/lib/course-utils"
 import { Card, CardContent } from "@/components/ui/card"
 import { Section, SectionContent, SectionHeader } from "@/components/section"
-
-export const parseDescription = (description: string) => {
-  // Parse HTML tags and extract course codes from linkified spans
-  return description
-    .replace(/<span[^>]*data-text="([^"]*)"[^>]*\/>/g, "$1")
-    .replace(/<[^>]*>/g, "")
-}
 
 const formatPrereqs = (prereqs: string[] | undefined) => {
   if (prereqs == null || prereqs === undefined || prereqs.length === 0)

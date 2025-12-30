@@ -32,7 +32,7 @@ export function GenEdSection() {
             >
               <div className="flex items-center lg:items-start gap-2 lg:gap-3">
                 <div className="flex h-7 w-7 lg:h-9 lg:w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 transition-colors group-hover:bg-indigo-100 dark:bg-indigo-950/50 dark:group-hover:bg-indigo-900/50">
-                  <BookOpen className="h-3 w-3 lg:h-4 lg:w-4 text-indigo-600 dark:text-indigo-400" />
+                  <BookOpen className="h-3 w-3 lg:h-4 lg:w-4 text-primary dark:text-primary" />
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col justify-center">
                   <h3 className="font-normal text-sm sm:text-base/tight tracking-tight text-zinc-900 transition-colors group-hover:text-zinc-950 dark:text-zinc-200 dark:group-hover:text-zinc-100 mr-1">

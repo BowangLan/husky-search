@@ -280,3 +280,10 @@ export const isRequisitesEmpty = (requisites: any): boolean => {
   return true
 
 }
+
+export const parseDescription = (description: string) => {
+  // Parse HTML tags and extract course codes from linkified spans
+  return description
+    .replace(/<span[^>]*data-text="([^"]*)"[^>]*\/>/g, "$1")
+    .replace(/<[^>]*>/g, "")
+}

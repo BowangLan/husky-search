@@ -1,6 +1,6 @@
 import { Doc } from "@/convex/_generated/dataModel"
 import { DawgpathCourseDetail } from "@/convex/dawgpath"
-import { MyplanCourseTermData } from "@/convex/schema"
+import { MyplanCourseTermData, MyplanCourseTermSession } from "@/convex/schema"
 
 export type ConvexCourseOverviewEnroll = {
   termId: string
@@ -10,6 +10,7 @@ export type ConvexCourseOverviewEnroll = {
   enrollStatus?: string
   openSessionCount?: number
   totalSessionCount?: number
+  sessions?: MyplanCourseTermSession[]
 }
 
 export type ConvexCourseOverview = {

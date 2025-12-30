@@ -109,9 +109,9 @@
   --sidebar-foreground: oklch(0.141 0.005 285.823);
 
   /* Primary Colors */
-  --primary: oklch(0.606 0.25 292.717);
+  --primary: var(--color-blue-500);
   --primary-foreground: oklch(0.969 0.016 293.756);
-  --sidebar-primary: oklch(0.606 0.25 292.717);
+  --sidebar-primary: var(--color-blue-500);
   --sidebar-primary-foreground: oklch(0.969 0.016 293.756);
 
   /* Secondary Colors */
@@ -137,8 +137,8 @@
   --sidebar-border: oklch(0.92 0.004 286.32);
 
   /* Ring Colors */
-  --ring: oklch(0.606 0.25 292.717);
-  --sidebar-ring: oklch(0.606 0.25 292.717);
+  --ring: var(--color-blue-500);
+  --sidebar-ring: var(--color-blue-500);
 
   /* Chart Colors */
   --chart-1: oklch(0.488 0.243 264.376);
@@ -169,9 +169,9 @@
 
   /* Primary Colors */
   /* --primary: oklch(0.541 0.281 293.009); */
-  --primary: #6a38a2;
+  --primary: var(--color-blue-500);
   --primary-foreground: oklch(0.969 0.016 293.756);
-  --sidebar-primary: oklch(0.541 0.281 293.009);
+  --sidebar-primary: var(--color-blue-500);
   --sidebar-primary-foreground: oklch(0.969 0.016 293.756);
 
   /* Secondary Colors */
@@ -197,8 +197,8 @@
   --sidebar-border: oklch(1 0 0 / 10%);
 
   /* Ring Colors */
-  --ring: oklch(0.541 0.281 293.009);
-  --sidebar-ring: oklch(0.541 0.281 293.009);
+  --ring: var(--color-blue-500);
+  --sidebar-ring: var(--color-blue-500);
 
   /* Chart Colors */
   --chart-1: oklch(0.488 0.243 264.376);

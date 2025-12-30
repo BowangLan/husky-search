@@ -8,16 +8,17 @@ import { useQuery } from "convex/react"
 import { formatDistanceToNow } from "date-fns"
 import { Calendar, FileText, GraduationCap, Info, X } from "lucide-react"
 
-import { isRequisitesEmpty, parseTermId } from "@/lib/course-utils"
+import {
+  isRequisitesEmpty,
+  parseDescription,
+  parseTermId,
+} from "@/lib/course-utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CopySLNButton } from "@/components/copy-sln-button"
-import {
-  formatRawPrereqs,
-  parseDescription,
-} from "@/components/pages/course-detail/course-metadata-section"
+import { formatRawPrereqs } from "@/components/pages/course-detail/course-metadata-section"
 import { SessionEnrollProgress } from "@/components/session-enroll-progress"
 
 import { CourseSessionsProvider } from "../pages/course-detail/course-sessions-context"

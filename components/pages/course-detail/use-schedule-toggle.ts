@@ -13,10 +13,23 @@ import { toast } from "sonner"
 
 import { isScheduleFeatureEnabled } from "@/config/features"
 import { useCourseSessions } from "./course-sessions-context"
+import { CourseDetail } from "@/convex/courses"
 
-export function useScheduleToggleWithToasts(session: any) {
+type CourseDetailForSchedule = {
+  myplanCourse: {
+    courseCode?: string
+    title?: string
+    credit?: string | number
+    currentTermData?: Array<{
+      termId: string
+      sessions?: any[]
+    }>
+  } | null
+} | null
+
+export function useScheduleToggleWithToasts(session: any, courseDetail: CourseDetailForSchedule) {
   const scheduleEnabled = isScheduleFeatureEnabled()
-  const { data } = useCourseSessions()
+  const data = courseDetail
   // Extract termId from currentTermData
   const termId = (data as any)?.myplanCourse?.currentTermData?.[0]?.termId as string | undefined
   // Watch store changes to make isScheduledInTerm reactive
@@ -83,7 +96,7 @@ export function useScheduleToggleWithToasts(session: any) {
         if (parent) {
           const parentId = String(parent?.id ?? parent?.activityId ?? parent?.registrationCode)
           // Check if parent session exists in the specific termId
-          const hasParent = termId 
+          const hasParent = termId
             ? scheduleStore.getState().hasSession(parentId, termId)
             : scheduleStore.getState().hasSession(parentId)
           if (!hasParent) {
@@ -123,7 +136,7 @@ export function useScheduleToggleWithToasts(session: any) {
           else toast.error("Unable to add this session.")
         },
       })
-      
+
       const meeting = Array.isArray((session as any)?.meetingDetailsList)
         ? (session as any).meetingDetailsList.find(
           (m: any) => m?.days || m?.time

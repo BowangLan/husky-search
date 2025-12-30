@@ -27,16 +27,19 @@ import {
 import { useSchedulePreview } from "@/components/schedule/schedule-preview-context"
 
 import { useScheduleToggleWithToasts } from "./use-schedule-toggle"
+import { useCourseSessions } from "./course-sessions-context"
 
 export const SessionScheduleToggleButton = ({
   session,
 }: {
   session: MyplanCourseTermSession
 }) => {
-  if (!isScheduleFeatureEnabled()) return null
+  const { data } = useCourseSessions()
   const { isScheduled, canAdd, triggerToggle } =
-    useScheduleToggleWithToasts(session)
+    useScheduleToggleWithToasts(session, data)
   const hasTimeConflictCheck = useHasTimeConflict(session)
+
+  if (!isScheduleFeatureEnabled()) return null
 
   // Check for time conflicts independently - prioritize this over switch reasons
   const hasTimeConflict = !isScheduled && hasTimeConflictCheck

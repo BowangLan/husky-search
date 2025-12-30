@@ -7,7 +7,7 @@ import { ProgramInfo } from "@/types/program"
 import { cn } from "@/lib/utils"
 
 const ACCENT_HOVER_TEXT_CLASSES = [
-  "group-hover:text-indigo-400",
+  "group-hover:text-primary",
   "group-hover:text-emerald-400",
   "group-hover:text-amber-400",
   "group-hover:text-purple-400",
@@ -25,7 +25,7 @@ function hashStringToIndex(input: string, mod: number) {
 }
 
 function getAccentHoverTextClass(code: string, accent: Accent) {
-  if (accent === "indigo") return "group-hover:text-indigo-400"
+  if (accent === "indigo") return "group-hover:text-primary"
   if (accent === "emerald") return "group-hover:text-emerald-400"
   if (accent === "amber") return "group-hover:text-amber-400"
   if (accent === "purple") return "group-hover:text-purple-400"
