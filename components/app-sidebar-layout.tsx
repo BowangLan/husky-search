@@ -82,6 +82,8 @@ import { FeatureRoadmapDialog } from "@/components/feature-roadmap-dialog"
 import { Icons } from "@/components/icons"
 import { SchedulePreviewProvider } from "@/components/schedule/schedule-preview-context"
 
+import { GlobalDisclaimerBanner } from "./global-disclaimer-banner"
+
 function isPathActive(pathname: string, href: string) {
   if (href === "/") return pathname === href
   return pathname.startsWith(href)
@@ -203,6 +205,7 @@ function MainContentWithRightSidebar({
     return (
       <div className="flex flex-1 min-w-0">
         <SidebarInset className="flex flex-col h-screen flex-1 min-w-0">
+          <GlobalDisclaimerBanner />
           <AppMainHeader />
           <main
             className={cn("flex-1 min-h-0 w-full overflow-x-hidden px-2 pb-2")}
@@ -225,6 +228,7 @@ function MainContentWithRightSidebar({
     <ResizablePanelGroup direction="horizontal" className="flex-1 min-w-0">
       <ResizablePanel defaultSize={100} minSize={50}>
         <SidebarInset className="flex flex-col h-screen flex-1 min-w-0">
+          <GlobalDisclaimerBanner />
           <AppMainHeader />
           <main
             className={cn("flex-1 min-h-0 w-full overflow-x-hidden px-2 pb-2")}
@@ -496,7 +500,10 @@ export function AppSidebarLayout({ children }: { children: React.ReactNode }) {
 
           <MainContentWithRightSidebar>{children}</MainContentWithRightSidebar>
           <CourseSearchCommand open={searchOpen} onOpenChange={setSearchOpen} />
-          <FeatureRoadmapDialog open={roadmapOpen} onOpenChange={setRoadmapOpen} />
+          <FeatureRoadmapDialog
+            open={roadmapOpen}
+            onOpenChange={setRoadmapOpen}
+          />
         </SidebarProvider>
       </RightSidebarProvider>
     </SchedulePreviewProvider>
