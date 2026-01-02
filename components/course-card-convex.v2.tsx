@@ -5,13 +5,21 @@ import { GraduationCap, Link2 } from "lucide-react"
 
 import { ConvexCourseOverview } from "@/types/convex-courses"
 import { cn, getGenEdLabel } from "@/lib/utils"
+import { useCoursePopover } from "@/hooks/use-course-popover"
+import { useIsCourseScheduled } from "@/hooks/use-is-course-scheduled"
+import { Button } from "@/components/ui/button"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { CoursePopoverWrapper } from "@/components/course-popover-wrapper"
-import { useIsCourseScheduled } from "@/hooks/use-is-course-scheduled"
+import { CoursePopoverContent } from "@/components/course-popover-content"
+import { Icons } from "@/components/icons"
 
 function pickPrimaryEnroll(course: ConvexCourseOverview) {
   const enroll = course.enroll ?? []
@@ -94,11 +102,19 @@ export function ConvexCourseCardLinkV2({
     ? primaryEnroll?.sessions
     : []
 
+  const {
+    popoverOpen,
+    setPopoverOpen,
+    isCourseScheduled,
+    toggleCourseInSchedule,
+    primaryEnroll: popoverPrimaryEnroll,
+    hasPrereqs: popoverHasPrereqs,
+    sessions: popoverSessions,
+  } = useCoursePopover(course)
+
   return (
-    <CoursePopoverWrapper course={course}>
-      <Link
-        href={`/courses/${course.courseCode}`}
-        prefetch
+    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+      <article
         className={cn(
           "group flex h-full flex-col justify-between rounded-xl border p-5 transition-all duration-300 hover:shadow-lg hover:shadow-zinc-200/60 dark:hover:shadow-black/40",
           isScheduled
@@ -108,11 +124,13 @@ export function ConvexCourseCardLinkV2({
         )}
       >
         <div>
-          <div className="mb-1 flex items-center justify-between gap-3">
+          <div className="mb-1 flex items-start justify-between gap-3">
             <div className="flex items-baseline gap-2 min-w-0">
-              <h3 className="text-lg flex-none font-medium tracking-tight text-zinc-900 truncate dark:text-zinc-200">
-                {course.courseCode}
-              </h3>
+              <Link href={`/courses/${course.courseCode}`} prefetch>
+                <h3 className="text-lg flex-none font-medium tracking-tight text-zinc-900 truncate dark:text-zinc-200 hover:underline cursor-pointer">
+                  {course.courseCode}
+                </h3>
+              </Link>
               <span className="text-xs flex-none text-zinc-600 shrink-0 dark:text-zinc-500 inline-block">
                 ({course.credit} cr)
               </span>
@@ -122,9 +140,11 @@ export function ConvexCourseCardLinkV2({
               {(course.genEdReqs ?? []).slice(0, 3).map((req) => (
                 <Tooltip key={req}>
                   <TooltipTrigger asChild>
-                    <span className="rounded border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-700 dark:border-zinc-700/50 dark:bg-zinc-800/80 dark:text-zinc-400">
-                      {req}
-                    </span>
+                    <Link href={`/gen-eds/${req}`} prefetch>
+                      <span className="rounded border border-zinc-200 bg-zinc-100 px-1.5 h-6 inline-flex items-center justify-center text-[10px] font-medium text-zinc-700 hover:bg-zinc-200 hover:border-zinc-300 dark:border-zinc-700/50 dark:bg-zinc-800/80 dark:text-zinc-400 dark:hover:bg-zinc-700/50 dark:hover:border-zinc-600 cursor-pointer">
+                        {req}
+                      </span>
+                    </Link>
                   </TooltipTrigger>
                   <TooltipContent side="top">
                     {getGenEdLabel(req)}
@@ -138,7 +158,7 @@ export function ConvexCourseCardLinkV2({
             {course.title}
           </h4>
 
-          <div className="mb-2 flex items-center gap-1.5">
+          <div className="mb-2 flex items-center justify-between gap-1.5">
             {hasPrereqs ? (
               <>
                 <Tooltip>
@@ -160,8 +180,14 @@ export function ConvexCourseCardLinkV2({
                     <span className="text-[11px] font-medium text-zinc-600 dark:text-zinc-500">
                       No Prereqs
                     </span> */}
+                <div></div>
               </>
             )}
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                <Icons.info className="h-3 w-3" />
+              </Button>
+            </PopoverTrigger>
           </div>
         </div>
 
@@ -203,7 +229,19 @@ export function ConvexCourseCardLinkV2({
             </span>
           </div>
         )}
-      </Link>
-    </CoursePopoverWrapper>
+      </article>
+      <PopoverContent className="w-[500px] p-5">
+        <CoursePopoverContent
+          course={course}
+          isCourseScheduled={isCourseScheduled}
+          toggleCourseInSchedule={toggleCourseInSchedule}
+          hasPrereqs={popoverHasPrereqs}
+          sessions={popoverSessions}
+          primaryEnroll={popoverPrimaryEnroll}
+          cancelClose={() => {}}
+          closePopover={() => setPopoverOpen(false)}
+        />
+      </PopoverContent>
+    </Popover>
   )
 }

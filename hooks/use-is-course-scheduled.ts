@@ -24,3 +24,4 @@ export function useIsCourseScheduled(courseCode?: string) {
     return false
   }, [enabled, courseCode, hydrated, plansByTerm])
 }
+
