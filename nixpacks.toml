@@ -1,0 +1,2 @@
+[phases.build]
+cmds = ["bunx convex deploy --cmd 'bun run build'"]
