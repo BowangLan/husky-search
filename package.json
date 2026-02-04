@@ -110,6 +110,6 @@
   },
   "packageManager": "bun@1.2.2",
   "engines": {
-    "node": "25"
+    "node": ">=22"
   }
 }
